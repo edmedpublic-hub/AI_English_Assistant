@@ -1,23 +1,22 @@
-# Python cache
+# ---- Python cache ----
 __pycache__/
 *.pyc
 
-# Virtual environment
+# ---- Virtual environments ----
 venv/
 env/
 
-# Django database (local only)
+# ---- Django local database ----
 db.sqlite3
 
-# IDE settings
+# ---- Environment variables ----
+.env
+backend/.env
+
+# ---- IDE settings ----
 .vscode/
 .idea/
 
-# OS files
+# ---- OS-generated files ----
 .DS_Store
 Thumbs.db
-# .gitignore
-.env
-backend/.env
-venv/
-__pycache__/
