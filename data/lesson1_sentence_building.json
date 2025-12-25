@@ -1,0 +1,53 @@
+{
+  "reorder": [
+    {
+      "instruction": "Reorder the words to make a correct sentence.",
+      "question": "many / calls / there / on / me / were",
+      "answer": "There were many calls on me."
+    },
+    {
+      "instruction": "Reorder the words to make a correct sentence.",
+      "question": "we / have / broken / slavery / of / the / shackles",
+      "answer": "We have broken the shackles of slavery."
+    }
+  ],
+
+  "expand": [
+    {
+      "instruction": "Expand the sentence by adding meaningful details.",
+      "question": "We are a free people.",
+      "answer": "We are a free people who now govern our own affairs with dignity and responsibility."
+    },
+    {
+      "instruction": "Expand the sentence by adding meaningful details.",
+      "question": "You have achieved success.",
+      "answer": "You have achieved success through hard work and will now enter a larger world of opportunities."
+    }
+  ],
+
+  "improve": [
+    {
+      "instruction": "Improve the sentence by making it more clear and impactful.",
+      "question": "He thanked them.",
+      "answer": "He sincerely thanked them for the flattering words they used to introduce him."
+    },
+    {
+      "instruction": "Improve the sentence by making it more formal and precise.",
+      "question": "They became free.",
+      "answer": "They became truly free after gaining a sovereign and independent state of their own."
+    }
+  ],
+
+  "transform": [
+    {
+      "instruction": "Transform the sentence as instructed: Assertive → Interrogative.",
+      "question": "We are a free people.",
+      "answer": "Are we a free people?"
+    },
+    {
+      "instruction": "Transform the sentence as instructed: Assertive → Interrogative.",
+      "question": "You have won your degrees.",
+      "answer": "Have you won your degrees?"
+    }
+  ]
+}

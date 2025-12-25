@@ -1,0 +1,29 @@
+{
+  "concepts": [
+    {
+      "title": "Simple Sentence",
+      "definition": "A sentence with one independent clause expressing a complete thought.",
+      "example": "She plays the piano beautifully."
+    },
+    {
+      "title": "Compound Sentence",
+      "definition": "A sentence that has two or more independent clauses joined by a coordinating conjunction.",
+      "example": "She plays the piano, and he sings along."
+    },
+    {
+      "title": "Complex Sentence",
+      "definition": "A sentence that contains one independent clause and at least one dependent clause.",
+      "example": "She plays the piano because she loves music."
+    },
+    {
+      "title": "Compound-Complex Sentence",
+      "definition": "A sentence containing two or more independent clauses and one or more dependent clauses.",
+      "example": "She plays the piano because she loves music, and he listens quietly."
+    },
+    {
+      "title": "Clause",
+      "definition": "A group of words containing a subject and a predicate.",
+      "example": "She runs fast."
+    }
+  ]
+}

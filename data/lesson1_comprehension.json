@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Who invited the speaker to deliver the Convocation Address?",
+    "options": [
+      "The Chancellor",
+      "The Vice-Chancellor",
+      "The President",
+      "The Dean"
+    ],
+    "answer": 1
+  },
+  {
+    "question": "How did the speaker describe his service to the people?",
+    "options": [
+      "As a favor to the nation",
+      "As a duty of every Muslim",
+      "As a political responsibility",
+      "As an academic obligation"
+    ],
+    "answer": 1
+  },
+  {
+    "question": "In what capacity does the speaker address the audience?",
+    "options": [
+      "As Head of the State",
+      "As a teacher",
+      "As a friend",
+      "As a Chancellor"
+    ],
+    "answer": 2
+  },
+  {
+    "question": "What change does the speaker refer to as revolutionary?",
+    "options": [
+      "The establishment of universities",
+      "The achievement of Pakistan’s independence",
+      "The spread of education",
+      "The advancement in science"
+    ],
+    "answer": 1
+  },
+  {
+    "question": "What does the speaker expect from the new graduates?",
+    "options": [
+      "To leave the country for higher studies",
+      "To serve the state selflessly and responsibly",
+      "To seek government jobs",
+      "To criticize the government"
+    ],
+    "answer": 1
+  }
+]

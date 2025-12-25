@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Writing Progress{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">✍️ Writing Progress for {{ student_id }}</h1>
+
+  <p>Total Attempts: {{ total }}</p>
+  <p>Average Score: {{ avg_score }}</p>
+
+  <hr>
+  <h4>All Attempts</h4>
+  <ul class="list-group">
+    {% for attempt in attempts %}
+      <li class="list-group-item">
+        Task: {{ attempt.writing_task.prompt }} <br>
+        Sentence: {{ attempt.sentence }} <br>
+        Score: {{ attempt.ai_score }} | Feedback: {{ attempt.feedback }}
+        <br><small>{{ attempt.timestamp }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

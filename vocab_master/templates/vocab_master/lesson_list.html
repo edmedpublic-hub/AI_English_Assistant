@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Vocabulary Lessons{% endblock %}
+
+{% block nav_links %}
+<li class="nav-item">
+  <a class="nav-link" href="{% url 'vocab_master:dashboard' %}">Dashboard</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Vocabulary Lessons</h1>
+
+<div class="row g-4">
+  {% for lesson in lessons %}
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ lesson.title }}</h5>
+          <p class="card-text text-muted mb-2">
+            Unit: {{ lesson.unit.title }}<br />
+            Textbook: {{ lesson.unit.textbook.title }}
+          </p>
+
+          {% if lesson.word_count %}
+            {% with reviewed=lesson.reviewed_count total=lesson.word_count %}
+              {% if total > 0 %}
+                {% widthratio reviewed total 100 as pct %}
+                <div class="progress mb-2" style="height: 8px;">
+                  <div class="progress-bar bg-success" style="width: {{ pct }}%;"></div>
+                </div>
+                <small class="text-muted">
+                  {{ reviewed }} / {{ total }} reviewed ({{ pct }}%)
+                </small>
+              {% endif %}
+            {% endwith %}
+          {% endif %}
+
+          <a href="{% url 'vocab_master:lesson_detail' lesson.pk %}" class="btn btn-primary mt-2">
+            View Lesson →
+          </a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info text-center">No lessons available yet.</div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- ✅ Dashboard entry point -->
+<div class="text-center mt-4">
+  <a href="{% url 'vocab_master:dashboard' %}" class="btn btn-success btn-lg">
+    Go to Vocabulary Dashboard
+  </a>
+</div>
+{% endblock %}

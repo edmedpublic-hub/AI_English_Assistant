@@ -1,0 +1,36 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Reading Lessons</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{% static 'reading/reading.css' %}" />
+  </head>
+
+  <body>
+    <header class="page-header">
+      <h1>📖 Reading Lessons</h1>
+      <p class="subtitle">Enhance your skills with curated lessons</p>
+    </header>
+
+    <main class="content">
+      <!-- Lesson Section -->
+      <section id="lesson-section">
+        <h2 class="section-title">Available Lessons</h2>
+        <div id="lesson-list" class="lesson-list">
+          <p class="loading">Loading lessons...</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <p>&copy; {{ year }} Reading Hub. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module" src="{% static 'reading/reading.main.js' %}"></script>
+  </body>
+</html>

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">{{ lesson.title }}</h1>
+<p class="text-muted">
+  Unit: {{ lesson.unit.title }} | Textbook: {{ lesson.unit.textbook.title }}
+</p>
+
+<div class="row g-3">
+  {% for word in vocab_items %}
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            {{ word.word }}
+            <span class="badge bg-info">{{ word.part_of_speech }}</span>
+          </h5>
+
+          <p><strong>Definition:</strong> {{ word.definition }}</p>
+          <p><em>Urdu:</em> {{ word.urdu_meaning }}</p>
+
+          {% if word.phonetic_spelling %}
+            <p><strong>Phonetic:</strong> {{ word.phonetic_spelling }}</p>
+          {% endif %}
+
+          {% if word.audio_pronunciation %}
+            <p>
+              <strong>Pronunciation:</strong>
+              <audio controls>
+                <source src="{{ word.audio_pronunciation.url }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+              </audio>
+            </p>
+          {% endif %}
+
+          <!-- Synonyms -->
+          {% if word.has_synonyms %}
+            <p><strong>Synonyms ({{ word.syn_count }}):</strong>
+              {% for s in word.synonyms.all %}
+                {{ s.word }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </p>
+          {% endif %}
+
+          <!-- Antonyms -->
+          {% if word.has_antonyms %}
+            <p><strong>Antonyms ({{ word.ant_count }}):</strong>
+              {% for a in word.antonyms.all %}
+                {{ a.word }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </p>
+          {% endif %}
+
+          <!-- Examples -->
+          {% if word.has_examples %}
+            <p><strong>Examples ({{ word.ex_count }}):</strong></p>
+            <ul>
+              {% for ex in word.examples.all %}
+                <li>{{ ex.sentence }} <em>({{ ex.sentence_type }})</em></li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+
+          <p class="text-muted">
+            Reviewed: {{ word.reviewed|yesno:"Yes,No" }}<br>
+            Added: {{ word.created_at|date:"M d, Y" }}<br>
+            Updated: {{ word.updated_at|date:"M d, Y" }}
+          </p>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">
+        No vocabulary items in this lesson yet.
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Navigation -->
+<div class="d-flex justify-content-between mt-4">
+  {% if previous_lesson %}
+    <a href="{% url 'vocab_master:lesson_detail' previous_lesson.pk %}"
+       class="btn btn-outline-primary">&laquo; Previous Lesson</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+
+  {% if next_lesson %}
+    <a href="{% url 'vocab_master:lesson_detail' next_lesson.pk %}"
+       class="btn btn-outline-primary">Next Lesson &raquo;</a>
+  {% endif %}
+</div>
+
+<!-- Back to Lesson List -->
+<div class="mt-4">
+  <a href="{% url 'vocab_master:lesson_list' %}" class="btn btn-secondary">
+    ← Back to Lessons
+  </a>
+</div>
+{% endblock %}

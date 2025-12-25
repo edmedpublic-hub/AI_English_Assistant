@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📊 Dashboard for {{ student_id }}</h1>
+
+  <div class="row">
+    <!-- Writing -->
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h4>✍️ Writing Progress</h4>
+          <p>Total Attempts: {{ writing_total }}</p>
+          <p>Average Score: {{ writing_avg }}</p>
+          <canvas id="writingChart"></canvas>
+          {# Writing progress link disabled until implemented #}
+       
+        </div>
+      </div>
+    </div>
+
+    <!-- Comprehension -->
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h4>❓ Comprehension Progress</h4>
+          <p>Total Attempts: {{ comprehension_total }}</p>
+          <p>Correct Answers: {{ comprehension_correct }}</p>
+          <p>Accuracy: {{ comprehension_accuracy }}%</p>
+          <canvas id="comprehensionChart"></canvas>
+         
+        </div>
+      </div>
+    </div>
+
+    <!-- Vocabulary -->
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h4>📖 Vocabulary Progress</h4>
+          <p>Total Words Practiced: {{ vocab_total }}</p>
+          <p>Correct Answers: {{ vocab_correct }}</p>
+          <p>Accuracy: {{ vocab_accuracy }}%</p>
+          <canvas id="vocabChart"></canvas>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Grammar -->
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h4>📘 Grammar Progress</h4>
+          <p>Total Grammar Points Practiced: {{ grammar_total }}</p>
+          <p>Correct Attempts: {{ grammar_correct }}</p>
+          <p>Accuracy: {{ grammar_accuracy }}%</p>
+          <canvas id="grammarChart"></canvas>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+  <h3>📈 Progress Over Time</h3>
+  <div class="row">
+    <div class="col-md-12">
+      <canvas id="writingTrendChart"></canvas>
+    </div>
+    <div class="col-md-12 mt-4">
+      <canvas id="comprehensionTrendChart"></canvas>
+    </div>
+    <div class="col-md-12 mt-4">
+      <canvas id="vocabTrendChart"></canvas>
+    </div>
+    <div class="col-md-12 mt-4">
+      <canvas id="grammarTrendChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // --- Static Charts ---
+  new Chart(document.getElementById('writingChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Average Score'],
+      datasets: [{
+        label: 'Writing',
+        data: [{{ writing_avg }}],
+        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('comprehensionChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Correct', 'Incorrect'],
+      datasets: [{
+        data: [{{ comprehension_correct }}, {{ comprehension_incorrect }}],
+        backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 99, 132, 0.6)']
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('vocabChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Correct', 'Incorrect'],
+      datasets: [{
+        data: [{{ vocab_correct }}, {{ vocab_incorrect }}],
+        backgroundColor: ['rgba(153, 102, 255, 0.6)', 'rgba(255, 159, 64, 0.6)']
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('grammarChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Correct', 'Incorrect'],
+      datasets: [{
+        data: [{{ grammar_correct }}, {{ grammar_incorrect }}],
+        backgroundColor: ['rgba(255, 206, 86, 0.6)', 'rgba(201, 203, 207, 0.6)']
+      }]
+    }
+  });
+
+  // --- Trend Charts ---
+  // For trend charts, ideally compute accuracy in the view and pass lists like writing_trend_scores, comprehension_trend_accuracy, etc.
+  // Example usage:
+  const writingTrendLabels = [{% for item in writing_trend %}"{{ item.day }}",{% endfor %}];
+  const writingTrendData = [{% for item in writing_trend %}{{ item.avg_score }},{% endfor %}];
+  new Chart(document.getElementById('writingTrendChart'), {
+    type: 'line',
+    data: {
+      labels: writingTrendLabels,
+      datasets: [{
+        label: 'Average Writing Score',
+        data: writingTrendData,
+        borderColor: 'rgba(54, 162, 235, 0.8)',
+        fill: false,
+        tension: 0.1
+      }]
+    }
+  });
+
+  // Similar blocks can be added for comprehension_trend, vocab_trend, grammar_trend once you pass precomputed accuracy values from the view.
+</script>
+{% endblock %}

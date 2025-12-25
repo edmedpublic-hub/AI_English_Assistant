@@ -1,0 +1,27 @@
+[
+  {
+    "question": "Identify the type of sentence: 'She is reading a book.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Simple"
+  },
+  {
+    "question": "Identify the type of sentence: 'He came and she went.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Compound"
+  },
+  {
+    "question": "Identify the type of sentence: 'Although it was raining, we went out.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Complex"
+  },
+  {
+    "question": "Identify the type of sentence: 'When he arrived, I was studying and she was cooking.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Compound-Complex"
+  },
+  {
+    "question": "Identify the type of sentence: 'They laughed loudly.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Simple"
+  }
+]

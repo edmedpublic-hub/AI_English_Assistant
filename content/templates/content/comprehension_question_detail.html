@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Comprehension Question{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">❓ Comprehension Question</h1>
+
+  <p><strong>Question:</strong> {{ cq.question }}</p>
+
+  <hr>
+  <h4>Your Answer</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  {% if feedback %}
+    <div class="alert alert-info mt-3">{{ feedback }}</div>
+  {% endif %}
+
+  <hr>
+  <h4>Attempts</h4>
+  {% if attempts %}
+    <ul class="list-group">
+      {% for attempt in attempts %}
+        <li class="list-group-item">
+          <strong>{{ attempt.student_id }}</strong> answered: {{ attempt.answer }}
+          <br>Status: {% if attempt.is_correct %}✅ Correct{% else %}❌ Incorrect{% endif %}
+          <br><small>{{ attempt.timestamp }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No attempts yet.</p>
+  {% endif %}
+
+  <a href="{% url 'content:lesson-detail' cq.lesson.id %}" class="btn btn-secondary mt-3">
+    Back to Lesson
+  </a>
+  <a href="{% url 'content:student-dashboard' student_id %}" class="btn btn-outline-success">
+    Go to Dashboard
+</a>
+</div>
+{% endblock %}

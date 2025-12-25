@@ -1,0 +1,205 @@
+/* Base styling */
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Added font fallback */
+  background-color: #f3f6fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  line-height: 1.6; /* Improved readability */
+}
+
+/* Card container */
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow */
+  width: 90%;
+  max-width: 650px;
+  text-align: center;
+}
+
+h2 {
+  color: #1a1a1a;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #e0e0e0; /* Visual separation for the title */
+  padding-bottom: 15px;
+}
+
+/* --- Question and Options Block --- */
+
+/* Wrapper for an individual question */
+.question-block {
+  margin-bottom: 30px; /* Increased margin */
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #e0e0e0;
+  text-align: left;
+}
+
+/* Styling for the question text */
+.question-block p {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* --- Option Styling (Focusing on Radio Input UX) --- */
+
+/* Hide the native radio button input visually but keep it accessible */
+.question-block input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Style the LABEL element which acts as the visible button */
+.option {
+  display: block;
+  margin: 10px 0;
+  padding: 12px; /* Increased padding */
+  border: 2px solid #ddd; /* Thicker border for better visibility */
+  border-radius: 8px; /* Slightly rounder corners */
+  background-color: #f8f8f8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1em;
+  text-align: left;
+}
+
+/* Hover effect */
+.option:hover {
+  background-color: #eaf1f7;
+  border-color: #b3cde0;
+}
+
+/* Styles applied when the associated hidden radio button is checked */
+.question-block input[type="radio"]:checked + .option {
+  background-color: #d6e4ff; /* Lighter blue */
+  border-color: #007bff; /* Primary blue border */
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* --- Buttons --- */
+button {
+  margin: 10px 5px 0 5px; /* Adjust margin for single and multiple buttons */
+  padding: 12px 20px; /* Increased padding */
+  border: none;
+  border-radius: 8px; /* Consistent rounding */
+  background-color: #007bff;
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s ease;
+  min-width: 150px; /* Ensures buttons have a consistent minimum size */
+}
+
+button:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px); /* Slight lift effect */
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button.hidden {
+  display: none;
+}
+
+/* Retry Button specific style */
+#retry-btn {
+  background-color: #28a745; /* Green color for retry */
+}
+
+#retry-btn:hover {
+  background-color: #1e7e34;
+}
+
+/* --- Result & Feedback --- */
+.result {
+  font-size: 1.3em;
+  font-weight: 700;
+  margin: 25px 0; /* Clearer separation */
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* --- Modal Styling --- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Darker overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* High z-index to ensure visibility */
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px; /* Slightly wider modal */
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  margin-bottom: 15px;
+  color: #007bff;
+  font-size: 1.5em;
+}
+
+.modal-content p {
+  color: #555;
+  margin-bottom: 25px;
+  font-size: 1.1em;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* Space between buttons */
+}
+
+.modal-actions button {
+  margin: 0; /* Remove top margin inherited from generic button style */
+  padding: 10px 20px;
+  min-width: 100px;
+  font-size: 16px;
+}
+
+/* Specific Modal Button Colors */
+#confirm-yes,
+#go-practice {
+  background-color: #007bff;
+  color: white;
+}
+
+#confirm-no,
+#stay-here {
+  background-color: #6c757d; /* Standard grey for secondary action */
+  color: white;
+}
+
+#confirm-no:hover,
+#stay-here:hover {
+  background-color: #5a6268;
+}

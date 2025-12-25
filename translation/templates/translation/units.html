@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ textbook.title }} | Units{% endblock %}
+
+{% block content %}
+
+<section class="text-center py-4">
+  <h1 class="mb-3">{{ textbook.title }}</h1>
+  <p class="text-muted">
+    Select a unit to continue.
+  </p>
+</section>
+
+<section class="container">
+  <div class="row g-4 justify-content-center">
+
+    {% if units %}
+      {% for unit in units %}
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ unit.title }}</h5>
+
+              {% if unit.description %}
+                <p class="text-muted">{{ unit.description }}</p>
+              {% endif %}
+
+<a href="{% url 'translation:translation-unit-lessons' unit.id %}"
+   class="btn btn-outline-primary">
+  View Lessons
+</a>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12 text-center">
+        <p class="text-muted">No units available.</p>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}

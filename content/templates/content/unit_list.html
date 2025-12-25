@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Units{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4 text-primary">📚 Units in {{ textbook.title }}</h1>
+
+  {% if units %}
+    <ul class="list-group">
+      {% for unit in units %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span><strong>Unit {{ unit.number }}:</strong> {{ unit.title }}</span>
+          <!-- ✅ Link to lessons list, passing student_id + unit.id -->
+          <a href="{% url 'content:lesson-list' student_id unit.id %}" 
+             class="btn btn-sm btn-outline-primary">
+            ➡️ View Lessons
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No units found for this textbook.</p>
+  {% endif %}
+
+  <!-- Back to Textbooks -->
+  <a href="{% url 'content:textbook-list' %}" class="btn btn-outline-secondary mt-4">
+    ⬅️ Back to Textbooks
+  </a>
+</div>
+{% endblock %}

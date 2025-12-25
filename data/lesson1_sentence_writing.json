@@ -1,0 +1,78 @@
+{
+  "levels": [
+    {
+      "level": 1,
+      "name": "Simple Sentences",
+      "instructions": "Rewrite the given sentence correctly. Focus on capitalization, punctuation, and subject–verb agreement.",
+      "questions": [
+        {
+          "id": 1,
+          "incorrect": "my father work in a bank",
+          "hint": "Check the verb for the singular subject 'my father'.",
+          "correct": "My father works in a bank."
+        },
+        {
+          "id": 2,
+          "incorrect": "they is playing cricket",
+          "hint": "Use the plural form of 'to be' with 'they'.",
+          "correct": "They are playing cricket."
+        },
+        {
+          "id": 3,
+          "incorrect": "the students reads the book",
+          "hint": "Subject–verb agreement for plural 'students'.",
+          "correct": "The students read the book."
+        },
+        {
+          "id": 4,
+          "incorrect": "a beautiful flower grow in the garden",
+          "hint": "Check subject-verb agreement for 'a beautiful flower'.",
+          "correct": "A beautiful flower grows in the garden."
+        },
+        {
+          "id": 5,
+          "incorrect": "she dont like spicy food",
+          "hint": "Use the correct negative contraction for third-person singular.",
+          "correct": "She doesn't like spicy food."
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "name": "Intermediate Sentences",
+      "instructions": "Level 2: Improve sentence complexity — check tense consistency, articles, and clearer modifiers.",
+      "questions": [
+        {
+          "id": 101,
+          "incorrect": "after he came home he have dinner",
+          "hint": "Sequence: past event then past; use correct past form.",
+          "correct": "After he came home, he had dinner."
+        },
+        {
+          "id": 102,
+          "incorrect": "i have visited Lahore last year",
+          "hint": "Use the correct past tense expression for a specific past time.",
+          "correct": "I visited Lahore last year."
+        },
+        {
+          "id": 103,
+          "incorrect": "she is the tallest of the two sisters",
+          "hint": "Comparative for two items uses 'taller'.",
+          "correct": "She is the taller of the two sisters."
+        },
+        {
+          "id": 104,
+          "incorrect": "because he was late, so he missed the bus",
+          "hint": "Avoid double conjunctions ('because' + 'so').",
+          "correct": "Because he was late, he missed the bus."
+        },
+        {
+          "id": 105,
+          "incorrect": "hardly I had reached home when it started rain",
+          "hint": "Phrase order for 'hardly' and correct verb form for 'rain'.",
+          "correct": "Hardly had I reached home when it started to rain."
+        }
+      ]
+    }
+  ]
+}

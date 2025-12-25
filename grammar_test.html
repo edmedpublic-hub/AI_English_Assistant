@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grammar Test</title>
+    <link rel="stylesheet" href="grammar_test.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Grammar Test – Lesson 1</h2>
+
+      <div id="question-container">
+        <div class="question-block" data-question-id="0">
+          <p>
+            1. Which tense is used to describe a habitual action in the present?
+          </p>
+
+          <input
+            type="radio"
+            id="q0-opt1"
+            name="question-0"
+            value="Present Simple"
+            required
+          />
+          <label for="q0-opt1" class="option">Present Simple</label>
+
+          <input
+            type="radio"
+            id="q0-opt2"
+            name="question-0"
+            value="Past Continuous"
+          />
+          <label for="q0-opt2" class="option">Past Continuous</label>
+
+          <input
+            type="radio"
+            id="q0-opt3"
+            name="question-0"
+            value="Future Perfect"
+          />
+          <label for="q0-opt3" class="option">Future Perfect</label>
+        </div>
+      </div>
+
+      <button id="submit-btn">Submit</button>
+      <p id="result" class="result"></p>
+      <button id="retry-btn" class="hidden">Retry Test</button>
+    </div>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Submit Test?</h3>
+        <p>Are you sure you want to submit your answers?</p>
+        <div class="modal-actions">
+          <button id="confirm-yes">Yes</button>
+          <button id="confirm-no">No</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="redirect-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Keep Practicing!</h3>
+        <p>Your score is below 60%. You should review the lesson again.</p>
+        <div class="modal-actions">
+          <button id="go-practice">Go to Practice</button>
+          <button id="stay-here">Retry</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="grammar_test.js"></script>
+  </body>
+</html>

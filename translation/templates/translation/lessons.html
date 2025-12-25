@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Lessons{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <h1 class="mb-4 text-center">
+    {{ unit.title }}
+  </h1>
+
+  {% if lessons %}
+    <div class="row g-4">
+      {% for lesson in lessons %}
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+
+              <h5 class="card-title">
+                Lesson {{ lesson.lesson_number }}
+              </h5>
+
+              {% if lesson.title %}
+                <p class="text-muted">{{ lesson.title }}</p>
+              {% endif %}
+
+              <a href="{% url 'translation:translation-player' lesson.id %}"
+                 class="btn btn-primary">
+                Start Lesson
+              </a>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted">No lessons available.</p>
+  {% endif %}
+
+  <!-- Back to units -->
+  <div class="text-center mt-4">
+    <a href="{% url 'translation:translation-textbook-units' unit.textbook.slug %}"
+       class="btn btn-outline-secondary">
+      ← Back to Units
+    </a>
+  </div>
+
+</div>
+{% endblock %}

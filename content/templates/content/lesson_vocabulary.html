@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Vocabulary for Lesson {{ lesson.number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📝 Vocabulary for Lesson {{ lesson.number }}: {{ lesson.title }}</h1>
+
+  {% if items %}
+    <ul class="list-group">
+      {% for item in items %}
+        <li class="list-group-item">
+          <h5>
+            <a href="{% url 'content:vocab-item-detail' item.id %}">
+              {{ item.word }}
+            </a>
+            <!-- ✅ Part of Speech Badge -->
+            <span class="badge bg-secondary ms-2">{{ item.part_of_speech }}</span>
+          </h5>
+
+          <p><strong>Meaning:</strong> {{ item.meaning }}</p>
+
+          {% if item.urdu %}
+            <p><strong>Urdu:</strong> {{ item.urdu }}</p>
+          {% endif %}
+
+          {% if item.synonyms %}
+            <p><strong>Synonyms:</strong> {{ item.synonyms }}</p>
+          {% endif %}
+
+          {% if item.antonyms %}
+            <p><strong>Antonyms:</strong> {{ item.antonyms }}</p>
+          {% endif %}
+
+          {% if item.example_sentence %}
+            <p><strong>Example:</strong> {{ item.example_sentence }}</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No vocabulary items available for this lesson.</p>
+  {% endif %}
+
+  <!-- Navigation -->
+  <a href="{% url 'content:lesson-detail' student_id lesson.id %}" class="btn btn-secondary mt-4">
+    ⬅️ Back to Lesson
+  </a>
+  <a href="{% url 'content:student-dashboard' student_id %}" class="btn btn-outline-success mt-4">
+    📊 Go to Dashboard
+  </a>
+</div>
+{% endblock %}

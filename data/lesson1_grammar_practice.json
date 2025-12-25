@@ -1,0 +1,62 @@
+[
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Identify the type of sentence: 'He opened the door and went out.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Compound"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Choose the correct classification: 'When he came, I was reading a book.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Complex"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Identify the sentence type: 'She cooks and he cleans.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Compound"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Find the correct type: 'He is a man of words.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Simple"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Choose the type of sentence: 'He came when I was sleeping.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Complex"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Identify the kind of sentence: 'He came, he saw, he conquered.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Compound"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Select the correct sentence type: 'Although he is rich, he lives a simple life.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Complex"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Determine the sentence kind: 'He went to the market and bought some fruit.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Simple"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "What kind of sentence is this? 'She smiled because she was happy.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Complex"
+  },
+  {
+    "topic": "Sentence Kinds (Structure)",
+    "question": "Identify the type: 'He came, and I left because I was tired.'",
+    "options": ["Simple", "Compound", "Complex", "Compound-Complex"],
+    "answer": "Compound-Complex"
+  }
+]

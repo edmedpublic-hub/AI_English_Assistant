@@ -1,0 +1,311 @@
+{% extends "admin/base_site.html" %} {% block extrastyle %}
+<!-- Bootstrap CSS -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+  crossorigin="anonymous"
+/>
+<!-- Bootstrap Icons -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+  rel="stylesheet"
+/>
+{% endblock %} {% block extrahead %}
+<!-- Bootstrap JS Bundle -->
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+  crossorigin="anonymous"
+></script>
+{% endblock %} {% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">
+      <i class="bi bi-speedometer2"></i> Teaching Dashboard
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="{% url 'admin:dashboard' %}">
+            <i class="bi bi-bar-chart-line"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/vocab_master/">
+            <i class="bi bi-book"></i> Vocabulary
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/reading/">
+            <i class="bi bi-journal-text"></i> Reading
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/content/">
+            <i class="bi bi-file-earmark-text"></i> Content
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h1 class="mb-4">📊 Vocabulary Progress Dashboard</h1>
+
+  <div class="row">
+    <!-- Stats Card -->
+    <div class="col-md-4">
+      <div class="card text-center mb-4">
+        <div class="card-header bg-primary text-white">Overview</div>
+        <div class="card-body">
+          <p>Total Vocabulary: <strong>{{ total_vocab }}</strong></p>
+          <p>Reviewed: <strong>{{ reviewed_vocab }}</strong></p>
+          <p>Progress: <strong>{{ progress|floatformat:2 }}%</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie Chart Card -->
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+          Reviewed vs Not Reviewed
+        </div>
+        <div class="card-body"><canvas id="progressChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Bar Chart Card -->
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          Parts of Speech Distribution
+        </div>
+        <div class="card-body"><canvas id="posChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Line Chart Card -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+          Review Progress Over Time
+        </div>
+        <div class="card-body"><canvas id="trendChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lesson Progress Table -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">Lesson Progress</div>
+        <div class="card-body">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Lesson</th>
+                <th>Total Words</th>
+                <th>Reviewed Words</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lesson in lesson_progress %}
+              <tr>
+                <td>{{ lesson.title }}</td>
+                <td>{{ lesson.total_vocab }}</td>
+                <td>{{ lesson.reviewed_vocab }}</td>
+                <td>
+                  {% if lesson.total_vocab > 0 %} {% widthratio
+                  lesson.reviewed_vocab lesson.total_vocab 100 as lesson_pct %}
+                  <div class="progress" style="height: 20px">
+                    <div
+                      class="progress-bar bg-success"
+                      role="progressbar"
+                      style="width: {{ lesson_pct }}%;"
+                      aria-valuenow="{{ lesson.reviewed_vocab }}"
+                      aria-valuemin="0"
+                      aria-valuemax="{{ lesson.total_vocab }}"
+                    >
+                      {{ lesson_pct }}%
+                    </div>
+                  </div>
+                  {% else %} 0% {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unit Progress Table -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header bg-dark text-white">Unit Progress</div>
+        <div class="card-body">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Unit</th>
+                <th>Total Words</th>
+                <th>Reviewed Words</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for unit in unit_progress %}
+              <tr>
+                <td>{{ unit.title }}</td>
+                <td>{{ unit.total_vocab }}</td>
+                <td>{{ unit.reviewed_vocab }}</td>
+                <td>
+                  {% if unit.total_vocab > 0 %} {% widthratio
+                  unit.reviewed_vocab unit.total_vocab 100 as unit_pct %}
+                  <div class="progress" style="height: 20px">
+                    <div
+                      class="progress-bar bg-info"
+                      role="progressbar"
+                      style="width: {{ unit_pct }}%;"
+                      aria-valuenow="{{ unit.reviewed_vocab }}"
+                      aria-valuemin="0"
+                      aria-valuemax="{{ unit.total_vocab }}"
+                    >
+                      {{ unit_pct }}%
+                    </div>
+                  </div>
+                  {% else %} 0% {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Textbook Progress Table -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">Textbook Progress</div>
+        <div class="card-body">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Textbook</th>
+                <th>Total Words</th>
+                <th>Reviewed Words</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for textbook in textbook_progress %}
+              <tr>
+                <td>{{ textbook.title }}</td>
+                <td>{{ textbook.total_vocab }}</td>
+                <td>{{ textbook.reviewed_vocab }}</td>
+                <td>
+                  {% if textbook.total_vocab > 0 %} {% widthratio
+                  textbook.reviewed_vocab textbook.total_vocab 100 as
+                  textbook_pct %}
+                  <div class="progress" style="height: 20px">
+                    <div
+                      class="progress-bar bg-primary"
+                      role="progressbar"
+                      style="width: {{ textbook_pct }}%;"
+                      aria-valuenow="{{ textbook.reviewed_vocab }}"
+                      aria-valuemin="0"
+                      aria-valuemax="{{ textbook.total_vocab }}"
+                    >
+                      {{ textbook_pct }}%
+                    </div>
+                  </div>
+                  {% else %} 0% {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Pie Chart — uses progress percentage from context
+  const progressPct = {{ progress|floatformat:2 }};
+  const notReviewedPct = 100 - progressPct;
+  new Chart(document.getElementById("progressChart"), {
+    type: "pie",
+    data: {
+      labels: ["Reviewed (%)", "Not Reviewed (%)"],
+      datasets: [
+        {
+          data: [progressPct, notReviewedPct],
+          backgroundColor: ["#4CAF50", "#FF5252"]
+        }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+  });
+
+  // Bar Chart — parts of speech
+  new Chart(document.getElementById("posChart"), {
+    type: "bar",
+    data: {
+      labels: {{ pos_labels|safe }},
+      datasets: [
+        {
+          label: "Vocabulary Count",
+          data: {{ pos_counts|safe }},
+          backgroundColor: "#2196F3"
+        }
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  // Line Chart — reviewed over time
+  new Chart(document.getElementById("trendChart"), {
+    type: "line",
+    data: {
+      labels: {{ trend_labels|safe }},
+      datasets: [
+        {
+          label: "Reviewed Vocabulary",
+          data: {{ trend_counts|safe }},
+          borderColor: "#FF9800",
+          backgroundColor: "rgba(255, 152, 0, 0.2)",
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+</script>
+{% endblock %}

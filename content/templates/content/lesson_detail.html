@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Lesson {{ lesson.number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📖 Lesson {{ lesson.number }}: {{ lesson.title }}</h1>
+
+  {% if chunk %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Chunk {{ chunk.order }}</h5>
+
+        <!-- English text -->
+        <p class="text-primary"><strong>English:</strong> {{ chunk.english_text }}</p>
+
+        <!-- Urdu translation -->
+        {% if chunk.translated_text %}
+          <p class="text-success"><strong>Urdu:</strong> {{ chunk.translated_text }}</p>
+        {% endif %}
+
+        <!-- English audio -->
+        {% if chunk.audio_file %}
+          <div class="mb-2">
+            <h6>🎧 English Audio</h6>
+            <audio id="englishAudio" src="{{ chunk.audio_file.url }}"></audio>
+          </div>
+        {% endif %}
+
+        <!-- Urdu audio -->
+        {% if chunk.translated_audio_file %}
+          <div class="mb-2">
+            <h6>🎧 Urdu Audio</h6>
+            <audio id="urduAudio" src="{{ chunk.translated_audio_file.url }}"></audio>
+          </div>
+        {% endif %}
+
+        <!-- Playback controls -->
+        <div class="btn-group mt-3">
+          <button class="btn btn-outline-primary btn-sm" onclick="playEnglish()">Read Aloud (English)</button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="playUrdu()">Read Aloud (Urdu)</button>
+          <button class="btn btn-outline-warning btn-sm" onclick="pauseAudio()">Pause</button>
+          <button class="btn btn-outline-success btn-sm" onclick="resumeAudio()">Resume</button>
+          <button class="btn btn-outline-info btn-sm" onclick="repeatAudio()">Repeat</button>
+          <button class="btn btn-outline-danger btn-sm" onclick="stopAudio()">Stop</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation between chunks -->
+    <div class="d-flex justify-content-between">
+      {% if chunk.order|add:-1 > 0 %}
+        <a href="?chunk={{ chunk.order|add:-1 }}" class="btn btn-outline-secondary">⬅️ Previous</a>
+      {% endif %}
+      {% if chunk.order|add:1 <= total_chunks %}
+        <a href="?chunk={{ chunk.order|add:1 }}" class="btn btn-outline-secondary">Next ➡️</a>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="text-muted">No chunk available.</p>
+  {% endif %}
+
+  <!-- Back to Lessons -->
+  <a href="{% url 'content:lesson-list' student_id lesson.unit.id %}" 
+     class="btn btn-outline-secondary mt-4">
+    ⬅️ Back to Lessons
+  </a>
+</div>
+
+<!-- ✅ JavaScript for audio controls -->
+<script>
+function playEnglish() {
+  let audio = document.getElementById("englishAudio");
+  if (audio) { audio.currentTime = 0; audio.play(); }
+}
+function playUrdu() {
+  let audio = document.getElementById("urduAudio");
+  if (audio) { audio.currentTime = 0; audio.play(); }
+}
+function pauseAudio() {
+  let eng = document.getElementById("englishAudio");
+  let urdu = document.getElementById("urduAudio");
+  if (eng && !eng.paused) eng.pause();
+  if (urdu && !urdu.paused) urdu.pause();
+}
+function resumeAudio() {
+  let eng = document.getElementById("englishAudio");
+  let urdu = document.getElementById("urduAudio");
+  if (eng && eng.paused) eng.play();
+  if (urdu && urdu.paused) urdu.play();
+}
+function repeatAudio() {
+  let eng = document.getElementById("englishAudio");
+  let urdu = document.getElementById("urduAudio");
+  if (eng) { eng.currentTime = 0; eng.play(); }
+  if (urdu) { urdu.currentTime = 0; urdu.play(); }
+}
+function stopAudio() {
+  let eng = document.getElementById("englishAudio");
+  let urdu = document.getElementById("urduAudio");
+  if (eng) { eng.pause(); eng.currentTime = 0; }
+  if (urdu) { urdu.pause(); urdu.currentTime = 0; }
+}
+</script>
+{% endblock %}

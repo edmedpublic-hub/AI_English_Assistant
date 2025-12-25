@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Textbooks{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📚 Available Textbooks</h1>
+
+  {% if textbooks %}
+    {% for textbook in textbooks %}
+  <li class="list-group-item">
+    <strong>{{ textbook.title }}</strong> 
+    <span class="text-muted">({{ textbook.class_level }})</span>
+    <p class="mb-1">{{ textbook.description }}</p>
+    <a href="{% url 'content:unit-list' textbook.id %}" class="btn btn-sm btn-outline-primary">
+      View Units
+    </a>
+  </li>
+{% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No textbooks available yet. Add some from the admin panel.</p>
+  {% endif %}
+</div>
+{% endblock %}

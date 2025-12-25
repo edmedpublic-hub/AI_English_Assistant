@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentence Building</title>
+    <link rel="stylesheet" href="sentence_building.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Sentence Building</h2>
+
+      <label for="task-select">Choose a task:</label>
+      <select id="task-select">
+        <option value="">-- Select Task --</option>
+        <option value="reorder">A. Reorder the Sentence</option>
+        <option value="expand">B. Expand the Sentence</option>
+        <option value="improve">C. Improve the Sentence</option>
+        <option value="transform">D. Transform the Sentence</option>
+      </select>
+
+      <div id="task-area" class="hidden">
+        <p id="instruction" class="instruction"></p>
+        <p id="question" class="question"></p>
+
+        <textarea id="answer" placeholder="Type your answer here..."></textarea>
+
+        <button id="check-btn">Check Answer</button>
+        <p id="feedback" class="feedback"></p>
+
+        <button id="next-btn" class="hidden">Next</button>
+      </div>
+    </div>
+
+    <script src="sentence_building.js"></script>
+  </body>
+</html>

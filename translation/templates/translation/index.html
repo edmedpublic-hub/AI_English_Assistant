@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Translation Module{% endblock %}
+
+{% block content %}
+
+<section class="text-center py-4">
+  <h1 class="mb-3">Translation Module</h1>
+  <p class="lead text-muted">
+    Translate words and sentences between English and Urdu.
+  </p>
+</section>
+
+<section class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+
+      <p class="text-muted text-center mb-4">
+        Select a textbook to begin practicing sentence-by-sentence translation
+        with audio playback and guided learning.
+      </p>
+
+      <div class="row g-4">
+
+        {% if textbooks %}
+          
+        {% for book in textbooks %}
+            <div class="col-md-4">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                  <h5 class="card-title">{{ book.title }}</h5>
+
+                  {% if book.description %}
+                    <p class="card-text text-muted">
+                      {{ book.description }}
+                    </p>
+                  {% endif %}
+
+    <a href="{% url 'translation:translation-textbook-units' book.slug %}"
+   class="btn btn-outline-primary">
+    View Units
+    </a>
+
+
+
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="col-12 text-center">
+            <p class="text-muted">
+              No translation textbooks available yet.
+            </p>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

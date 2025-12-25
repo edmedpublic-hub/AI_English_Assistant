@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Vocabulary Progress{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📖 Vocabulary Progress for {{ student_id }}</h1>
+
+  <p>Total Words Practiced: {{ total }}</p>
+  <p>Correct Answers: {{ correct }}</p>
+  <p>Accuracy: {{ accuracy }}%</p>
+
+  <hr>
+  <h4>All Attempts</h4>
+  {% if attempts %}
+    <ul class="list-group">
+      {% for attempt in attempts %}
+        <li class="list-group-item">
+          Word: {{ attempt.vocab_item.word }} <br>
+          Status: {% if attempt.is_correct %}✅ Correct{% else %}❌ Incorrect{% endif %}
+          <br><small>{{ attempt.timestamp }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No vocabulary attempts yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

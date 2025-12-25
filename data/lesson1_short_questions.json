@@ -1,0 +1,27 @@
+[
+  {
+    "question": "What was the speaker requested to do by the Vice-Chancellor?",
+    "answer": "He was requested by the Vice-Chancellor to deliver the Convocation Address before the graduating students, even though he had many other engagements.",
+    "tag": "Knowledge"
+  },
+  {
+    "question": "How did the speaker describe his service to his people?",
+    "answer": "He described his service as an act of duty expected from every true Muslim, emphasizing honesty, dedication, and selflessness in serving his nation.",
+    "tag": "Comprehension"
+  },
+  {
+    "question": "What did the speaker congratulate the students for?",
+    "answer": "He congratulated them for successfully completing their studies, obtaining their diplomas and degrees, and preparing to enter practical life with confidence.",
+    "tag": "Application"
+  },
+  {
+    "question": "What change took place with the birth of Pakistan?",
+    "answer": "The people of Pakistan gained independence from colonial rule, breaking the shackles of slavery and establishing a free and sovereign nation of their own.",
+    "tag": "Analysis"
+  },
+  {
+    "question": "What kind of government did the speaker describe Pakistan to have?",
+    "answer": "He described it as a democratic government of the people, responsible to the people, and dedicated to working for the welfare and progress of the state.",
+    "tag": "Evaluation"
+  }
+]

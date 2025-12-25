@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block title %}AI English Assistant{% endblock %}</title>
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- App / Page specific CSS -->
+    {% block extra_css %}{% endblock %}
+
+    <!-- Legacy / generic head injections (kept for safety) -->
+    {% block extra_head %}{% endblock %}
+  </head>
+
+  <body class="bg-light d-flex flex-column min-vh-100">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container">
+        <a class="navbar-brand" href="/">AI English Assistant</a>
+        <div class="collapse navbar-collapse">
+          <ul class="navbar-nav ms-auto">
+            {% block nav_links %}
+            <!-- Default: no app-specific links -->
+            {% endblock %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="container mb-5 flex-grow-1">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-3 mt-auto">
+      <div class="container text-center">
+        <small>&copy; {{ now|date:"Y" }} AI English Assistant</small>
+      </div>
+    </footer>
+
+    <!-- Core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- App / Page specific JS -->
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

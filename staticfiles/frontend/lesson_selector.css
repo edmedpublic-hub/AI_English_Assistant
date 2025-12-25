@@ -1,0 +1,26 @@
+/* Grammar Result Cards */
+#grammarResults {
+  margin-top: 25px;
+}
+
+.grammar-card {
+  background: #fff7e6;
+  border-left: 5px solid #ff9500;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.grammar-card h3 {
+  margin: 0 0 8px 0;
+  color: #cc6a00;
+}
+
+.example-box {
+  background: #fff;
+  border: 1px dashed #ffaa33;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 10px;
+}

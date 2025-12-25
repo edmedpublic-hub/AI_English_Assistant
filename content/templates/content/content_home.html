@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Content Module{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📚 Content Module</h1>
+  <p class="lead">Manage and explore your learning content.</p>
+
+  <div class="accordion" id="contentAccordion">
+    {% for textbook in textbooks %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingTextbook{{ textbook.id }}">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapseTextbook{{ textbook.id }}" aria-expanded="true"
+                  aria-controls="collapseTextbook{{ textbook.id }}">
+            📖 {{ textbook.title }}
+            <span class="badge bg-primary ms-2">
+              {{ textbook.units.count }} Units
+            </span>
+          </button>
+        </h2>
+        <div id="collapseTextbook{{ textbook.id }}" class="accordion-collapse collapse"
+             aria-labelledby="headingTextbook{{ textbook.id }}" data-bs-parent="#contentAccordion">
+          <div class="accordion-body">
+            <ul>
+              {% for unit in textbook.units.all %}
+                <li>
+                  📂 {{ unit.title }}
+                  <span class="badge bg-info ms-2">
+                    {{ unit.lessons.count }} Lessons
+                  </span>
+                  <ul>
+                    {% for lesson in unit.lessons.all %}
+                      <li>
+                        <a href="{% url 'content:lesson-detail' student_id lesson.id %}">
+                          📘 {{ lesson.title }}
+                        </a>
+                        <span class="badge bg-success ms-2">
+                          {{ lesson.vocab_items.count }} Vocab
+                        </span>
+                        <ul>
+                          {% for vocab in lesson.vocab_items.all %}
+                            <li>
+                              <a href="{% url 'content:vocab-item-detail' vocab.id %}">
+                                📝 {{ vocab.word }}
+                              </a>
+                              <!-- ✅ Part of Speech Badge -->
+                              <span class="badge bg-secondary ms-2">{{ vocab.part_of_speech }}</span>
+                            </li>
+                          {% empty %}
+                            <li class="text-muted">No vocabulary items</li>
+                          {% endfor %}
+                        </ul>
+                      </li>
+                    {% empty %}
+                      <li class="text-muted">No lessons available</li>
+                    {% endfor %}
+                  </ul>
+                </li>
+              {% empty %}
+                <li class="text-muted">No units available</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">No textbooks available</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="text-center mt-4">
+  <a href="{% url 'content:student-dashboard' student_id %}" 
+     class="btn btn-success btn-lg">
+    Go to Student Dashboard
+  </a>
+</div>
+{% endblock %}

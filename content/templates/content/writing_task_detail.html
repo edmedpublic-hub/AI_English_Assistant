@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Writing Task{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">✍️ Writing Task</h1>
+  <p>{{ task.prompt }} (Difficulty: {{ task.difficulty }})</p>
+
+  <hr>
+  <h4>Submit Your Sentence</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  <hr>
+  <h4>Previous Attempts</h4>
+  {% if attempts %}
+    <ul class="list-group">
+      {% for attempt in attempts %}
+        <li class="list-group-item">
+          <strong>{{ attempt.student_id }}</strong>: {{ attempt.sentence }}  
+          <br>Score: {{ attempt.ai_score }} | Feedback: {{ attempt.feedback }}
+          <br><small>{{ attempt.timestamp }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No attempts yet.</p>
+  {% endif %}
+  <a href="{% url 'content:student-dashboard' student_id %}" class="btn btn-outline-success">
+    Go to Dashboard
+</a>
+</div>
+{% endblock %}

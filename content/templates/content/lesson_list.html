@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Lessons{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📖 Lessons in {{ unit.title }}</h1>
+
+  {% if lessons %}
+    <ul class="list-group">
+      {% for lesson in lessons %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span><strong>Lesson {{ lesson.number }}:</strong> {{ lesson.title }}</span>
+          <!-- ✅ Correct link: inside loop, with student_id + lesson.id -->
+          <a href="{% url 'content:lesson-detail' student_id lesson.id %}" 
+             class="btn btn-sm btn-outline-primary">
+            ➡️ View Lesson Details
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No lessons found for this unit.</p>
+  {% endif %}
+
+  <!-- ✅ Back to Units: does not depend on lesson -->
+  <a href="{% url 'content:unit-list' unit.textbook.id %}" 
+     class="btn btn-outline-secondary mt-4">
+    ⬅️ Back to Units
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Learner Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Your Vocabulary Progress</h1>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Total words</h6>
+        <h3>{{ total_words }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Reviewed</h6>
+        <h3>{{ reviewed_words }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Unreviewed</h6>
+        <h3>{{ unreviewed_words }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Lessons</h6>
+        <h3>{{ total_lessons }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title">Reviewed vs Unreviewed</h6>
+        <canvas id="pieReviewed"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title">Words per lesson</h6>
+        <canvas id="barPerLesson"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title">Words added over time</h6>
+        <canvas id="lineAdded"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Back to Lessons -->
+<div class="mt-4">
+  <a href="{% url 'vocab_master:lesson_list' %}" class="btn btn-secondary">← Back to Lessons</a>
+</div>
+
+<!-- Lesson Progress -->
+<h2 class="mt-5 mb-3">Lesson Progress</h2>
+<div class="row g-3">
+  {% for lesson in lesson_progress %}
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ lesson.title }}</h5>
+          <p class="card-text text-muted">
+            Unit: {{ lesson.unit.title }}<br />
+            Textbook: {{ lesson.unit.textbook.title }}
+          </p>
+
+          {% if lesson.word_count > 0 %}
+            {% widthratio lesson.reviewed_count lesson.word_count 100 as pct %}
+            <div class="progress mb-2" style="height: 8px;">
+              <div class="progress-bar bg-success" style="width: {{ pct }}%;"></div>
+            </div>
+            <small class="text-muted">
+              {{ lesson.reviewed_count }} / {{ lesson.word_count }} reviewed ({{ pct }}%)
+            </small>
+          {% else %}
+            <small class="text-muted">No vocabulary yet.</small>
+          {% endif %}
+
+          <!-- ✅ Navigation buttons -->
+          <div class="d-flex justify-content-between mt-3">
+            {% if lesson.previous_lesson %}
+              <a href="{% url 'vocab_master:lesson_detail' lesson.previous_lesson.pk %}"
+                 class="btn btn-outline-primary btn-sm">&laquo; Previous</a>
+            {% else %}
+              <span></span>
+            {% endif %}
+
+            {% if not lesson.has_started %}
+              <a href="{% url 'vocab_master:lesson_detail' lesson.pk %}" class="btn btn-success btn-sm">
+                Start Lesson →
+              </a>
+            {% else %}
+              <a href="{% url 'vocab_master:lesson_detail' lesson.pk %}" class="btn btn-primary btn-sm">
+                View Lesson →
+              </a>
+            {% endif %}
+
+            {% if lesson.next_lesson %}
+              <a href="{% url 'vocab_master:lesson_detail' lesson.next_lesson.pk %}"
+                 class="btn btn-outline-primary btn-sm">Next &raquo;</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">No lessons available yet.</div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const reviewedData = {{ reviewed_chart|safe }};
+  const perLessonData = {{ per_lesson_chart|safe }};
+  const addedOverTimeData = {{ added_over_time_chart|safe }};
+
+  // Pie chart
+  new Chart(document.getElementById('pieReviewed'), {
+    type: 'pie',
+    data: {
+      labels: ['Reviewed', 'Unreviewed'],
+      datasets: [{
+        data: reviewedData,
+        backgroundColor: ['#28a745', '#dc3545']
+      }]
+    }
+  });
+
+  // Bar chart
+  new Chart(document.getElementById('barPerLesson'), {
+    type: 'bar',
+    data: {
+      labels: perLessonData.labels,
+      datasets: [{
+        label: 'Words',
+        data: perLessonData.values,
+        backgroundColor: '#0d6efd'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  // Line chart
+  new Chart(document.getElementById('lineAdded'), {
+    type: 'line',
+    data: {
+      labels: addedOverTimeData.labels,
+      datasets: [{
+        label: 'Words added',
+        data: addedOverTimeData.values,
+        borderColor: '#6610f2',
+        backgroundColor: 'rgba(102,16,242,0.1)',
+        tension: 0.2
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+</script>
+{% endblock %}

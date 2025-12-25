@@ -1,0 +1,52 @@
+[
+  {
+    "question": "What was the main reason Quaid-e-Azam could not prepare a formal convocation address?",
+    "options": [
+      "He was unwell",
+      "He was too busy with other commitments",
+      "He was not interested",
+      "He was abroad at that time"
+    ],
+    "answer": "He was too busy with other commitments"
+  },
+  {
+    "question": "How does Quaid-e-Azam describe his service to his people?",
+    "options": [
+      "As a privilege",
+      "As a measure of duty",
+      "As an act of charity",
+      "As a political achievement"
+    ],
+    "answer": "As a measure of duty"
+  },
+  {
+    "question": "In what capacity did Quaid-e-Azam address the students?",
+    "options": [
+      "As Head of State",
+      "As a teacher",
+      "As a friend",
+      "As a politician"
+    ],
+    "answer": "As a friend"
+  },
+  {
+    "question": "What is the status of Pakistan mentioned in Quaid-e-Azam's address?",
+    "options": [
+      "A dependent colony",
+      "A sovereign, independent State",
+      "A British protectorate",
+      "A struggling democracy"
+    ],
+    "answer": "A sovereign, independent State"
+  },
+  {
+    "question": "According to Quaid-e-Azam, what are the new graduates entering?",
+    "options": [
+      "A dependent government",
+      "Life afresh in a sovereign state",
+      "A foreign service",
+      "Another university"
+    ],
+    "answer": "Life afresh in a sovereign state"
+  }
+]

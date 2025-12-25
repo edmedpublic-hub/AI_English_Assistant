@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Grammar Progress{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📘 Grammar Progress for {{ student_id }}</h1>
+
+  <p>Total Grammar Points Practiced: {{ total }}</p>
+  <p>Correct Attempts: {{ correct }}</p>
+  <p>Accuracy: {{ accuracy }}%</p>
+
+  <hr>
+  <h4>All Attempts</h4>
+  {% if attempts %}
+    <ul class="list-group">
+      {% for attempt in attempts %}
+        <li class="list-group-item">
+          Grammar Point: {{ attempt.grammar_point.title }} <br>
+          Status: {% if attempt.is_correct %}✅ Correct{% else %}❌ Incorrect{% endif %}
+          <br><small>{{ attempt.timestamp }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No grammar attempts yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grammar Lesson 1</title>
+    <link rel="stylesheet" href="grammar.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-controls">
+        <button id="backBtn">🏠 Back to Main Menu</button>
+      </div>
+
+      <h2>Grammar Lesson 1 – Sentence Types</h2>
+
+      <div class="grammar-card">
+        <h3 id="concept-title">Concept Title</h3>
+        <p id="definition">Definition</p>
+        <p id="example">Example</p>
+      </div>
+
+      <div class="grammar-controls">
+        <select id="voiceSelect">
+          <option value="male">Male Voice</option>
+          <option value="female">Female Voice</option>
+        </select>
+        <button id="prevBtn">Previous</button>
+        <button id="speakBtn">🔊 Speak</button>
+        <button id="nextBtn">Next</button>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("backBtn").addEventListener("click", () => {
+        window.location.href = "index.html";
+      });
+    </script>
+
+    <script src="grammar.js"></script>
+  </body>
+</html>

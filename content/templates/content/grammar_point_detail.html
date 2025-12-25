@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Grammar Point{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📘 Grammar Point</h1>
+
+  <h4>{{ gp.title }}</h4>
+  <p><strong>Explanation:</strong> {{ gp.explanation }}</p>
+
+  {% if gp.examples %}
+    <p><strong>Examples:</strong> {{ gp.examples }}</p>
+  {% endif %}
+
+  <a href="{% url 'content:lesson-detail' gp.lesson.id %}" class="btn btn-secondary mt-3">
+    Back to Lesson
+  </a>
+  <a href="{% url 'content:student-dashboard' student_id %}" class="btn btn-outline-success">
+    Go to Dashboard
+</a>
+</div>
+{% endblock %}

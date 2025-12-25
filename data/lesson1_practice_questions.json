@@ -1,0 +1,67 @@
+[
+  {
+    "question": "Who asked the speaker to deliver the Convocation Address?",
+    "options": [
+      "The Chancellor",
+      "The Vice-Chancellor",
+      "The President",
+      "The Dean"
+    ],
+    "answer": 1,
+    "level": "literal",
+    "bloom": "Remember",
+    "explanation": "The Vice-Chancellor approached the speaker with that request."
+  },
+  {
+    "question": "What does the speaker identify as a citizen's duty?",
+    "options": [
+      "To serve people honestly",
+      "To seek personal fame",
+      "To avoid education",
+      "To protest always"
+    ],
+    "answer": 0,
+    "level": "inferential",
+    "bloom": "Understand",
+    "explanation": "The speaker says he acted from duty to serve his people honestly and selflessly."
+  },
+  {
+    "question": "Which phrase best describes freedom according to the speaker?",
+    "options": [
+      "Licence to do anything",
+      "Freedom carries responsibility",
+      "A time to stop working",
+      "A reason to flee the country"
+    ],
+    "answer": 1,
+    "level": "evaluative",
+    "bloom": "Evaluate",
+    "explanation": "The speaker contrasts freedom with licence and stresses responsibility."
+  },
+  {
+    "question": "Why is construction more difficult than militancy (fighting for freedom)?",
+    "options": [
+      "Construction needs long-term effort and organization",
+      "Militancy is always peaceful",
+      "Construction requires no skill",
+      "Militancy involves reading books"
+    ],
+    "answer": 0,
+    "level": "inferential",
+    "bloom": "Analyze",
+    "explanation": "Building institutions and running government require sustained, organized effort."
+  },
+  {
+    "question": "Which action does the speaker advise graduates to avoid?",
+    "options": [
+      "Diverting attention to other careers",
+      "Remaining only in government clerkship mentality",
+      "Seeking technical education",
+      "Entering commerce"
+    ],
+    "answer": 1,
+    "level": "literal",
+    "bloom": "Remember",
+    "explanation": "He warns against the rut of seeking only government clerk jobs."
+  }
+]

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Vocabulary Item{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">📝 Vocabulary Item</h1>
+
+  <!-- Word with Part of Speech Badge -->
+  <h4>
+    {{ item.word }}
+    <span class="badge bg-secondary ms-2">{{ item.part_of_speech }}</span>
+  </h4>
+
+  <p><strong>Meaning:</strong> {{ item.meaning }}</p>
+
+  {% if item.urdu %}
+    <p><strong>Urdu:</strong> {{ item.urdu }}</p>
+  {% endif %}
+
+  {% if item.synonyms %}
+    <p><strong>Synonyms:</strong> {{ item.synonyms }}</p>
+  {% endif %}
+
+  {% if item.antonyms %}
+    <p><strong>Antonyms:</strong> {{ item.antonyms }}</p>
+  {% endif %}
+
+  {% if item.example_sentence %}
+    <p><strong>Example Sentence:</strong> {{ item.example_sentence }}</p>
+  {% endif %}
+
+  <!-- Navigation -->
+  <a href="{% url 'content:lesson-detail' student_id item.lesson.id %}" class="btn btn-secondary mt-3">
+    ⬅️ Back to Lesson
+  </a>
+  <a href="{% url 'content:student-dashboard' student_id %}" class="btn btn-outline-success mt-3">
+    📊 Go to Dashboard
+  </a>
+</div>
+{% endblock %}

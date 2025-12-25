@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}English → Urdu Translation Player{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'translation/translation.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h1 id="lesson-title" class="text-center mb-4">
+        {{ lesson.title|default:"English → Urdu Translation Lesson" }}
+    </h1>
+
+    <!-- Lesson Text -->
+    <div class="row g-4">
+
+        <!-- English -->
+        <div class="col-md-6">
+            <div class="section">
+                <h2 class="text-center">English</h2>
+                <div
+                    id="english-text"
+                    class="text-box sentence-list"
+                    aria-live="polite"
+                ></div>
+            </div>
+        </div>
+
+        <!-- Urdu -->
+        <div class="col-md-6">
+            <div class="section">
+                <h2 class="text-center">Urdu</h2>
+                <div
+                    id="urdu-text"
+                    class="text-box sentence-list"
+                    aria-live="polite"
+                ></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Teacher Controls -->
+    <div class="controls text-center my-4">
+
+        <button
+            id="btn-play"
+            type="button"
+            class="btn btn-primary me-2"
+            title="Play or repeat current sentence"
+        >
+            ▶ Play / Repeat
+        </button>
+
+        <button
+            id="btn-next"
+            type="button"
+            class="btn btn-outline-primary me-2"
+            title="Move to next sentence"
+        >
+            ⏭ Next Sentence
+        </button>
+
+        <button
+            id="btn-pause"
+            type="button"
+            class="btn btn-secondary me-2"
+            title="Pause speaking"
+        >
+            ⏸ Pause
+        </button>
+
+        <button
+            id="btn-stop"
+            type="button"
+            class="btn btn-danger"
+            title="Stop lesson"
+        >
+            ⏹ Stop
+        </button>
+
+    </div>
+
+    <!-- Back to lessons -->
+    <div class="mb-3 text-center">
+        <a href="{% url 'translation:translation-unit-lessons' lesson.unit.id %}"
+           class="btn btn-outline-secondary">
+            ← Back to Lessons
+        </a>
+    </div>
+
+    <!-- Progress -->
+    <div id="progress-container" class="mt-3">
+        <div id="progress-bar"></div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Django → JavaScript bridge (single authoritative source)
+  window.LESSON_ID = "{{ lesson.id|escapejs }}";
+</script>
+
+<script src="{% static 'translation/translation.js' %}"></script>
+{% endblock %}
