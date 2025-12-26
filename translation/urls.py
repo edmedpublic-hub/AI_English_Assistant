@@ -1,3 +1,5 @@
+# translation/urls.py
+
 from django.urls import path
 from .views import (
     translation_home,
@@ -9,21 +11,28 @@ from .views import (
 app_name = "translation"
 
 urlpatterns = [
+    # Homepage
     path(
         "",
         translation_home,
         name="translation-home",
     ),
+
+    # Textbook units
     path(
-        "textbook/<slug:slug>/",
+        "textbooks/<slug:slug>/",
         translation_textbook_units,
         name="translation-textbook-units",
     ),
+
+    # Unit lessons
     path(
-        "unit/<uuid:unit_id>/",
+        "units/<uuid:unit_id>/",
         translation_unit_lessons,
         name="translation-unit-lessons",
     ),
+
+    # Lesson player
     path(
         "player/<uuid:lesson_id>/",
         translation_player,

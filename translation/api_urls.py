@@ -1,5 +1,8 @@
+# translation/api_urls.py
+
 from django.urls import path
-from .views import (
+
+from .api_views import (
     TranslationTextbookListAPIView,
     TranslationTextbookDetailAPIView,
     TranslationUnitDetailAPIView,
@@ -10,21 +13,21 @@ urlpatterns = [
     path(
         "textbooks/",
         TranslationTextbookListAPIView.as_view(),
-        name="textbook-list",
+        name="translation-textbook-list",
     ),
     path(
         "textbooks/<slug:slug>/",
         TranslationTextbookDetailAPIView.as_view(),
-        name="textbook-detail",
+        name="translation-textbook-detail",
     ),
     path(
         "units/<uuid:pk>/",
         TranslationUnitDetailAPIView.as_view(),
-        name="unit-detail",
+        name="translation-unit-detail",
     ),
     path(
         "lessons/<uuid:pk>/",
         TranslationLessonDetailAPIView.as_view(),
-        name="lesson-detail",
+        name="translation-lesson-detail",
     ),
 ]

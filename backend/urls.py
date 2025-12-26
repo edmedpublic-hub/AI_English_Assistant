@@ -13,7 +13,6 @@ urlpatterns = [
 
     # Frontend pages
     path("", TemplateView.as_view(template_name="index.html"), name="index"),
-
     path("reading/", include("reading.urls")),
     path("vocab/", include("vocab_master.urls")),
     path("content/", include("content.urls")),

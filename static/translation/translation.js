@@ -5,7 +5,6 @@
  *************************************************/
 
 
-
 // -------------------- DOM --------------------
 const englishContainer = document.getElementById("english-text");
 const urduContainer = document.getElementById("urdu-text");
@@ -16,19 +15,41 @@ const btnPause = document.getElementById("btn-pause");
 const btnStop  = document.getElementById("btn-stop");
 
 const progressBar = document.getElementById("progress-bar");
+const statusMessage = document.getElementById("status-message");
 
-// Defensive check (prevents silent failures)
-if (!englishContainer || !urduContainer || !btnPlay || !btnNext || !btnPause || !btnStop) {
+// Defensive check
+if (!englishContainer || !urduContainer || !btnPlay || !btnNext || !btnPause || !btnStop || !progressBar) {
   throw new Error("Player DOM elements missing. Check player.html.");
 }
+
 
 // -------------------- State --------------------
 let englishSentences = [];
 let urduSentences = [];
 let currentIndex = 0;
+
 let isPaused = false;
-let isStopped = false;
+let isStopped = true;     // lesson starts idle
 let lessonLoaded = false;
+
+
+// -------------------- Status UI --------------------
+function showStatus(message, type = "info", autoClear = true) {
+  if (!statusMessage) return;
+  statusMessage.textContent = message;
+  statusMessage.className = `status ${type}`;
+
+  if (autoClear) {
+    setTimeout(() => clearStatus(), 4000);
+  }
+}
+
+function clearStatus() {
+  if (!statusMessage) return;
+  statusMessage.textContent = "";
+  statusMessage.className = "status";
+}
+
 
 // -------------------- Utilities --------------------
 function splitIntoSentences(text) {
@@ -73,11 +94,12 @@ function highlightSentence(index) {
 
 function updateProgress() {
   const total = englishSentences.length || 1;
-  const percentage = (currentIndex / total) * 100;
+  const percentage = Math.min((currentIndex / total) * 100, 100);
   progressBar.style.width = `${percentage}%`;
 }
 
-// -------------------- Speech --------------------
+
+// -------------------- Speech Engine --------------------
 function speak(text, lang) {
   return new Promise(resolve => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -95,13 +117,45 @@ function waitWhilePaused() {
         clearInterval(timer);
         resolve();
       }
-    }, 100);
+    }, 120);
   });
 }
 
+
+// -------------------- Button/State Control --------------------
+function setButtonsIdle() {
+  btnPlay.disabled = false;
+  btnNext.disabled = true;
+  btnPause.disabled = true;
+  btnStop.disabled = true;
+}
+
+function setButtonsActive() {
+  btnPlay.disabled = false;
+  btnNext.disabled = false;
+  btnPause.disabled = false;
+  btnStop.disabled = false;
+}
+
+function setButtonsStopped() {
+  btnPlay.disabled = false;
+  btnNext.disabled = true;
+  btnPause.disabled = true;
+  btnStop.disabled = true;
+}
+
+
 // -------------------- Teacher Playback (CORE) --------------------
 async function playCurrentSentence() {
-  if (isStopped || currentIndex >= englishSentences.length) return;
+
+  if (isStopped) return;
+  if (currentIndex >= englishSentences.length) {
+    showStatus("Lesson complete.", "success");
+    highlightSentence(-1);
+    progressBar.style.width = "100%";
+    setButtonsStopped();
+    return;
+  }
 
   highlightSentence(currentIndex);
   updateProgress();
@@ -110,31 +164,33 @@ async function playCurrentSentence() {
   await speak(englishSentences[currentIndex], "en-US");
 
   if (isStopped) return;
-
-  // Natural teacher pause
   await new Promise(r => setTimeout(r, 600));
 
   if (isPaused) await waitWhilePaused();
   await speak(urduSentences[currentIndex], "ur-PK");
+
+  showStatus("Sentence played.", "info");
 }
+
+
 
 // -------------------- Backend Integration --------------------
 async function loadLessonFromAPI() {
   if (lessonLoaded) return;
 
   const lessonId = window.LESSON_ID;
-  console.log("LESSON_ID:", lessonId);
-  console.log("FETCH URL:", `/api/translation/lessons/${lessonId}/`);
-
 
   if (!lessonId || ["None", "null", "undefined"].includes(lessonId)) {
-    alert("Lesson ID missing or invalid.");
+    showStatus("Lesson ID is missing or invalid.", "error", false);
     throw new Error("Invalid LESSON_ID");
   }
 
+  showStatus("Loading lesson…", "info", false);
+
   const response = await fetch(`/api/translation/lessons/${lessonId}/`);
+
   if (!response.ok) {
-    alert("Failed to load lesson.");
+    showStatus("Failed to load lesson.", "error", false);
     throw new Error(`API error ${response.status}`);
   }
 
@@ -143,49 +199,68 @@ async function loadLessonFromAPI() {
   englishSentences = splitIntoSentences(data.english_chunk);
   urduSentences = splitIntoSentences(data.urdu_chunk);
 
-  if (englishSentences.length !== urduSentences.length) {
-    console.warn("Sentence count mismatch", {
-      english: englishSentences.length,
-      urdu: urduSentences.length,
-    });
-  }
-
   renderSentences();
   lessonLoaded = true;
+  showStatus("Lesson ready.", "success");
+  setButtonsIdle();
 }
 
+
+
 // -------------------- Controls --------------------
+
+// PLAY (repeat current sentence)
 btnPlay.addEventListener("click", async () => {
-  speechSynthesis.cancel();
+  await loadLessonFromAPI();
+
+  // If lesson is stopped, resume PLAYING current sentence from last index
   isStopped = false;
   isPaused = false;
 
-  await loadLessonFromAPI();
+  setButtonsActive();
+  speechSynthesis.cancel();
+
   await playCurrentSentence();
 });
 
+
+// NEXT SENTENCE
 btnNext.addEventListener("click", async () => {
   if (currentIndex < englishSentences.length - 1) {
     currentIndex++;
     speechSynthesis.cancel();
     await playCurrentSentence();
   } else {
-    highlightSentence(-1);
-    progressBar.style.width = "100%";
+    currentIndex++;
+    await playCurrentSentence(); // will trigger completion
   }
 });
 
+
+// PAUSE
 btnPause.addEventListener("click", () => {
   if (!isStopped) {
     isPaused = true;
     speechSynthesis.pause();
+    showStatus("Paused.", "warn");
   }
 });
 
+
+// STOP — FULL RESET
 btnStop.addEventListener("click", () => {
   isStopped = true;
   isPaused = false;
+  currentIndex = 0;
+
   speechSynthesis.cancel();
   highlightSentence(-1);
   progressBar.style.width = "0%";
+
+  setButtonsIdle();
+  showStatus("Lesson stopped.", "warn");
 });
+
+
+// Initialise UI
+setButtonsIdle();

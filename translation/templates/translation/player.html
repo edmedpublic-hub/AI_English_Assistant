@@ -4,107 +4,279 @@
 {% block title %}English → Urdu Translation Player{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'translation/translation.css' %}">
+<style>
+/* ------------------------------ Layout ------------------------------ */
+.container {
+  max-width: 720px;
+  margin: 40px auto;
+  padding: 24px;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.7;
+}
+
+/* ------------------------------ Headings ------------------------------ */
+h1 { text-align: center; margin-bottom: 25px; }
+h2 { text-align: center; margin-bottom: 12px; font-size: 18px; color: #333; }
+
+/* ------------------------------ Sections ------------------------------ */
+.section { margin-bottom: 28px; }
+
+/* ------------------------------ Text Containers ------------------------------ */
+.text-box {
+  background: #f8f9fb;
+  padding: 16px;
+  border-radius: 8px;
+  min-height: 70px;
+  border: 1px solid #e0e0e0;
+  font-size: 18px;
+}
+
+.text-box span { display: inline-block; margin-right: 6px; padding: 2px 4px; }
+
+.text-box span.active { background: #fde68a; border-radius: 4px; }
+
+#urdu-text { direction: rtl; text-align: right; font-size: 19px; }
+
+/* ------------------------------ Status ------------------------------ */
+.status { margin: 10px 0; font-weight: 500; text-align: center; }
+.status.info { color: #555; }
+.status.error { color: darkred; }
+
+/* ------------------------------ Progress ------------------------------ */
+#progress-container {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #22c55e;
+  transition: width 0.3s ease;
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
 
-    <h1 id="lesson-title" class="text-center mb-4">
-        {{ lesson.title|default:"English → Urdu Translation Lesson" }}
-    </h1>
+  <h1 id="lesson-title">
+    {{ lesson.title|default:"English → Urdu Translation Lesson" }}
+  </h1>
 
-    <!-- Lesson Text -->
-    <div class="row g-4">
+  <div id="status-message" class="status" role="status" aria-live="polite"></div>
 
-        <!-- English -->
-        <div class="col-md-6">
-            <div class="section">
-                <h2 class="text-center">English</h2>
-                <div
-                    id="english-text"
-                    class="text-box sentence-list"
-                    aria-live="polite"
-                ></div>
-            </div>
-        </div>
+  <div class="row g-4">
 
-        <!-- Urdu -->
-        <div class="col-md-6">
-            <div class="section">
-                <h2 class="text-center">Urdu</h2>
-                <div
-                    id="urdu-text"
-                    class="text-box sentence-list"
-                    aria-live="polite"
-                ></div>
-            </div>
-        </div>
-
+    <div class="col-md-6">
+      <section aria-labelledby="english-heading">
+        <h2 id="english-heading">English</h2>
+        <div id="english-text" class="text-box sentence-list" tabindex="0"></div>
+      </section>
     </div>
 
-    <!-- Teacher Controls -->
-    <div class="controls text-center my-4">
-
-        <button
-            id="btn-play"
-            type="button"
-            class="btn btn-primary me-2"
-            title="Play or repeat current sentence"
-        >
-            ▶ Play / Repeat
-        </button>
-
-        <button
-            id="btn-next"
-            type="button"
-            class="btn btn-outline-primary me-2"
-            title="Move to next sentence"
-        >
-            ⏭ Next Sentence
-        </button>
-
-        <button
-            id="btn-pause"
-            type="button"
-            class="btn btn-secondary me-2"
-            title="Pause speaking"
-        >
-            ⏸ Pause
-        </button>
-
-        <button
-            id="btn-stop"
-            type="button"
-            class="btn btn-danger"
-            title="Stop lesson"
-        >
-            ⏹ Stop
-        </button>
-
+    <div class="col-md-6">
+      <section aria-labelledby="urdu-heading">
+        <h2 id="urdu-heading">Urdu</h2>
+        <div id="urdu-text" class="text-box sentence-list" tabindex="0"></div>
+      </section>
     </div>
 
-    <!-- Back to lessons -->
-    <div class="mb-3 text-center">
-        <a href="{% url 'translation:translation-unit-lessons' lesson.unit.id %}"
-           class="btn btn-outline-secondary">
-            ← Back to Lessons
-        </a>
-    </div>
+  </div>
 
-    <!-- Progress -->
-    <div id="progress-container" class="mt-3">
-        <div id="progress-bar"></div>
-    </div>
+  <div class="controls text-center my-4">
+    <button id="btn-play"  type="button" class="btn btn-primary me-2">▶ Play / Repeat</button>
+    <button id="btn-next"  type="button" class="btn btn-outline-primary me-2">⏭ Next Sentence</button>
+    <button id="btn-pause" type="button" class="btn btn-secondary me-2">⏸ Pause</button>
+    <button id="btn-stop"  type="button" class="btn btn-danger">⏹ Stop</button>
+  </div>
+
+  <div class="text-center mb-3">
+    <a href="{% url 'translation:translation-unit-lessons' lesson.unit.id %}"
+       class="btn btn-outline-secondary">← Back to Lessons</a>
+  </div>
+
+  <div id="progress-container">
+    <div id="progress-bar"></div>
+  </div>
 
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Django → JavaScript bridge (single authoritative source)
-  window.LESSON_ID = "{{ lesson.id|escapejs }}";
-</script>
+window.LESSON_ID = "{{ lesson.id|escapejs }}";
 
-<script src="{% static 'translation/translation.js' %}"></script>
+/********************** State **********************/
+let englishSentences = [];
+let urduSentences = [];
+let currentIndex = 0;
+let isPaused = false;
+let isStopped = false;
+let lessonLoaded = false;
+
+const englishContainer = document.getElementById("english-text");
+const urduContainer = document.getElementById("urdu-text");
+
+const btnPlay  = document.getElementById("btn-play");
+const btnNext  = document.getElementById("btn-next");
+const btnPause = document.getElementById("btn-pause");
+const btnStop  = document.getElementById("btn-stop");
+
+const progressBar = document.getElementById("progress-bar");
+const statusMessage = document.getElementById("status-message");
+
+/********************** Helpers **********************/
+function showStatus(msg, type="info") {
+  statusMessage.textContent = msg;
+  statusMessage.className = "status " + type;
+}
+
+function splitIntoSentences(text) {
+  if (!text) return [];
+  return text
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(/(?<=[.!?۔])\s+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function renderSentences() {
+  englishContainer.innerHTML = "";
+  urduContainer.innerHTML = "";
+  englishSentences.forEach((s,i)=>englishContainer.insertAdjacentHTML("beforeend",`<span id="eng-${i}">${s}</span>`));
+  urduSentences.forEach((s,i)=>urduContainer.insertAdjacentHTML("beforeend",`<span id="urd-${i}">${s}</span>`));
+}
+
+function highlightSentence(i) {
+  document.querySelectorAll(".sentence-list span").forEach(e=>e.classList.remove("active"));
+  if (i>=0){
+    document.getElementById(`eng-${i}`)?.classList.add("active");
+    document.getElementById(`urd-${i}`)?.classList.add("active");
+  }
+}
+
+function updateProgress() {
+  const total = englishSentences.length || 1;
+  progressBar.style.width = `${(currentIndex / total) * 100}%`;
+}
+
+function speak(text, lang) {
+  return new Promise(resolve=>{
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=lang; u.rate=1; u.onend=resolve;
+    speechSynthesis.speak(u);
+  });
+}
+
+function waitWhilePaused(){
+  return new Promise(resolve=>{
+    const i=setInterval(()=>{ if(!isPaused){clearInterval(i);resolve();}},120);
+  });
+}
+
+/********************** Core Playback **********************/
+async function playCurrentSentence() {
+  if (isStopped || currentIndex >= englishSentences.length) return;
+
+  highlightSentence(currentIndex);
+  updateProgress();
+
+  if (isPaused) await waitWhilePaused();
+  await speak(englishSentences[currentIndex], "en-US");
+
+  if (isStopped) return;
+
+  await new Promise(r=>setTimeout(r,600));
+
+  if (isPaused) await waitWhilePaused();
+  await speak(urduSentences[currentIndex], "ur-PK");
+}
+
+/********************** Load Lesson **********************/
+async function loadLessonFromAPI() {
+  if (lessonLoaded) return;
+
+  if (!window.LESSON_ID) {
+    showStatus("Lesson ID missing.", "error");
+    return;
+  }
+
+  showStatus("Loading lesson…","info");
+
+  const res = await fetch(`/api/translation/lessons/${window.LESSON_ID}/`);
+  if (!res.ok){
+    showStatus("Failed to load lesson.","error");
+    return;
+  }
+
+  const data = await res.json();
+  englishSentences = splitIntoSentences(data.english_chunk);
+  urduSentences = splitIntoSentences(data.urdu_chunk);
+
+  currentIndex = 0;
+  renderSentences();
+  lessonLoaded = true;
+  showStatus("");
+}
+
+/********************** Controls **********************/
+btnPlay.addEventListener("click", async () => {
+  speechSynthesis.cancel();
+  isStopped = false;
+  isPaused = false;
+  await loadLessonFromAPI();
+  await playCurrentSentence();
+});
+
+btnNext.addEventListener("click", async () => {
+  if (currentIndex < englishSentences.length - 1) {
+    currentIndex++;
+    speechSynthesis.cancel();
+    await playCurrentSentence();
+  } else {
+    highlightSentence(-1);
+    progressBar.style.width="100%";
+  }
+});
+
+btnPause.addEventListener("click", () => {
+  if (isStopped) return;
+
+  if (!isPaused) {
+    isPaused = true;
+    speechSynthesis.pause();
+    btnPause.textContent = "▶ Resume";
+  } else {
+    isPaused = false;
+    speechSynthesis.resume();
+    btnPause.textContent = "⏸ Pause";
+  }
+});
+
+btnStop.addEventListener("click", () => {
+  isStopped = true;
+  isPaused = false;
+  currentIndex = 0;
+  speechSynthesis.cancel();
+  highlightSentence(-1);
+  progressBar.style.width = "0%";
+  btnPause.textContent = "⏸ Pause";
+});
+
+/********************** Keyboard Shortcuts **********************/
+document.addEventListener("keydown", (event) => {
+  const tag = document.activeElement?.tagName?.toLowerCase();
+  if (["input","textarea","select"].includes(tag) || document.activeElement?.isContentEditable) return;
+
+  if (event.code==="Space") { event.preventDefault(); btnPlay.click(); }
+  if (event.code==="ArrowRight") btnNext.click();
+  if (event.key==="s" || event.key==="S") btnStop.click();
+});
+</script>
 {% endblock %}
