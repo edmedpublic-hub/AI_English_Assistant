@@ -1,10 +1,11 @@
-// reading.recognition.js
+// project/static/reading/reading.recognition.js
+
 export const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
 export let recognition = null;
 
-// use a single global accumulator on window so other modules (feedback) read the same value
+// Shared transcript accumulator
 window.transcriptAcc = window.transcriptAcc || "";
 
 export function initRecognition() {
@@ -20,7 +21,6 @@ export function initRecognition() {
 
   recognition.onresult = (e) => {
     const transcript = e.results[e.results.length - 1][0].transcript;
-    // append safely
     window.transcriptAcc = (window.transcriptAcc || "") + " " + transcript;
     console.debug("Recognition result:", transcript);
   };
@@ -31,6 +31,5 @@ export function initRecognition() {
 
   recognition.onend = () => {
     console.debug("Recognition ended");
-    // leave recognition variable intact; caller decides whether to restart
   };
 }

@@ -1,5 +1,5 @@
-// reading.feedback.js
-import { renderHighlighted } from "./reading.text.js";
+// project/static/reading/reading.feedback.js
+import { renderHighlighted, getCurrentIndex } from "./reading.text.js";
 
 const getFeedbackBtn = document.getElementById("get-feedback-btn");
 const feedbackBox = document.getElementById("feedbackBox");
@@ -50,7 +50,6 @@ export function initFeedback() {
 
     feedbackBox.textContent = "Analyzing...";
 
-    // ---- PAYLOAD ----
     const payload = {
       expected: window.lessonText || "",
       spoken: transcript,
@@ -61,14 +60,12 @@ export function initFeedback() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // X-CSRFToken is correctly included here for security
           "X-CSRFToken": csrftoken,
         },
         body: JSON.stringify(payload),
         credentials: "same-origin",
       });
 
-      // ---- CHECK SERVER RESPONSE ----
       if (!res.ok) {
         let errorText = await res.text();
         feedbackBox.textContent = "Server error: " + (errorText || res.status);
@@ -82,33 +79,29 @@ export function initFeedback() {
         ? data.mispronounced
         : [];
 
-      // ---- DISPLAY SCORE + FEEDBACK ----
       let highlightMessage = "";
 
-      // The frontend highlighting logic is correct, but relies on backend data.
       if (mispronouncedWords.length) {
-        // ---- MISPRONUNCIATION HIGHLIGHTING (If data is present) ----
         const wordsToFlag = new Set(
           mispronouncedWords.map((m) => m.word.toLowerCase())
         );
 
-        window.displayedSentences = window.originalSentences.map((sentence) => {
-          return sentence
+        window.displayedSentences = window.originalSentences.map(sentence =>
+          sentence
             .split(/\b/)
-            .map((token) => {
+            .map(token => {
               const clean = token.replace(/[^\w']/g, "").toLowerCase();
               if (wordsToFlag.has(clean)) {
                 return `<span class="mispronounced">${token}</span>`;
               }
               return escapeHtml(token);
             })
-            .join("");
-        });
+            .join("")
+        );
 
-        renderHighlighted(window.currentIndex);
+        renderHighlighted(getCurrentIndex());
         highlightMessage = " (Words highlighted above)";
       } else {
-        // Add a clear message when highlighting data is empty (the current state)
         highlightMessage = " (Highlighting feature pending AI integration.)";
       }
 

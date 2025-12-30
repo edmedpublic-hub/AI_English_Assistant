@@ -3,80 +3,162 @@ from .models import (
     Textbook,
     Unit,
     Lesson,
+    LessonChunk,
     VocabularyItem,
+    VocabularyAttempt,
     WritingTask,
     SentenceAttempt,
     GrammarPoint,
-    ComprehensionQuestion
+    GrammarAttempt,
+    ComprehensionQuestion,
+    ComprehensionAttempt,
+    PronunciationAttempt,
 )
 
 # -------------------------------
-# TEXTBOOK
+#  LESSON CHUNKS
 # -------------------------------
-class TextbookSerializer(serializers.ModelSerializer):
+class LessonChunkSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Textbook
-        fields = '__all__'
+        model = LessonChunk
+        fields = [
+            "id",
+            "order",
+            "english_text",
+            "translated_text",
+            "audio_file",
+            "translated_audio_file",
+        ]
 
 
 # -------------------------------
-# UNIT
-# -------------------------------
-class UnitSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Unit
-        fields = '__all__'
-
-
-# -------------------------------
-# LESSON
-# -------------------------------
-class LessonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lesson
-        fields = '__all__'
-
-
-# -------------------------------
-# VOCABULARY ITEMS
+#  VOCABULARY
 # -------------------------------
 class VocabularyItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = VocabularyItem
-        fields = '__all__'
+        fields = [
+            "id",
+            "word",
+            "part_of_speech",
+            "urdu",
+            "meaning",
+            "synonyms",
+            "antonyms",
+            "example_sentence",
+        ]
 
 
 # -------------------------------
-# COMPREHENSION QUESTIONS
+#  COMPREHENSION QUESTIONS
 # -------------------------------
 class ComprehensionQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComprehensionQuestion
-        fields = '__all__'
+        fields = ["id", "question", "answer"]
 
 
 # -------------------------------
-# GRAMMAR POINT
+#  GRAMMAR POINTS
 # -------------------------------
 class GrammarPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrammarPoint
-        fields = '__all__'
+        fields = ["id", "title", "explanation", "examples"]
 
 
 # -------------------------------
-# WRITING TASK
+#  WRITING TASKS
 # -------------------------------
 class WritingTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = WritingTask
-        fields = '__all__'
+        fields = ["id", "prompt", "difficulty"]
 
 
 # -------------------------------
-# SENTENCE ATTEMPTS
+#  LESSON (NESTED)
 # -------------------------------
+class LessonSerializer(serializers.ModelSerializer):
+    chunks = LessonChunkSerializer(many=True, read_only=True)
+    vocab_items = VocabularyItemSerializer(many=True, read_only=True)
+    comprehension_questions = ComprehensionQuestionSerializer(many=True, read_only=True)
+    grammar_points = GrammarPointSerializer(many=True, read_only=True)
+    writing_tasks = WritingTaskSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Lesson
+        fields = [
+            "id",
+            "title",
+            "number",
+            "english_text",
+            "translated_text",
+            "audio_file",
+            "chunks",
+            "vocab_items",
+            "comprehension_questions",
+            "grammar_points",
+            "writing_tasks",
+        ]
+
+
+# -------------------------------
+#  UNITS (OPTIONAL NESTED LESSONS)
+# -------------------------------
+class UnitSerializer(serializers.ModelSerializer):
+    lessons = LessonSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Unit
+        fields = ["id", "title", "number", "lessons"]
+
+
+# -------------------------------
+#  TEXTBOOK (OPTIONAL NESTED UNITS)
+# -------------------------------
+class TextbookSerializer(serializers.ModelSerializer):
+    units = UnitSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Textbook
+        fields = ["id", "title", "class_level", "description", "units"]
+
+
+# =====================================================
+#  ATTEMPTS  (WRITE ONLY FOR STUDENTS, READ SAFE)
+# =====================================================
+
+class VocabularyAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VocabularyAttempt
+        fields = ["id", "student_id", "vocab_item", "is_correct", "timestamp"]
+        read_only_fields = ["timestamp"]
+
+
 class SentenceAttemptSerializer(serializers.ModelSerializer):
     class Meta:
         model = SentenceAttempt
-        fields = '__all__'
+        fields = ["id", "student_id", "writing_task", "sentence", "ai_score", "feedback", "timestamp"]
+        read_only_fields = ["ai_score", "feedback", "timestamp"]
+
+
+class GrammarAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GrammarAttempt
+        fields = ["id", "student_id", "grammar_point", "is_correct", "timestamp"]
+        read_only_fields = ["timestamp"]
+
+
+class ComprehensionAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComprehensionAttempt
+        fields = ["id", "student_id", "question", "answer", "is_correct", "timestamp"]
+        read_only_fields = ["timestamp"]
+
+
+class PronunciationAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PronunciationAttempt
+        fields = ["id", "student_id", "chunk", "recording", "ai_feedback", "ai_score", "timestamp"]
+        read_only_fields = ["ai_feedback", "ai_score", "timestamp"]

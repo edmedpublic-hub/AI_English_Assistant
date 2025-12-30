@@ -1,36 +1,39 @@
+// project/static/reading/reading.main.js
 import { populateVoices, initTextReader, synth } from "./reading.text.js";
 import { initListening } from "./reading.listen.js";
 import { initFeedback } from "./reading.feedback.js";
 
-// DOM
+// DOM references
 const titleEl = document.getElementById("lessonTitle");
 const textEl = document.getElementById("lessonText");
 const listContainer = document.getElementById("lesson-list");
 
 // ---------------- LOAD LESSON ----------------
-async function loadLesson(id = 1) {
+async function loadLesson(id) {
   try {
     const res = await fetch(`/api/reading/lessons/${id}/`);
     if (!res.ok) throw new Error("Lesson not found");
 
     const lesson = await res.json();
 
-    titleEl.textContent = lesson.title;
+    if (titleEl) titleEl.textContent = lesson.title;
 
     const raw = lesson.content || "";
+
+    // Render paragraphs
     const paragraphs = raw
       .split("\n")
-      .filter((p) => p.trim() !== "")
-      .map((p) => `<p>${p}</p>`)
+      .filter(p => p.trim() !== "")
+      .map(p => `<p>${p}</p>`)
       .join("");
 
-    textEl.innerHTML = paragraphs;
+    if (textEl) textEl.innerHTML = paragraphs;
 
-    // Store for feedback/listening
+    // Provide shared state for reader + feedback modules
     window.originalSentences = raw
       .replace(/\n+/g, " ")
       .split(/(?<=[.!?])\s+/)
-      .filter((s) => s.trim() !== "");
+      .filter(s => s.trim() !== "");
 
     window.displayedSentences = [...window.originalSentences];
     window.lessonText = raw;
@@ -56,34 +59,38 @@ async function loadLessonList() {
 
     listContainer.innerHTML = "";
 
-    lessons.forEach((lesson) => {
+    lessons.forEach(lesson => {
       const link = document.createElement("a");
       link.href = `/reading/${lesson.id}/`;
       link.textContent = lesson.title || `Lesson ${lesson.id}`;
       listContainer.appendChild(link);
       listContainer.appendChild(document.createElement("br"));
     });
-  } catch {
+  } catch (err) {
+    console.error(err);
     listContainer.textContent = "Could not load lessons.";
   }
 }
 
 // ---------------- INIT APP ----------------
-document.addEventListener("DOMContentLoaded", () => {
-  // Load list on reading.html
+document.addEventListener("DOMContentLoaded", async () => {
+  // Load list on listing page
   loadLessonList();
 
-  // Load individual lesson on reading_detail.html
-  const pageLessonId = document.body.getAttribute("data-lesson-id");
+  // Load specific lesson if present
+  const lessonSection = document.querySelector("[data-lesson-id]");
+  const pageLessonId = lessonSection?.dataset.lessonId;
   if (pageLessonId) {
-    loadLesson(pageLessonId);
+    await loadLesson(pageLessonId);
   }
 
-  // Speech synthesis voices
+  // Initialize TTS voices
   populateVoices();
-  synth.onvoiceschanged = populateVoices;
+  if (synth) {
+    synth.onvoiceschanged = populateVoices;
+  }
 
-  // Initialize modules
+  // Initialize feature modules
   initTextReader();
   initListening();
   initFeedback();

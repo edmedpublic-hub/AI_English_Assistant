@@ -1,5 +1,5 @@
 # ============================================================
-# Grammar Utilities
+# Grammar API + Template Views
 # ============================================================
 
 import spacy
@@ -12,14 +12,21 @@ from ..models import GrammarPoint, Lesson
 from ..serializers import GrammarPointSerializer
 
 
-# Load spaCy model once (fast)
+# ============================================================
+# spaCy Load (Once at Startup)
+# ============================================================
+
 try:
     nlp = spacy.load("en_core_web_sm")
     SPACY_READY = True
 except Exception as e:
-    print("❌ spaCy failed to load:", e)
+    print("spaCy not available:", e)
     SPACY_READY = False
 
+
+# ============================================================
+# Grammar Extraction Logic
+# ============================================================
 
 def extract_advanced_grammar(text):
     """
@@ -32,7 +39,7 @@ def extract_advanced_grammar(text):
     doc = nlp(text)
     grammar_points = []
 
-    # 1. Tense Detection
+    # ---------- Tense Detection ----------
     for token in doc:
         if token.tag_ in ["VBD", "VBN"]:
             grammar_points.append({
@@ -58,7 +65,7 @@ def extract_advanced_grammar(text):
             })
             break
 
-    # 2. Modal Verbs
+    # ---------- Modal Verbs ----------
     modals = {"can", "could", "will", "would", "shall", "should", "may", "might", "must"}
     for token in doc:
         if token.text.lower() in modals:
@@ -68,7 +75,7 @@ def extract_advanced_grammar(text):
                 "example": token.sent.text.strip(),
             })
 
-    # 3. Passive Voice
+    # ---------- Passive Voice ----------
     for token in doc:
         if token.dep_ == "auxpass":
             grammar_points.append({
@@ -78,7 +85,7 @@ def extract_advanced_grammar(text):
             })
             break
 
-    # 4. Conditional Sentences
+    # ---------- Conditionals ----------
     for sent in doc.sents:
         if "if" in sent.text.lower():
             grammar_points.append({
@@ -87,7 +94,7 @@ def extract_advanced_grammar(text):
                 "example": sent.text.strip(),
             })
 
-    # 5. Gerunds / Infinitives
+    # ---------- Gerunds / Infinitives ----------
     for token in doc:
         if token.tag_ == "VBG" and token.dep_ == "xcomp":
             grammar_points.append({
@@ -103,7 +110,7 @@ def extract_advanced_grammar(text):
                 "example": token.sent.text.strip(),
             })
 
-    # 6. Direct Speech
+    # ---------- Direct Speech ----------
     for sent in doc.sents:
         if "\"" in sent.text or "'" in sent.text:
             grammar_points.append({
@@ -112,17 +119,17 @@ def extract_advanced_grammar(text):
                 "example": sent.text.strip(),
             })
 
-    # 7. Prepositions
+    # ---------- Prepositions ----------
     for token in doc:
         if token.pos_ == "ADP":
             grammar_points.append({
                 "title": "Preposition",
-                "explanation": f"‘{token.text}’ shows relationship of place, time, or direction.",
+                "explanation": f"‘{token.text}’ shows a relationship of place, time, or direction.",
                 "example": token.sent.text.strip(),
             })
             break
 
-    # 8. Articles
+    # ---------- Articles ----------
     for token in doc:
         if token.text.lower() in ["a", "an", "the"]:
             grammar_points.append({
@@ -136,21 +143,34 @@ def extract_advanced_grammar(text):
 
 
 # ============================================================
-# Grammar API ViewSets
+# API VIEWSET
 # ============================================================
 
 class GrammarPointViewSet(viewsets.ModelViewSet):
-    """API endpoint for grammar points."""
-    queryset = GrammarPoint.objects.all()
+    """CRUD API endpoint for grammar points."""
     serializer_class = GrammarPointSerializer
 
+    queryset = (
+        GrammarPoint.objects
+        .select_related("lesson")  # if FK exists
+        .order_by("id")
+    )
+
+
+# ============================================================
+# AI Grammar Extraction API
+# ============================================================
 
 class ExtractGrammar(APIView):
-    """Analyze lesson text and extract grammar points using spaCy."""
+    """
+    POST /api/content/lessons/<lesson_id>/extract-grammar/
+    Returns detected grammar features from the lesson text.
+    """
+
     def post(self, request, lesson_id):
         if not SPACY_READY:
             return Response(
-                {"error": "spaCy is not installed correctly."},
+                {"error": "spaCy model is not available on the server."},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
@@ -174,10 +194,16 @@ class ExtractGrammar(APIView):
 
 
 # ============================================================
-# Grammar Template Views
+# TEMPLATE VIEW
 # ============================================================
 
 def content_grammar_point_detail(request, gp_id):
-    """Show details of a grammar point."""
-    gp = get_object_or_404(GrammarPoint, id=gp_id)
+    """
+    Render a single grammar point detail page.
+    """
+    gp = get_object_or_404(
+        GrammarPoint.objects.select_related("lesson"),
+        id=gp_id
+    )
+
     return render(request, "content/grammar_point_detail.html", {"gp": gp})

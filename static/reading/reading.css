@@ -1,98 +1,162 @@
-:root {
-  --bg: #f6f8fb;
-  --card: #fff;
-  --primary: #0b63d6;
-  --muted: #6b7280;
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
-    Arial;
-  background: var(--bg);
-  margin: 0;
-  padding: 20px;
-}
-.container {
-  max-width: 880px;
-  margin: 24px auto;
-  padding: 20px;
-  background: var(--card);
-  border-radius: 10px;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-}
-h2 {
-  text-align: center;
-  margin: 0 0 16px;
-  font-size: 20px;
-}
-.lesson-text {
-  font-size: 17px;
+/* ===========================
+   READING APP — SCOPED STYLES
+   =========================== */
+
+#reading-app {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
   line-height: 1.7;
-  margin-bottom: 16px;
-  color: #111;
+
+  /* Light mode defaults */
+  --bg: #f6f8fb;
+  --card: #ffffff;
+
+  /* Brand colors (sync with Bootstrap primary) */
+  --primary: #0d6efd;
+  --primary-dark: #0a58ca;
+
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+
+  /* Reading highlight — accessible yellow */
+  --highlight-bg: #fff3b0;
+  --highlight-border: #facc15;
+  --highlight-text: #111827;
+
+  --error-text: #b91c1c;
 }
-.controls,
-.student-controls {
-  text-align: center;
-  margin: 10px 0;
+
+/* Dark theme — matches Bootstrap */
+html[data-bs-theme="dark"] #reading-app {
+  --bg: #0f172a;
+  --card: #111827;
+
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+
+  --highlight-bg: #3a2f18;
+  --highlight-border: #eab308;
+  --highlight-text: #fef9c3;
+
+  --error-text: #fecaca;
 }
-button {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 9px 14px;
-  margin: 6px;
-  border-radius: 8px;
-  font-size: 15px;
-  cursor: pointer;
+
+/* Layout container */
+#reading-app .container {
+  max-width: 880px;
+  margin: 20px auto;
+  padding: 24px;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
 }
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+
+/* Headings */
+#reading-app h1 {
+  margin-top: 0;
+  color: var(--text-main);
+  font-weight: 800;
 }
-select {
-  padding: 8px;
-  border-radius: 8px;
-  margin-left: 8px;
+
+#reading-app .subtitle {
+  color: var(--text-muted);
+  margin-bottom: 20px;
 }
-.highlight {
-  background: #fff7c0;
-  border-radius: 4px;
-  padding: 2px 3px;
+
+/* Lesson text */
+#reading-app #lessonText {
+  font-size: 18px;
+  color: var(--text-main);
 }
-.mispronounced {
-  background: #ffdfe0;
-  color: #800;
+
+#reading-app #lessonText p {
+  margin-bottom: 14px;
+}
+
+/* ===========================
+   READING HIGHLIGHT (MAIN)
+   =========================== */
+
+#reading-app .highlight {
+  background: var(--highlight-bg);
+  color: var(--highlight-text);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 2px solid var(--highlight-border);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Optional mispronounced emphasis */
+#reading-app .mispronounced {
+  background: #fef08a;
+  color: var(--error-text);
+  font-weight: bold;
   padding: 2px 4px;
   border-radius: 4px;
 }
-.feedback-box {
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #f3f6ff;
-  border: 1px solid #e6eefc;
-  min-height: 48px;
-  color: #0b2a4a;
-}
-.mispronounced {
-  background-color: yellow;
-  color: red;
-  font-weight: bold;
-  padding: 2px;
-  border-radius: 4px;
+
+/* ===========================
+   BUTTONS
+   We now let Bootstrap handle styling.
+   =========================== */
+
+#reading-app button {
+  margin: 6px;
 }
 
+/* Disabled state still remains useful */
+#reading-app button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===========================
+   FEEDBACK BOX
+   =========================== */
+
+#reading-app .feedback-box {
+  background: #f3f6ff;
+  border: 1px solid #e6eefc;
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 16px;
+  color: #0b2a4a;
+}
+
+/* ===========================
+   LESSON LIST CARDS
+   =========================== */
+
+#reading-app .lesson-card {
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+/* Links (match brand color) */
+#reading-app a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+#reading-app a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Responsive */
 @media (max-width: 600px) {
-  button {
-    width: 100%;
-    display: block;
-    margin: 8px 0;
+  #reading-app .container {
+    padding: 16px;
   }
-  select {
+
+  #reading-app button {
     width: 100%;
-    margin-top: 8px;
   }
 }

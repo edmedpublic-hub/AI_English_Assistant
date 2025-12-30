@@ -26,30 +26,39 @@ def content_comprehension_question_detail(request, cq_id):
 
     if request.method == "POST":
         form = ComprehensionAttemptForm(request.POST)
+
         if form.is_valid():
             student_id = form.cleaned_data.get("student_id")
-            student_answer = form.cleaned_data["answer"].strip().lower()
-            correct_answer = cq.answer.strip().lower()
+            student_answer = form.cleaned_data["answer"].strip()
 
-            is_correct = student_answer == correct_answer
+            if student_answer:
+                is_correct = (
+                    student_answer.lower() ==
+                    cq.answer.strip().lower()
+                )
 
-            # Save attempt
-            ComprehensionAttempt.objects.create(
-                student_id=student_id,
-                question=cq,
-                answer=form.cleaned_data["answer"],
-                is_correct=is_correct,
-            )
+                ComprehensionAttempt.objects.create(
+                    student_id=student_id,
+                    question=cq,
+                    answer=form.cleaned_data["answer"],
+                    is_correct=is_correct,
+                )
 
-            feedback = "✅ Correct!" if is_correct else f"❌ Not quite. Correct answer: {cq.answer}"
+                feedback = "Correct!" if is_correct else f"Not quite. Correct answer: {cq.answer}"
+            else:
+                feedback = "Answer cannot be blank."
     else:
         form = ComprehensionAttemptForm()
 
     attempts = cq.attempts.order_by("-timestamp")
 
-    return render(request, "content/comprehension_question_detail.html", {
-        "cq": cq,
-        "form": form,
-        "feedback": feedback,
-        "attempts": attempts,
-    })
+    return render(
+        request,
+        "content/comprehension_question_detail.html",
+        {
+            "cq": cq,
+            "form": form,
+            "feedback": feedback,
+            "attempts": attempts,
+        },
+    )

@@ -1,6 +1,6 @@
 // ---------------- TEXT READING MODULE ----------------
 
-// DOM
+// DOM elements (safe-lookup for module load timing)
 const textEl = document.getElementById("lessonText");
 const voiceSelect = document.getElementById("voiceSelect");
 
@@ -9,19 +9,20 @@ const pauseBtn = document.getElementById("pauseBtn");
 const resumeBtn = document.getElementById("resumeBtn");
 const stopBtn = document.getElementById("stopBtn");
 
+// Speech synthesis
 export const synth = window.speechSynthesis;
 export let voices = [];
 
-// Global reading state
-window.isReading = false;
-window.isPaused = false;
-window.currentIndex = 0;
+// Local reading state
+let isReading = false;
+let isPaused = false;
+let currentIndex = 0;
 
 // ---------------- VOICES ----------------
 export function populateVoices() {
   if (!voiceSelect) return;
 
-  voices = synth.getVoices() || [];
+  voices = synth.getVoices().filter(v => v.lang.startsWith("en")) || [];
   const prev = voiceSelect.value;
   voiceSelect.innerHTML = "";
 
@@ -37,32 +38,54 @@ export function populateVoices() {
   }
 }
 
+synth.onvoiceschanged = populateVoices;
+
 // ---------------- HIGHLIGHT ----------------
 export function renderHighlighted(index) {
-  if (!window.displayedSentences.length) {
+  if (!textEl) return;
+
+  if (!window.displayedSentences?.length) {
     textEl.innerHTML = "";
     return;
   }
 
   const html = window.displayedSentences
     .map((s, i) =>
-      i === index ? `<span class="highlight">${s}</span>` : `<span>${s}</span>`
+      i === index
+        ? `<span class="highlight" data-sentence="${i}">${s}</span>`
+        : `<span data-sentence="${i}">${s}</span>`
     )
     .join(" ");
 
   textEl.innerHTML = html;
+
+  // Ensure current sentence stays in view
+  if (index >= 0) {
+    const el = textEl.querySelector(`[data-sentence="${index}"]`);
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  }
+}
+
+// Getter used by feedback.js
+export function getCurrentIndex() {
+  return currentIndex;
 }
 
 // ---------------- SPEAK SENTENCE ----------------
-export function speakSentence(i) {
+function speakSentence(i) {
   if (!window.originalSentences || i >= window.originalSentences.length) {
-    window.isReading = false;
-    window.currentIndex = 0;
+    isReading = false;
+    currentIndex = 0;
     renderHighlighted(-1);
     return;
   }
 
-  window.currentIndex = i;
+  currentIndex = i;
   renderHighlighted(i);
 
   const text = window.originalSentences[i];
@@ -76,11 +99,11 @@ export function speakSentence(i) {
   u.pitch = 1;
 
   u.onend = () => {
-    if (!window.isPaused && window.isReading) speakSentence(i + 1);
+    if (!isPaused && isReading) speakSentence(i + 1);
   };
 
   u.onerror = () => {
-    if (!window.isPaused && window.isReading) speakSentence(i + 1);
+    if (!isPaused && isReading) speakSentence(i + 1);
   };
 
   synth.speak(u);
@@ -89,49 +112,52 @@ export function speakSentence(i) {
 // ---------------- INIT TTS BUTTONS ----------------
 export function initTextReader() {
   readBtn?.addEventListener("click", () => {
-    if (!window.originalSentences.length) return;
+    if (!window.originalSentences?.length) {
+      alert("No lesson text available to read.");
+      return;
+    }
 
     synth.cancel();
     window.displayedSentences = window.originalSentences.slice();
-    window.isReading = true;
-    window.isPaused = false;
-    window.currentIndex = 0;
+    isReading = true;
+    isPaused = false;
+    currentIndex = 0;
 
-    setTimeout(() => speakSentence(0), 80);
+    setTimeout(() => speakSentence(0), 100);
   });
 
   pauseBtn?.addEventListener("click", () => {
     if (synth.speaking && !synth.paused) {
       try {
         synth.pause();
-        window.isPaused = true;
+        isPaused = true;
       } catch {
         synth.cancel();
-        window.isPaused = true;
+        isPaused = true;
       }
     }
   });
 
   resumeBtn?.addEventListener("click", () => {
-    if (window.isPaused) {
+    if (isPaused) {
       try {
         synth.resume();
-        window.isPaused = false;
+        isPaused = false;
       } catch {
-        window.isPaused = false;
+        isPaused = false;
         synth.cancel();
-        setTimeout(() => speakSentence(window.currentIndex), 80);
+        setTimeout(() => speakSentence(currentIndex), 100);
       }
     }
   });
 
   stopBtn?.addEventListener("click", () => {
     synth.cancel();
-    window.isReading = false;
-    window.isPaused = false;
-    window.currentIndex = 0;
+    isReading = false;
+    isPaused = false;
+    currentIndex = 0;
 
-    window.displayedSentences = window.originalSentences.slice();
+    window.displayedSentences = window.originalSentences?.slice() || [];
     renderHighlighted(-1);
   });
 }

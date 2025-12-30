@@ -1,4 +1,4 @@
-// reading.listen.js
+// project/static/reading/reading.listen.js
 import { recognition, initRecognition } from "./reading.recognition.js";
 
 let startRecordBtn;
@@ -7,7 +7,6 @@ let stopRecordBtn;
 export let recording = false;
 
 export function initListening() {
-  // Grab elements *after* DOM is ready
   startRecordBtn = document.getElementById("start-record-btn");
   stopRecordBtn = document.getElementById("stop-record-btn");
 
@@ -21,7 +20,6 @@ export function initListening() {
     window.transcriptAcc = ""; // reset transcript
     recording = true;
 
-    // Ensure recognition exists
     if (!recognition) {
       initRecognition();
     }

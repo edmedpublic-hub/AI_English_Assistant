@@ -6,11 +6,12 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-temp-key"
-DEBUG = True
+# Security
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-temp-key")
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-ALLOWED_HOSTS = ["*"]
-
+# Applications
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -19,21 +20,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party
     'rest_framework',
     'corsheaders',
     'django_extensions',
 
-    # Local apps
     'content',
     'reading',
     'vocab_master',
     'translation',
 ]
 
+# Middleware
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Essential for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -44,16 +45,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-# -------------------------
-#      TEMPLATE SETUP
-# -------------------------
-# IMPORTANT: This now points to your global /templates folder
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates'
-        ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,32 +65,40 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.sqlite3"),
+        "NAME": os.getenv("DB_NAME", BASE_DIR / "db.sqlite3"),
     }
 }
 
-# -------------------------
-#      STATIC FILES
-# -------------------------
+# --- STATIC & MEDIA CONFIGURATION ---
 STATIC_URL = '/static/'
-
-# These are YOUR actual static files (JS/CSS)
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
-# Where collectstatic dumps files
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# -------------------------
-#      CORS
-# -------------------------
+# This is the "Magic" line to prevent 304/Caching issues
+# It compresses files AND gives them unique versions (cache busting)
+if not DEBUG:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
+
+# CORS
 CORS_ALLOW_ALL_ORIGINS = True
 
-# -------------------------
-#      OPENAI
-# -------------------------
+# External keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}

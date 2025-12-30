@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import UniqueConstraint, Index
 from django.utils import timezone
 from django.urls import reverse
+from django.utils.text import slugify
 
 
 class TimestampedModel(models.Model):
@@ -14,10 +15,10 @@ class TimestampedModel(models.Model):
         abstract = True
 
 
-class TranslationTextbook(TimestampedModel):
+class TranslationTextbook(TimestampedModel):  # ✅ now inherits TimestampedModel
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(unique=True, blank=True, null=True)  # allow blank in forms, enforce unique in DB
     description = models.TextField(blank=True)
     language = models.CharField(max_length=10, default='en')
     is_active = models.BooleanField(default=True)
@@ -31,6 +32,12 @@ class TranslationTextbook(TimestampedModel):
             Index(fields=["published"]),
             Index(fields=["is_active"]),
         ]
+
+    def save(self, *args, **kwargs):
+        # Auto-generate slug if missing
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

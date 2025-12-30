@@ -1,63 +1,89 @@
-# ============================================================
-# Lesson API ViewSets
-# ============================================================
-
-from rest_framework import viewsets
 from django.shortcuts import render, get_object_or_404
-from ..models import Lesson, Unit, LessonChunk
+from rest_framework import viewsets
+
+from ..models import Lesson, Unit
 from ..serializers import LessonSerializer
 
 
+# ============================================================
+# API VIEWSET
+# ============================================================
+
 class LessonViewSet(viewsets.ModelViewSet):
-    """API endpoint for lessons belonging to a unit."""
-    queryset = Lesson.objects.all()
+    """
+    CRUD API endpoint for Lessons.
+    Supports:
+    - /api/content/lessons/
+    - /api/content/units/<unit_id>/lessons/
+    """
     serializer_class = LessonSerializer
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        queryset = (
+            Lesson.objects
+            .select_related("unit")
+            .order_by("order", "id")
+        )
+
         unit_id = self.kwargs.get("unit_id")
         if unit_id:
-            qs = qs.filter(unit_id=unit_id)
-        return qs
+            queryset = queryset.filter(unit_id=unit_id)
+
+        return queryset
 
 
 # ============================================================
-# Lesson Template Views
+# TEMPLATE VIEWS
 # ============================================================
 
 def content_lesson_list(request, student_id, unit_id):
-    """Show list of lessons for a given unit and student."""
-    unit = get_object_or_404(Unit, id=unit_id)
-    lessons = unit.lessons.all()
-    context = {
-        "unit": unit,
-        "lessons": lessons,
-        "student_id": student_id,  # ✅ ensures templates can link back to dashboard
-    }
-    return render(request, "content/lesson_list.html", context)
+    unit = get_object_or_404(
+        Unit.objects.prefetch_related("lessons"),
+        id=unit_id
+    )
 
+    lessons = unit.lessons.all().order_by("order", "id")
 
-from django.shortcuts import render, get_object_or_404
-from ..models import Lesson
+    return render(
+        request,
+        "content/lesson_list.html",
+        {
+            "unit": unit,
+            "lessons": lessons,
+            "student_id": student_id,
+        },
+    )
+
 
 def content_lesson_detail(request, student_id, lesson_id):
-    lesson = get_object_or_404(Lesson, id=lesson_id)
-    chunks = list(lesson.chunks.all())
-    total = len(chunks)
+    lesson = get_object_or_404(
+        Lesson.objects.prefetch_related("chunks"),
+        id=lesson_id
+    )
 
-    # pick current chunk (1-based index)
-    current = request.GET.get("chunk")
+    chunks = list(lesson.chunks.all().order_by("order", "id"))
+    total_chunks = len(chunks)
+
     try:
-        idx = max(1, min(int(current or 1), total))  # clamp between 1 and total
+        current_idx = int(request.GET.get("chunk", 1))
     except ValueError:
-        idx = 1
+        current_idx = 1
 
-    chunk = chunks[idx - 1] if total > 0 else None
+    if total_chunks > 0:
+        current_idx = max(1, min(current_idx, total_chunks))
+        current_chunk = chunks[current_idx - 1]
+    else:
+        current_idx = 0
+        current_chunk = None
 
-    context = {
-        "lesson": lesson,
-        "chunk": chunk,
-        "student_id": student_id,
-        "total_chunks": total,
-    }
-    return render(request, "content/lesson_detail.html", context)
+    return render(
+        request,
+        "content/lesson_detail.html",
+        {
+            "lesson": lesson,
+            "chunk": current_chunk,
+            "student_id": student_id,
+            "total_chunks": total_chunks,
+            "current_chunk": current_idx,
+        },
+    )
