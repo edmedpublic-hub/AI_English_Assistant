@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Content — Index{% endblock %}
+
+{% block content %}
+<section class="content-index">
+  <header class="page-header">
+    <h1>Content</h1>
+    <p class="page-subtitle">Browse textbooks, units, lessons, and learning materials</p>
+  </header>
+
+  <section class="textbooks-section">
+    <h2>Textbooks</h2>
+
+    <div id="textbooks-status" class="status-message">
+      Loading textbooks…
+    </div>
+
+    <ul id="textbooks-list" class="textbook-list"></ul>
+
+    <div class="navigation-back">
+      <a href="{% url 'index' %}">← Back to Global Home</a>
+    </div>
+  </section>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/index.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'content/index.js' %}"></script>
+{% endblock %}

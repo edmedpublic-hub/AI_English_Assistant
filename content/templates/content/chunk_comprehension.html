@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Comprehension — Chunk {{ chunk.order }}{% endblock %}
+
+{% block content %}
+<p>
+  <a href="{% url 'chunk_detail' lesson.id chunk.id %}">← Back to Chunk</a>
+</p>
+
+<h1>Comprehension Questions for Chunk {{ chunk.order }}</h1>
+
+<ol>
+  {% for q in lesson.comprehension_questions.all %}
+    <li>
+      {{ q.question }}
+      <details>
+        <summary>Show Answer</summary>
+        {{ q.answer }}
+      </details>
+    </li>
+  {% empty %}
+    <li>No comprehension questions yet for this lesson.</li>
+  {% endfor %}
+</ol>
+{% endblock %}

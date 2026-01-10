@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vocabulary Practice — Chunk {{ chunk.order }}{% endblock %}
+
+{% block content %}
+<p>
+  <a href="{% url 'chunk_vocabulary' lesson.id chunk.id %}" class="back-link">← Back</a>
+  <a href="{% url 'chunk_vocabulary_test' lesson.id chunk.id %}" class="forward-link">Go to Test →</a>
+</p>
+
+<h1 class="page-title">Practice Vocabulary — Chunk {{ chunk.order }}</h1>
+
+<!-- ===================== -->
+<!-- Flip Cards Section -->
+<!-- ===================== -->
+<h2>Flashcards</h2>
+<div class="flashcards">
+  {% for vocab in chunk.vocab_items.all %}
+    <div class="card">
+      <div class="front">
+        <strong>{{ vocab.word }}</strong>
+      </div>
+      <div class="back">
+        <div class="box meaning">
+          <strong>Meaning:</strong> {{ vocab.meaning }}
+        </div>
+        <div class="box urdu">
+          <strong>Urdu:</strong> {{ vocab.urdu }}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p>No vocabulary items yet for this chunk.</p>
+  {% endfor %}
+</div>
+
+<!-- ===================== -->
+<!-- Practice Intro Text -->
+<!-- ===================== -->
+<p class="practice-intro">
+  To internalize and strengthen your understanding of this chunk’s vocabulary, 
+  try the following exercises. Choose one of the practice modes below to test yourself.
+</p>
+
+<!-- ===================== -->
+<!-- Practice Buttons -->
+<!-- ===================== -->
+<div class="practice-buttons">
+  <button data-section-btn="fill">📝 Fill in Blanks</button>
+  <button data-section-btn="syn">🔄 Synonyms</button>
+  <button data-section-btn="ant">↔ Antonyms</button>
+</div>
+
+<!-- ===================== -->
+<!-- Fill Practice -->
+<!-- ===================== -->
+<div id="fill" class="practice-section hidden">
+  <h2>Fill in the blanks</h2>
+  <ul>
+    {% for q in practice_questions %}
+    <li class="question" data-answer="{{ q.answer|lower }}">
+      <p>{{ q.sentence }}</p>
+      <form class="options">
+        {% for opt in q.options %}
+        <label>
+          <input type="radio" name="fill{{ forloop.counter }}" value="{{ opt|lower }}">
+          {{ opt }}
+        </label><br>
+        {% endfor %}
+      </form>
+      <p class="feedback"></p>
+      <button class="reset-btn hidden">Reset</button>
+      <button class="next-btn hidden">Next</button>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- ===================== -->
+<!-- Synonyms -->
+<!-- ===================== -->
+<div id="syn" class="practice-section hidden">
+  <h2>Synonyms</h2>
+  <ul>
+    {% for q in synonym_questions %}
+    <li class="question" data-answer="{{ q.answer|lower }}">
+      <p>{{ q.sentence }}</p>
+      <p>{{ q.question }}</p>
+      <form class="options">
+        {% for opt in q.options %}
+        <label>
+          <input type="radio" name="syn{{ forloop.counter }}" value="{{ opt|lower }}">
+          {{ opt }}
+        </label><br>
+        {% endfor %}
+      </form>
+      <p class="feedback"></p>
+      <button class="reset-btn hidden">Reset</button>
+      <button class="next-btn hidden">Next</button>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- ===================== -->
+<!-- Antonyms -->
+<!-- ===================== -->
+<div id="ant" class="practice-section hidden">
+  <h2>Antonyms</h2>
+  <ul>
+    {% for q in antonym_questions %}
+    <li class="question" data-answer="{{ q.answer|lower }}">
+      <p>{{ q.sentence }}</p>
+      <p>{{ q.question }}</p>
+      <form class="options">
+        {% for opt in q.options %}
+        <label>
+          <input type="radio" name="ant{{ forloop.counter }}" value="{{ opt|lower }}">
+          {{ opt }}
+        </label><br>
+        {% endfor %}
+      </form>
+      <p class="feedback"></p>
+      <button class="reset-btn hidden">Reset</button>
+      <button class="next-btn hidden">Next</button>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/chunk_vocabulary_practice.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'content/chunk_vocabulary_practice.js' %}"></script>
+{% endblock %}

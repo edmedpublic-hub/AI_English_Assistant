@@ -13,6 +13,7 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split("
 
 # Applications
 INSTALLED_APPS = [
+    # Django core
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -20,10 +21,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third-party
     'rest_framework',
     'corsheaders',
     'django_extensions',
 
+    # Project apps
     'content',
     'reading',
     'vocab_master',
@@ -34,7 +37,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Essential for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,34 +66,66 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+# Database
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.sqlite3"),
         "NAME": os.getenv("DB_NAME", BASE_DIR / "db.sqlite3"),
+        "USER": os.getenv("DB_USER", ""),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", ""),
+        "PORT": os.getenv("DB_PORT", ""),
     }
 }
 
-# --- STATIC & MEDIA CONFIGURATION ---
+# Internationalization & timezone
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Asia/Karachi"
+USE_I18N = True
+USE_TZ = True
+
+# Static & media
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# This is the "Magic" line to prevent 304/Caching issues
-# It compresses files AND gives them unique versions (cache busting)
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
 
-# CORS
+# CORS & CSRF
 CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "DJANGO_CSRF_TRUSTED_ORIGINS",
+    "http://localhost,http://127.0.0.1"
+).split(",")
+
+# REST framework defaults
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+}
 
 # External keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Security headers (safe defaults; adjust for production)
+SECURE_CONTENT_TYPE_NOSNIFF = not DEBUG
+SECURE_BROWSER_XSS_FILTER = not DEBUG
+
+# Logging
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

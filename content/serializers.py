@@ -134,6 +134,7 @@ class VocabularyAttemptSerializer(serializers.ModelSerializer):
         model = VocabularyAttempt
         fields = ["id", "student_id", "vocab_item", "is_correct", "timestamp"]
         read_only_fields = ["timestamp"]
+        depth = 1
 
 
 class SentenceAttemptSerializer(serializers.ModelSerializer):
@@ -141,6 +142,12 @@ class SentenceAttemptSerializer(serializers.ModelSerializer):
         model = SentenceAttempt
         fields = ["id", "student_id", "writing_task", "sentence", "ai_score", "feedback", "timestamp"]
         read_only_fields = ["ai_score", "feedback", "timestamp"]
+        depth = 1
+
+    def validate_ai_score(self, value):
+        if value is not None and not (0 <= value <= 100):
+            raise serializers.ValidationError("AI score must be between 0 and 100.")
+        return value
 
 
 class GrammarAttemptSerializer(serializers.ModelSerializer):
@@ -148,6 +155,7 @@ class GrammarAttemptSerializer(serializers.ModelSerializer):
         model = GrammarAttempt
         fields = ["id", "student_id", "grammar_point", "is_correct", "timestamp"]
         read_only_fields = ["timestamp"]
+        depth = 1
 
 
 class ComprehensionAttemptSerializer(serializers.ModelSerializer):
@@ -155,6 +163,7 @@ class ComprehensionAttemptSerializer(serializers.ModelSerializer):
         model = ComprehensionAttempt
         fields = ["id", "student_id", "question", "answer", "is_correct", "timestamp"]
         read_only_fields = ["timestamp"]
+        depth = 1
 
 
 class PronunciationAttemptSerializer(serializers.ModelSerializer):
@@ -162,3 +171,4 @@ class PronunciationAttemptSerializer(serializers.ModelSerializer):
         model = PronunciationAttempt
         fields = ["id", "student_id", "chunk", "recording", "ai_feedback", "ai_score", "timestamp"]
         read_only_fields = ["ai_feedback", "ai_score", "timestamp"]
+        depth = 1

@@ -1,0 +1,156 @@
+/* =========================
+   Page Layout
+========================= */
+
+.content-index {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5em 1em;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2em;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 0.3em;
+}
+
+.page-subtitle {
+  color: #6c7a89;
+  font-size: 1rem;
+}
+
+/* =========================
+   Sections
+========================= */
+
+.textbooks-section h2 {
+  margin-bottom: 0.8em;
+  color: #34495e;
+}
+
+.status-message {
+  margin: 1em 0;
+  color: #555;
+}
+
+/* =========================
+   Textbook List
+========================= */
+
+.textbook-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.textbook-item {
+  margin-bottom: 1.5em;
+}
+
+/* =========================
+   Textbook Card
+========================= */
+
+.textbook-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.2em 1.4em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.textbook-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: baseline;
+}
+
+.textbook-title {
+  font-weight: 700;
+  color: #2980b9;
+  text-decoration: none;
+}
+
+.textbook-title:hover {
+  text-decoration: underline;
+}
+
+.textbook-level {
+  font-size: 0.9em;
+  color: #7f8c8d;
+}
+
+.textbook-description {
+  margin-top: 0.6em;
+  color: #555;
+}
+
+/* =========================
+   Nested Content
+========================= */
+
+details {
+  margin-top: 0.7em;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+details ul {
+  margin-top: 0.5em;
+  padding-left: 1.2em;
+}
+
+.lesson-meta {
+  margin-top: 0.3em;
+  font-size: 0.85em;
+  color: #7f8c8d;
+}
+
+.lesson-meta span {
+  margin-right: 0.6em;
+}
+
+/* =========================
+   Utilities
+========================= */
+
+.empty-note {
+  color: #999;
+  font-style: italic;
+}
+
+.retry-btn {
+  margin-left: 0.5em;
+  padding: 0.3em 0.7em;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background: #3498db;
+  color: #fff;
+}
+
+.retry-btn:hover {
+  background: #2980b9;
+}
+
+.navigation-back {
+  margin-top: 2em;
+}
+
+.navigation-back a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.navigation-back a:hover {
+  text-decoration: underline;
+}

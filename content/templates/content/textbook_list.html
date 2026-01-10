@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Textbooks{% endblock %}
+
+{% block content %}
+<section class="textbook-list-page">
+
+  <header class="page-header">
+    <h1>Textbooks</h1>
+    <p class="page-subtitle">Available textbooks by level</p>
+  </header>
+
+  <nav class="page-navigation">
+    <a href="{% url 'content_index' %}">← Back to Content Index</a>
+  </nav>
+
+  {% if textbooks %}
+    <ul class="textbook-list">
+      {% for textbook in textbooks %}
+        <li class="textbook-item">
+          <article class="textbook-card">
+            <h2 class="textbook-title">
+              <a href="{% url 'textbook_detail' textbook.id %}">
+                {{ textbook.title }}
+              </a>
+            </h2>
+
+            <span class="textbook-level">
+              {{ textbook.class_level }}
+            </span>
+
+            {% if textbook.description %}
+              <p class="textbook-description">
+                {{ textbook.description }}
+              </p>
+            {% endif %}
+          </article>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty-message">No textbooks found.</p>
+  {% endif %}
+
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/textbook_list.css' %}">
+{% endblock %}

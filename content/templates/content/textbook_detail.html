@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ textbook.title }}{% endblock %}
+
+{% block content %}
+<section class="textbook-detail-page">
+
+  <header class="page-header">
+    <h1>{{ textbook.title }}</h1>
+
+    <p class="textbook-meta">
+      <strong>Class Level:</strong> {{ textbook.class_level }}
+    </p>
+
+    {% if textbook.description %}
+      <p class="textbook-description">
+        {{ textbook.description }}
+      </p>
+    {% endif %}
+  </header>
+
+  <nav class="page-navigation">
+    <a href="{% url 'textbook_list' %}">← Back to Textbooks</a>
+    <span class="nav-separator">|</span>
+    <a href="{% url 'content_index' %}">Content Index</a>
+    <span class="nav-separator">|</span>
+    <a href="{% url 'index' %}">Global Home</a>
+  </nav>
+
+  <section class="units-section">
+    <h2>Units</h2>
+
+    {% if textbook.units.all %}
+      <ul class="unit-list">
+        {% for unit in textbook.units.all %}
+          <li class="unit-item">
+            <article class="unit-card">
+              <a href="{% url 'unit_detail' unit.id %}" class="unit-link">
+                Unit {{ unit.number }}: {{ unit.title }}
+              </a>
+            </article>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-message">
+        No units found for this textbook.
+      </p>
+    {% endif %}
+  </section>
+
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/textbook_detail.css' %}">
+{% endblock %}

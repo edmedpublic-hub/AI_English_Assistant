@@ -1,0 +1,106 @@
+/* =========================
+   Page Layout
+========================= */
+
+.textbook-list-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5em 1em;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 1.8em;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 0.3em;
+}
+
+.page-subtitle {
+  color: #6c7a89;
+  font-size: 1rem;
+}
+
+/* =========================
+   Navigation
+========================= */
+
+.page-navigation {
+  margin-bottom: 1.5em;
+}
+
+.page-navigation a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.page-navigation a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   Textbook List
+========================= */
+
+.textbook-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.textbook-item {
+  margin-bottom: 1.4em;
+}
+
+/* =========================
+   Textbook Card
+========================= */
+
+.textbook-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.2em 1.4em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.textbook-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.textbook-title a {
+  color: #2980b9;
+  text-decoration: none;
+}
+
+.textbook-title a:hover {
+  text-decoration: underline;
+}
+
+.textbook-level {
+  display: inline-block;
+  margin-top: 0.3em;
+  font-size: 0.9em;
+  color: #7f8c8d;
+}
+
+.textbook-description {
+  margin-top: 0.6em;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* =========================
+   Empty State
+========================= */
+
+.empty-message {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  margin-top: 2em;
+}

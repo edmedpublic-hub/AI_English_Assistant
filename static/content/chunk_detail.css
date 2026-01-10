@@ -1,0 +1,89 @@
+.chunk-detail-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5em 1em;
+}
+
+/* Navigation */
+.page-navigation {
+  text-align: center;
+  margin-bottom: 1em;
+}
+.page-navigation a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+}
+.page-navigation span {
+  margin: 0 0.4em;
+  color: #aaa;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  align-items: center;
+  margin-bottom: 0.8em;
+}
+.controls button {
+  padding: 0.4em 0.8em;
+  border-radius: 6px;
+  border: none;
+  background: #2c3e50;
+  color: #fff;
+  cursor: pointer;
+}
+.controls button:hover {
+  background: #1a252f;
+}
+.controls .hint {
+  font-size: 0.9em;
+  color: #666;
+}
+
+/* Table */
+.chunk-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.6em;
+}
+.chunk-table th,
+.chunk-table td {
+  border: 1px solid #ddd;
+  padding: 0.6em;
+  vertical-align: top;
+}
+.chunk-table th {
+  background: #f5f7fa;
+}
+
+/* Sentences */
+.sentence {
+  cursor: pointer;
+}
+.sentence.highlight {
+  background: #fff8c4;
+  font-weight: 600;
+}
+
+/* Study Navigation */
+.study-section {
+  margin-top: 2em;
+}
+.study-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+}
+.study-nav .btn {
+  padding: 0.5em 1em;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  text-decoration: none;
+  color: #333;
+}
+.study-nav .btn:hover {
+  background: #f3f3f3;
+}

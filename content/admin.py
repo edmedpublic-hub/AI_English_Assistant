@@ -1,67 +1,77 @@
 from django.contrib import admin
 from .models import (
-    Textbook,
-    Unit,
-    Lesson,
-    LessonChunk,
-    VocabularyItem,
-    VocabularyAttempt,
-    WritingTask,
-    SentenceAttempt,
-    GrammarPoint,
-    GrammarAttempt,
-    ComprehensionQuestion,
-    ComprehensionAttempt,
-    PronunciationAttempt,
+    Textbook, Unit, Lesson, LessonChunk,
+    VocabularyItem, VocabularyAttempt, StudentVocabMastery,
+    WritingTask, SentenceAttempt,
+    GrammarPoint, GrammarAttempt,
+    ComprehensionQuestion, ComprehensionAttempt,
+    PronunciationAttempt
 )
+import spacy
 
-# -------------------------------
-# INLINE SETUPS
-# -------------------------------
+# ============================================================
+# INLINE DEFINITIONS
+# ============================================================
 
 class UnitInline(admin.TabularInline):
     model = Unit
-    extra = 0
-    ordering = ("number",)
+    extra = 1
 
 
 class LessonInline(admin.TabularInline):
     model = Lesson
-    extra = 0
-    ordering = ("number",)
+    extra = 1
 
 
 class LessonChunkInline(admin.TabularInline):
     model = LessonChunk
-    extra = 0
+    extra = 1
+    fields = ("order", "english_text", "translated_text")
     ordering = ("order",)
-    fields = (
-        "order",
-        "english_text",
-        "translated_text",
-        "audio_file",
-        "translated_audio_file",
-    )
+    
+nlp = spacy.load("en_core_web_sm") 
+def generate_vocab(modeladmin, request, queryset): 
+    """ 
+    Admin action: generate vocabulary for selected LessonChunks 
+    """ 
+    for chunk in queryset: 
+        doc = nlp(chunk.english_text) 
+        candidates = [t for t in doc if t.pos_ in ["NOUN", "VERB", "ADJ", "ADV"]] 
+        for token in candidates[:7]: 
+            VocabularyItem.objects.get_or_create( 
+                lesson=chunk.lesson, 
+                chunk=chunk, 
+                word=token.text, 
+                part_of_speech=token.pos_.lower() 
+                )
+            modeladmin.message_user(request, "Vocabulary generated for selected chunks.") 
+            generate_vocab.short_description = "Generate vocabulary for selected chunks"
 
 
 class VocabularyInline(admin.TabularInline):
     model = VocabularyItem
-    extra = 0
+    extra = 1
+    fields = ("word", "part_of_speech", "meaning", "urdu")
 
 
 class WritingTaskInline(admin.TabularInline):
     model = WritingTask
-    extra = 0
+    extra = 1
 
 
-class ComprehensionQuestionInline(admin.TabularInline):
+class GrammarPointInline(admin.TabularInline):
+    model = GrammarPoint
+    extra = 1
+
+
+class ComprehensionInline(admin.TabularInline):
     model = ComprehensionQuestion
-    extra = 0
+    extra = 1
 
 
-# -------------------------------
+# ============================================================
 # ADMIN REGISTRATION
-# -------------------------------
+# ============================================================
 
 @admin.register(Textbook)
 class TextbookAdmin(admin.ModelAdmin):
@@ -72,7 +82,7 @@ class TextbookAdmin(admin.ModelAdmin):
 
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
-    list_display = ("title", "number", "textbook")
+    list_display = ("title", "textbook", "number")
     list_filter = ("textbook",)
     search_fields = ("title",)
     ordering = ("textbook", "number")
@@ -81,83 +91,82 @@ class UnitAdmin(admin.ModelAdmin):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ("title", "number", "unit")
-    list_filter = ("unit",)
+    list_display = ("title", "unit", "number")
+    list_filter = ("unit__textbook", "unit")
     search_fields = ("title", "english_text")
     ordering = ("unit", "number")
     inlines = [
         LessonChunkInline,
         VocabularyInline,
-        ComprehensionQuestionInline,
         WritingTaskInline,
+        GrammarPointInline,
+        ComprehensionInline,
     ]
 
 
 @admin.register(LessonChunk)
 class LessonChunkAdmin(admin.ModelAdmin):
-    list_display = ("lesson", "order")
+    list_display = ("lesson", "order", "english_text")
     ordering = ("lesson", "order")
-    search_fields = ("english_text", "translated_text")
+    actions = [generate_vocab]
 
 
 @admin.register(VocabularyItem)
-class VocabularyItemAdmin(admin.ModelAdmin):
-    list_display = ("word", "part_of_speech", "lesson")
-    list_filter = ("part_of_speech", "lesson")
-    search_fields = ("word", "meaning")
+class VocabularyAdmin(admin.ModelAdmin):
+    list_display = ("word", "lesson", "part_of_speech")
+    list_filter = ("part_of_speech", "lesson__unit__textbook")
+    search_fields = ("word", "meaning", "urdu")
+    ordering = ("lesson", "word")
 
 
 @admin.register(VocabularyAttempt)
 class VocabularyAttemptAdmin(admin.ModelAdmin):
     list_display = ("student_id", "vocab_item", "is_correct", "timestamp")
-    list_filter = ("is_correct", "timestamp")
+    list_filter = ("is_correct",)
+    search_fields = ("student_id", "vocab_item__word")
+
+
+@admin.register(StudentVocabMastery)
+class StudentVocabMasteryAdmin(admin.ModelAdmin):
+    list_display = ("student_id", "vocab_item", "mastery_level", "last_updated")
+    list_filter = ("mastery_level",)
     search_fields = ("student_id", "vocab_item__word")
 
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):
     list_display = ("lesson", "difficulty")
-    search_fields = ("prompt",)
-    list_filter = ("difficulty", "lesson")
+    list_filter = ("difficulty",)
 
 
 @admin.register(SentenceAttempt)
 class SentenceAttemptAdmin(admin.ModelAdmin):
     list_display = ("student_id", "writing_task", "ai_score", "timestamp")
-    list_filter = ("writing_task", "timestamp")
     search_fields = ("student_id", "sentence")
 
 
 @admin.register(GrammarPoint)
 class GrammarPointAdmin(admin.ModelAdmin):
     list_display = ("title", "lesson")
-    search_fields = ("title", "explanation")
-    list_filter = ("lesson",)
+    search_fields = ("title",)
 
 
 @admin.register(GrammarAttempt)
 class GrammarAttemptAdmin(admin.ModelAdmin):
     list_display = ("student_id", "grammar_point", "is_correct", "timestamp")
-    list_filter = ("is_correct", "timestamp")
-    search_fields = ("student_id", "grammar_point__title")
 
 
 @admin.register(ComprehensionQuestion)
-class ComprehensionQuestionAdmin(admin.ModelAdmin):
-    list_display = ("question", "lesson")
-    search_fields = ("question", "answer")
-    list_filter = ("lesson",)
+class ComprehensionAdmin(admin.ModelAdmin):
+    list_display = ("lesson", "question")
+    search_fields = ("question",)
 
 
 @admin.register(ComprehensionAttempt)
 class ComprehensionAttemptAdmin(admin.ModelAdmin):
     list_display = ("student_id", "question", "is_correct", "timestamp")
-    list_filter = ("is_correct", "timestamp")
-    search_fields = ("student_id", "question__question")
 
 
 @admin.register(PronunciationAttempt)
-class PronunciationAttemptAdmin(admin.ModelAdmin):
+class PronunciationAdmin(admin.ModelAdmin):
     list_display = ("student_id", "chunk", "ai_score", "timestamp")
-    list_filter = ("timestamp",)
-    search_fields = ("student_id",)

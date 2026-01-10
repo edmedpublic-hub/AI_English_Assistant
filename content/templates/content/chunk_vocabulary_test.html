@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Vocabulary Test — Chunk {{ chunk.order }}{% endblock %}
+
+{% block content %}
+<p>
+  <a href="{% url 'chunk_vocabulary_practice' lesson.id chunk.id %}" class="back-link">← Back to Practice</a>
+  <a href="{% url 'chunk_vocabulary' lesson.id chunk.id %}" class="forward-link">Back to Vocabulary</a>
+</p>
+
+<h1 class="page-title">Vocabulary Test — Chunk {{ chunk.order }}</h1>
+
+<ul class="test-questions">
+  {% for q in test_questions %}
+    <li>
+      <strong>{{ q.question }}</strong>
+      <ol type="A">
+        {% for opt in q.options %}
+          <li>{{ opt }}</li>
+        {% endfor %}
+      </ol>
+      <em class="answer">(Correct: {{ q.answer }})</em>
+    </li>
+  {% empty %}
+    <li>No test questions available.</li>
+  {% endfor %}
+</ul>
+
+<style>
+  .page-title { text-align: center; margin-bottom: 1em; color: #2c3e50; }
+  .back-link, .forward-link { text-decoration: none; font-weight: 500; color: #3498db; }
+  .test-questions { margin: 1em 0; padding-left: 1.2em; }
+  .test-questions li { margin-bottom: 1em; }
+  .answer { color: #888; font-size: 0.9em; }
+</style>
+{% endblock %}

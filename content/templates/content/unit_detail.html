@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Unit {{ unit.number }} — {{ unit.title }}{% endblock %}
+
+{% block content %}
+<section class="unit-detail-page">
+
+  <header class="page-header">
+    <h1>Unit {{ unit.number }}: {{ unit.title }}</h1>
+    <p class="unit-textbook">
+      From <strong>{{ unit.textbook.title }}</strong>
+    </p>
+  </header>
+
+  <nav class="page-navigation">
+    <a href="{% url 'textbook_detail' unit.textbook.id %}">
+      ← Back to {{ unit.textbook.title }}
+    </a>
+    <span class="nav-separator">|</span>
+    <a href="{% url 'textbook_list' %}">Textbooks</a>
+    <span class="nav-separator">|</span>
+    <a href="{% url 'content_index' %}">Content Index</a>
+    <span class="nav-separator">|</span>
+    <a href="{% url 'index' %}">Global Home</a>
+  </nav>
+
+  <section class="lessons-section">
+    <h2>Lessons</h2>
+
+    {% if unit.lessons.all %}
+      <ul class="lesson-list">
+        {% for lesson in unit.lessons.all %}
+          <li class="lesson-item">
+            <article class="lesson-card">
+              <a href="{% url 'lesson_detail' lesson.id %}" class="lesson-link">
+                Lesson {{ lesson.number }}: {{ lesson.title }}
+              </a>
+            </article>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-message">
+        No lessons found for this unit.
+      </p>
+    {% endif %}
+  </section>
+
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/unit_detail.css' %}">
+{% endblock %}

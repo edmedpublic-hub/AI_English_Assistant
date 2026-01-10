@@ -1,53 +1,56 @@
 from django.urls import path
-
-from .views.home import content_home
-from .views.textbooks import (
-    content_textbook_list,
-    content_unit_list,
-)
-from .views.lessons import (
-    content_lesson_list,
-    content_lesson_detail,
-)
-from .views.student import content_student_dashboard
-from .views.vocab import (
-    content_vocab_list,
-    content_vocab_item_detail,
-)
-
-app_name = "content"
+from . import views
 
 urlpatterns = [
-    path("", content_home, name="content_home"),
+    # Core content navigation
+    path("", views.index, name="content_index"),
+    path("textbooks/", views.textbook_list, name="textbook_list"),
+    path("textbooks/<int:pk>/", views.textbook_detail, name="textbook_detail"),
+    path("units/", views.unit_list, name="unit_list"),
+    path("units/<int:pk>/", views.unit_detail, name="unit_detail"),
+    path("lessons/", views.lesson_list, name="lesson_list"),
+    path("lessons/<int:pk>/", views.lesson_detail, name="lesson_detail"),
+    path("chunks/<int:pk>/", views.chunk_detail, name="chunk_detail"),
 
-    path("textbooks/", content_textbook_list, name="textbook-list"),
-    path("textbooks/<int:textbook_id>/units/", content_unit_list, name="unit-list"),
-
+    # Chunk study routes (all served from views/chunks.py)
     path(
-        "student/<str:student_id>/units/<int:unit_id>/lessons/",
-        content_lesson_list,
-        name="lesson-list",
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/",
+        views.chunk_vocabulary,
+        name="chunk_vocabulary",
     ),
     path(
-        "student/<str:student_id>/lessons/<int:lesson_id>/",
-        content_lesson_detail,
-        name="lesson-detail",
-    ),
-
-    path(
-        "student/<str:student_id>/dashboard/",
-        content_student_dashboard,
-        name="student-dashboard",
-    ),
-
-    path(
-        "student/<str:student_id>/lessons/<int:lesson_id>/vocabulary/",
-        content_vocab_list,
-        name="lesson-vocabulary",
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/grammar/",
+        views.chunk_grammar,
+        name="chunk_grammar",
     ),
     path(
-        "vocabulary/<int:item_id>/",
-        content_vocab_item_detail,
-        name="vocab-item-detail",
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/comprehension/",
+        views.chunk_comprehension,
+        name="chunk_comprehension",
     ),
+    path(
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/punctuation/",
+        views.chunk_punctuation,
+        name="chunk_punctuation",
+    ),
+    path(
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/writing/",
+        views.chunk_writing,
+        name="chunk_writing",
+    ),
+    path(
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/progress/",
+        views.chunk_progress,
+        name="chunk_progress",
+    ),
+    path(
+    "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/practice/",
+    views.chunk_vocabulary_practice,
+    name="chunk_vocabulary_practice",
+),
+path(
+    "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/test/",
+    views.chunk_vocabulary_test,
+    name="chunk_vocabulary_test",
+),
 ]

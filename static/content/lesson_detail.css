@@ -1,0 +1,115 @@
+/* =========================
+   Page Layout
+========================= */
+
+.lesson-detail-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.6em 1em;
+}
+
+/* =========================
+   Header
+========================= */
+
+.page-header {
+  text-align: center;
+  margin-bottom: 1.4em;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 0.3em;
+}
+
+.lesson-meta {
+  font-size: 0.95em;
+  color: #7f8c8d;
+}
+
+/* =========================
+   Navigation
+========================= */
+
+.page-navigation {
+  text-align: center;
+  margin-bottom: 2em;
+}
+
+.page-navigation a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.page-navigation a:hover {
+  text-decoration: underline;
+}
+
+.nav-separator {
+  margin: 0 0.5em;
+  color: #aaa;
+}
+
+/* =========================
+   Chunks Section
+========================= */
+
+.chunks-section h2 {
+  margin-bottom: 1em;
+  color: #34495e;
+}
+
+.chunk-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chunk-item {
+  margin-bottom: 1em;
+}
+
+/* =========================
+   Chunk Card
+========================= */
+
+.chunk-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1em 1.2em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.chunk-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  color: #2980b9;
+  text-decoration: none;
+}
+
+.chunk-link:hover {
+  text-decoration: underline;
+}
+
+.chunk-label {
+  font-weight: 600;
+}
+
+.chunk-preview {
+  color: #555;
+  font-size: 0.95em;
+}
+
+/* =========================
+   Empty State
+========================= */
+
+.empty-message {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  margin-top: 1.5em;
+}

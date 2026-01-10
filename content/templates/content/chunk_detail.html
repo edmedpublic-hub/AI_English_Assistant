@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Chunk Detail
+{% endblock %}
+
+{% block content %}
+<section class="chunk-detail-page">
+
+  <!-- =========================
+       Navigation
+  ========================= -->
+  <nav class="page-navigation">
+    <a href="{% url 'lesson_detail' chunk.lesson.id %}">
+      ← Lesson {{ chunk.lesson.number }}
+    </a>
+    <span>|</span>
+    <a href="{% url 'unit_detail' chunk.lesson.unit.id %}">
+      Unit {{ chunk.lesson.unit.number }}
+    </a>
+    <span>|</span>
+    <a href="{% url 'textbook_detail' chunk.lesson.unit.textbook.id %}">
+      {{ chunk.lesson.unit.textbook.title }}
+    </a>
+    <span>|</span>
+    <a href="{% url 'content_index' %}">Content Index</a>
+    <span>|</span>
+    <a href="{% url 'index' %}">Global Home</a>
+  </nav>
+
+  <!-- =========================
+       Playback Controls
+  ========================= -->
+  <div class="controls">
+    <button id="play-btn">▶ Play All</button>
+    <button id="pause-btn">⏸ Pause</button>
+    <button id="resume-btn">⏯ Resume</button>
+    <span class="hint">
+      Tip: Click a sentence or use ← → then Enter
+    </span>
+  </div>
+
+  <!-- =========================
+       Sentence Table
+  ========================= -->
+  <table class="chunk-table">
+    <thead>
+      <tr>
+        <th>English</th>
+        <th>Urdu</th>
+      </tr>
+    </thead>
+    <tbody id="sentence-table"></tbody>
+  </table>
+
+  {% if chunk.audio_file %}
+    <audio id="english-audio" src="{{ chunk.audio_file.url }}"></audio>
+  {% endif %}
+  {% if chunk.translated_audio_file %}
+    <audio id="urdu-audio" src="{{ chunk.translated_audio_file.url }}"></audio>
+  {% endif %}
+
+  <!-- =========================
+       Study Navigation
+  ========================= -->
+  <section class="study-section">
+    <h2>Study this chunk</h2>
+    <div class="study-nav">
+      <a class="btn" href="{% url 'chunk_vocabulary' chunk.lesson.id chunk.id %}">Vocabulary</a>
+      <a class="btn" href="{% url 'chunk_grammar' chunk.lesson.id chunk.id %}">Grammar</a>
+      <a class="btn" href="{% url 'chunk_punctuation' chunk.lesson.id chunk.id %}">Punctuation</a>
+      <a class="btn" href="{% url 'chunk_punctuation' chunk.lesson.id chunk.id %}">Comprehension</a>
+      <a class="btn" href="{% url 'chunk_writing' chunk.lesson.id chunk.id %}">Writing</a>
+      <a class="btn" href="{% url 'chunk_progress' chunk.lesson.id chunk.id %}">Progress</a>
+    </div>
+  </section>
+
+</section>
+
+<!-- Safe data bridge -->
+<script>
+  window.CHUNK_DATA = {
+    englishText: "{{ chunk.english_text|escapejs }}",
+    urduText: "{{ chunk.translated_text|escapejs }}"
+  };
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/chunk_detail.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'content/chunk_detail.js' %}"></script>
+{% endblock %}

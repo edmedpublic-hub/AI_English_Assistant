@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Grammar — Chunk {{ chunk.order }}{% endblock %}
+
+{% block content %}
+<p>
+  <a href="{% url 'chunk_detail' lesson.id chunk.id %}">← Back to Chunk</a>
+</p>
+
+<h1>Grammar for Chunk {{ chunk.order }}</h1>
+
+<ul>
+  {% for gp in lesson.grammar_points.all %}
+    <li><strong>{{ gp.title }}</strong> — {{ gp.explanation }}</li>
+  {% empty %}
+    <li>No grammar points yet for this lesson.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
