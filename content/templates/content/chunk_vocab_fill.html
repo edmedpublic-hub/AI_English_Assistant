@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Fill in the Blanks — Chunk {{ chunk.order }}{% endblock %}
+
+{% block content %}
+
+<section class="quiz-page" aria-labelledby="quiz-title">
+  <header class="quiz-header">
+    <h1 id="quiz-title" class="page-title">Fill in the Blanks</h1>
+    <p class="practice-intro">
+      Choose the correct option to complete the sentence.
+    </p>
+  </header>
+
+  <div class="quiz-wrapper"
+       data-total="{{ questions|length }}"
+       data-synonyms-url="{% url 'chunk_vocab_synonyms' lesson.id chunk.id %}">
+
+    <!-- Progress + Score -->
+    <div class="quiz-meta">
+      <div id="progressBar" class="progress-bar" aria-hidden="true">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      <p id="scoreDisplay" class="score-display" aria-live="polite">
+        Score: 0 / {{ questions|length }}
+      </p>
+    </div>
+
+    <!-- Questions -->
+    <div class="questions-container" role="list">
+      {% for q in questions %}
+      <article
+        class="question {% if not forloop.first %}hidden{% endif %}"
+        data-index="{{ forloop.counter0 }}"
+        data-answer="{{ q.answer|lower }}"
+        role="group"
+        aria-labelledby="question-{{ forloop.counter0 }}"
+        aria-live="polite">
+
+        <p id="question-{{ forloop.counter0 }}" class="sentence">
+          {{ q.sentence }}
+        </p>
+
+        <form class="options" autocomplete="off" role="radiogroup" aria-label="Options">
+          {% for opt in q.options %}
+          <label class="option">
+            <input
+              type="radio"
+              name="q{{ forloop.parentloop.counter }}"
+              value="{{ opt|lower }}"
+            >
+            <span class="option-text">{{ opt }}</span>
+          </label>
+          {% endfor %}
+        </form>
+
+        <p class="feedback" aria-live="polite"></p>
+
+        <!-- Retry button is injected by JS when needed -->
+      </article>
+      {% endfor %}
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-buttons" aria-label="Navigation">
+      <button id="prevBtn" type="button" aria-label="Previous question">Back</button>
+      <button id="nextBtn" type="button" aria-label="Next question">Next</button>
+    </nav>
+
+    <!-- Completion -->
+    <div id="completion" class="hidden completion-message" role="status" aria-live="polite">
+      <p>🎉 Well done! You’ve completed Fill in the Blanks.</p>
+      <a
+        id="goSynonymsBtn"
+        href="{% url 'chunk_vocab_synonyms' lesson.id chunk.id %}"
+        class="go-synonyms-btn"
+      >
+        Go to Synonyms Practice →
+      </a>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/chunk_vocab_fill.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'content/chunk_vocab_fill.js' %}"></script>
+{% endblock %}

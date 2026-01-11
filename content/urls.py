@@ -12,7 +12,7 @@ urlpatterns = [
     path("lessons/<int:pk>/", views.lesson_detail, name="lesson_detail"),
     path("chunks/<int:pk>/", views.chunk_detail, name="chunk_detail"),
 
-    # Chunk study routes (all served from views/chunks.py)
+    # Chunk study routes
     path(
         "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/",
         views.chunk_vocabulary,
@@ -43,14 +43,35 @@ urlpatterns = [
         views.chunk_progress,
         name="chunk_progress",
     ),
+
+    # Existing practice + test (unchanged)
     path(
-    "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/practice/",
-    views.chunk_vocabulary_practice,
-    name="chunk_vocabulary_practice",
-),
-path(
-    "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/test/",
-    views.chunk_vocabulary_test,
-    name="chunk_vocabulary_test",
-),
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/practice/",
+        views.chunk_vocabulary_practice,
+        name="chunk_vocabulary_practice",
+    ),
+    path(
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/test/",
+        views.chunk_vocabulary_test,
+        name="chunk_vocabulary_test",
+    ),
+
+    # --------------------------------------------------
+    # NEW dedicated practice pages
+    # --------------------------------------------------
+    path(
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/fill/",
+        views.chunk_vocab_fill,
+        name="chunk_vocab_fill",
+    ),
+    path(
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/synonyms/",
+        views.chunk_vocab_synonyms,
+        name="chunk_vocab_synonyms",
+    ),
+    path(
+        "lesson/<int:lesson_id>/chunk/<int:chunk_id>/vocabulary/antonyms/",
+        views.chunk_vocab_antonyms,
+        name="chunk_vocab_antonyms",
+    ),
 ]

@@ -1,0 +1,286 @@
+/* content/chunk_vocab_fill.css */
+
+/* ==========================================================================
+   1. Variables & Reset
+   ========================================================================== */
+:root {
+  --primary: #3498db;
+  --primary-dark: #2980b9;
+  --success: #27ae60;
+  --error: #e74c3c;
+  --warning: #f39c12;
+  --text-main: #2c3e50;
+  --text-muted: #5f6c7b;
+  --bg-app: #f8fafc;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   2. Layout & Typography
+   ========================================================================== */
+.quiz-page {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-title {
+  font-size: clamp(1.5rem, 5vw, 2.2rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 1rem 0 0.5rem;
+  color: var(--text-main);
+}
+
+.practice-intro {
+  font-size: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin-bottom: 2rem;
+}
+
+/* ==========================================================================
+   3. Mastery Meta (Score & Progress)
+   ========================================================================== */
+.quiz-wrapper {
+  width: 100%;
+  max-width: 650px; /* Focused width */
+  margin: 0 auto;
+}
+
+.quiz-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 480px) {
+  .quiz-meta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.progress-bar {
+  flex-grow: 1;
+  height: 10px;
+  background: var(--border-color);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 0 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--success));
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.score-display {
+  font-weight: 700;
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   4. Focused Question Card
+   ========================================================================== */
+.questions-container {
+  width: 100%;
+  perspective: 1000px;
+}
+
+.question {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  /* Animation for one-at-a-time transition */
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sentence {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   5. Options (Mobile Touch Optimized)
+   ========================================================================== */
+.options {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr; /* Default 1 column for mobile */
+}
+
+@media (min-width: 550px) {
+  .options {
+    grid-template-columns: 1fr 1fr; /* 2 columns for tablet/desktop */
+  }
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #f1f5f9;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.option:hover:not(:has(input:disabled)) {
+  border-color: var(--primary);
+  background-color: #f0f7ff;
+  transform: translateY(-2px);
+}
+
+.option:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.options input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  accent-color: var(--primary);
+}
+
+/* ==========================================================================
+   6. Feedback & Retry
+   ========================================================================== */
+.feedback {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 700;
+  min-height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedback.correct {
+  color: var(--success);
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+}
+
+.feedback.wrong {
+  color: var(--error);
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+}
+
+.retryBtn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--warning);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.retryBtn:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   7. Navigation & Completion
+   ========================================================================== */
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 2rem;
+}
+
+.nav-buttons button {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--primary-dark);
+  transition: all 0.1s;
+}
+
+.nav-buttons button:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--primary-dark);
+}
+
+.nav-buttons button:disabled {
+  background: #cbd5e0;
+  box-shadow: none;
+  cursor: not-allowed;
+  color: #718096;
+}
+
+.completion-message {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.go-synonyms-btn {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 1rem 2rem;
+  background: var(--success);
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   8. Utilities
+   ========================================================================== */
+.hidden {
+  display: none !important;
+}
