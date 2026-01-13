@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Synonyms Practice{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/chunk_vocab_fill.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="quiz-page">
+    <h1 class="page-title">Synonyms Practice</h1>
+    
+    <div class="quiz-wrapper" 
+         data-lesson-id="{{ lesson.id }}" 
+         data-chunk-id="{{ chunk.id }}">
+        
+        <div class="quiz-meta">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="scoreDisplay" class="score-display">
+                Mastered: 0 / {{ questions|length }}
+            </p>
+        </div>
+
+        <div class="questions-container">
+            {% for q in questions %}
+            <div class="question {% if not forloop.first %}hidden{% endif %}"
+                 data-answer="{{ q.answer|lower }}"
+                 data-answered="false">
+
+                <div class="sentence-display">
+                    {{ q.sentence|safe }}
+                </div>
+
+                <div class="options">
+                    {% for opt in q.options %}
+                    <label class="option">
+                        <input type="radio" 
+                               name="question_{{ forloop.parentloop.counter }}" 
+                               value="{{ opt|lower }}">
+                        {{ opt }}
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="feedback"></div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="nav-buttons">
+            <button id="prevBtn" class="hidden">Back</button>
+            <button id="nextBtn" class="hidden">Next</button>
+        </div>
+
+        <div id="completion" class="hidden completion-message">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+            <h2>Mastery Achieved!</h2>
+            <p>You correctly identified every synonym in this set.</p>
+
+            {% if lesson.id and chunk.id %}
+            <a href="{% url 'chunk_vocab_antonyms' lesson.id chunk.id %}"
+               class="go-synonyms-btn">
+               Go to Antonyms Practice →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'content/chunk_vocab_fill.js' %}"></script>
+{% endblock %}

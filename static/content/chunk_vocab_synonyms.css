@@ -1,0 +1,81 @@
+/* ==========================================================================
+   Question & Sentence Alignment
+   ========================================================================== */
+.sentence-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    
+    /* Spacing */
+    margin-bottom: 2.5rem;
+    padding: 1rem;
+    min-height: 120px;
+    
+    /* Typography */
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #2d3748;
+    line-height: 1.5;
+    
+    /* Subtle separation */
+    border-bottom: 2px solid #f7fafc;
+}
+
+/* If you decide to split the word from the instruction in the future, 
+   keep these for targeted styling */
+.instruction {
+    font-size: 0.85rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 0.5rem;
+}
+
+.target-word-display {
+    display: block;
+    font-size: 2.2rem;
+    color: #3182ce;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* ==========================================================================
+   Options Grid Alignment (Matches your 2x2 Screenshot)
+   ========================================================================== */
+.options {
+    display: grid;
+    /* This creates a 2-column grid that collapses to 1-column on small mobile */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    width: 100%;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+    background: #ffffff;
+    border: 2px solid #edf2f7;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.option:hover:not(:has(input:disabled)) {
+    border-color: #3498db;
+    background-color: #f0f9ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Radio Button Styling */
+.option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    flex-shrink: 0; /* Prevents radio from squishing on long text */
+    accent-color: #3498db;
+}
