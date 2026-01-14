@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import history_views
+
 
 urlpatterns = [
     # Core content navigation
@@ -74,4 +76,12 @@ urlpatterns = [
         views.chunk_vocab_antonyms,
         name="chunk_vocab_antonyms",
     ),
+    path("tests/history/", views.test_history, name="test_history"),
+    path(
+    "tests/history/<int:attempt_id>/",
+    history_views.attempt_detail,
+    name="attempt_detail"
+),
+
+
 ]

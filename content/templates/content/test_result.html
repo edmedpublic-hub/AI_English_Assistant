@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Test Result{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Test Result</h1>
+
+<p class="score">
+  Your Score: <strong>{{ score }}%</strong>
+</p>
+
+{% if passed %}
+  <div class="success-box">
+    <h2>Congratulations!</h2>
+    <p>You achieved full mastery of this test.</p>
+  </div>
+
+{% elif can_retake %}
+  <div class="retry-box">
+    <h2>Needs Improvement</h2>
+    <p>You must score at least 80% to pass.</p>
+
+    <a href="?retake=1" class="btn-retake">
+      Retake Test
+    </a>
+  </div>
+
+{% else %}
+  <div class="neutral-box">
+    <p>Good effort. You may proceed or retake for mastery.</p>
+
+    <a href="?retake=1" class="btn-retake">
+      Retake Test
+    </a>
+  </div>
+{% endif %}
+
+<p class="nav-links">
+  <a href="{% url 'chunk_vocabulary' lesson.id chunk.id %}">← Back to Vocabulary</a>
+  |
+  <a href="{% url 'test_history' %}">View Test History</a>
+</p>
+
+<style>
+  .page-title { text-align: center; margin-bottom: 20px; }
+  .score { font-size: 1.2em; text-align: center; }
+
+  .success-box, .retry-box, .neutral-box {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 6px;
+  }
+
+  .success-box { background: #e6ffed; border: 1px solid #a3d9b1; }
+  .retry-box { background: #fff2f2; border: 1px solid #e0a3a3; }
+  .neutral-box { background: #f4f6f8; border: 1px solid #ccc; }
+
+  .btn-retake {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 14px;
+    background: #2c3e50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+
+  .btn-retake:hover {
+    background: #1a252f;
+  }
+
+  .nav-links {
+    text-align: center;
+    margin-top: 30px;
+  }
+</style>
+
+{% endblock %}

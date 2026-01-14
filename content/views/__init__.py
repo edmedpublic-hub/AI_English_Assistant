@@ -3,6 +3,12 @@ from .index import index
 from .textbooks import textbook_list, textbook_detail
 from .units import unit_list, unit_detail
 from .lessons import lesson_list, lesson_detail
+from .practice_page import *
+from .practice_views import *
+from .test_views import *
+from .history_views import *
+
+
 
 # Core chunk views
 from .chunks_core import (
@@ -15,11 +21,3 @@ from .chunks_core import (
     chunk_progress,
 )
 
-# Practice chunk views
-from .chunks_practice import (
-    chunk_vocabulary_practice,
-    chunk_vocab_fill,
-    chunk_vocab_synonyms,
-    chunk_vocab_antonyms,
-    chunk_vocabulary_test,
-)

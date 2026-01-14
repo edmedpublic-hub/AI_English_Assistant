@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Test History{% endblock %}
+
+{% block content %}
+<h1>My Test History</h1>
+
+{% if attempts %}
+<table style="width:100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th align="left">Lesson</th>
+      <th align="left">Chunk</th>
+      <th align="left">Score</th>
+      <th align="left">Correct</th>
+      <th align="left">Date</th>
+      <th align="left">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in attempts %}
+    <tr>
+      <td>{{ a.lesson.title }}</td>
+      <td>Chunk {{ a.chunk.order }}</td>
+      <td>{{ a.score_percent }}%</td>
+      <td>{{ a.correct_answers }}/{{ a.total_questions }}</td>
+      <td>{{ a.created_at|date:"Y-m-d H:i" }}</td>
+      <td>
+        <a href="{% url 'attempt_detail' a.id %}">View Details</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No test attempts yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,6 +1,7 @@
 from django.db import models
 from .core import LessonChunk
 from .vocabulary import VocabularyItem
+from django.conf import settings
 # ============================================================
 # 10. VOCABULARY TESTING SYSTEM (ADDITIVE - SAFE)
 # ============================================================
@@ -70,3 +71,31 @@ class VocabularyTestAnswer(models.Model):
 
     def __str__(self):
         return f"Answer — {self.question.session.student_id}"
+
+class VocabularyTestAttempt(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="vocab_test_attempts"
+    )
+
+    lesson = models.ForeignKey(
+        "content.Lesson",
+        on_delete=models.CASCADE,
+        related_name="vocab_test_attempts"
+    )
+
+    chunk = models.ForeignKey(
+        "content.LessonChunk",
+        on_delete=models.CASCADE,
+        related_name="vocab_test_attempts"
+    )
+
+    score_percent = models.PositiveIntegerField()
+    correct_answers = models.PositiveIntegerField()
+    total_questions = models.PositiveIntegerField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} – Chunk {self.chunk.id} – {self.score_percent}%"

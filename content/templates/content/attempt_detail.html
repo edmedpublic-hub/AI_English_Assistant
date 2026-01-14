@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Attempt Detail{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Test Attempt Detail</h1>
+
+<div class="attempt-box">
+  <p><strong>Lesson:</strong> {{ attempt.lesson.title }}</p>
+  <p><strong>Chunk:</strong> {{ attempt.chunk.title }}</p>
+  <p><strong>Date:</strong> {{ attempt.created_at }}</p>
+
+  <hr>
+
+  <p><strong>Score:</strong> {{ attempt.score_percent }}%</p>
+  <p><strong>Correct Answers:</strong> {{ attempt.correct_answers }}</p>
+  <p><strong>Total Questions:</strong> {{ attempt.total_questions }}</p>
+
+  <hr>
+
+  {% if attempt.score_percent >= 80 %}
+    <p class="status pass">Status: Passed</p>
+  {% else %}
+    <p class="status fail">Status: Not Passed</p>
+  {% endif %}
+</div>
+
+<p class="nav-links">
+  <a href="{% url 'test_history' %}">← Back to History</a>
+</p>
+
+<style>
+  .page-title { text-align: center; margin-bottom: 20px; }
+
+  .attempt-box {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+  }
+
+  .status.pass { color: green; font-weight: bold; }
+  .status.fail { color: darkred; font-weight: bold; }
+
+  .nav-links { text-align: center; margin-top: 20px; }
+</style>
+
+{% endblock %}
