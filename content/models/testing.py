@@ -2,6 +2,8 @@ from django.db import models
 from .core import LessonChunk
 from .vocabulary import VocabularyItem
 from django.conf import settings
+from django.contrib.auth.models import User
+
 # ============================================================
 # 10. VOCABULARY TESTING SYSTEM (ADDITIVE - SAFE)
 # ============================================================
@@ -96,6 +98,8 @@ class VocabularyTestAttempt(models.Model):
     total_questions = models.PositiveIntegerField()
 
     created_at = models.DateTimeField(auto_now_add=True)
+    questions_data = models.JSONField(null=True, blank=True)
+
 
     def __str__(self):
         return f"{self.user} – Chunk {self.chunk.id} – {self.score_percent}%"

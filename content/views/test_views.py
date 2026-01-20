@@ -45,7 +45,8 @@ def chunk_vocabulary_test(request, lesson_id, chunk_id):
                 chunk=chunk,
                 score_percent=percent,
                 correct_answers=correct,
-                total_questions=total
+                total_questions=total,
+                questions_data=test["questions"]
             )
             test["saved"] = True
             request.session.modified = True

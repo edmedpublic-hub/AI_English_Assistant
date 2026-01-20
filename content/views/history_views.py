@@ -1,8 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from ..models import VocabularyTestAttempt
-from . import history_views
-
 
 
 @login_required
@@ -17,6 +15,8 @@ def test_history(request):
     return render(request, "content/test_history.html", {
         "attempts": attempts
     })
+
+
 @login_required
 def attempt_detail(request, attempt_id):
     attempt = get_object_or_404(
@@ -26,5 +26,6 @@ def attempt_detail(request, attempt_id):
     )
 
     return render(request, "content/attempt_detail.html", {
-        "attempt": attempt
+        "attempt": attempt,
+        "questions": attempt.questions_data or []
     })
