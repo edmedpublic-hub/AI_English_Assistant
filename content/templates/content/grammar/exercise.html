@@ -1,0 +1,40 @@
+<!-- content/templates/content/grammar/exercise.html -->
+{% extends "base.html" %}
+<h2>Practice: {{ point.title }}</h2>
+<p><em>Lesson: {{ lesson.title }} | Chunk: {{ chunk.title }}</em></p>
+
+<form method="post">
+  {% csrf_token %}
+  {% for q in questions %}
+    <div class="question-block">
+      <p><strong>Q{{ forloop.counter }}:</strong> {{ q.question_text }}</p>
+
+      {% if q.question_type == "mcq" %}
+        {% for option in q.options %}
+          <label>
+            <input type="radio" name="q{{ q.id }}" value="{{ option }}">
+            {{ option }}
+          </label><br>
+        {% endfor %}
+      {% elif q.question_type == "fill" %}
+        <input type="text" name="q{{ q.id }}">
+      {% elif q.question_type == "rewrite" %}
+        <textarea name="q{{ q.id }}"></textarea>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No practice questions available yet for this grammar point.</p>
+  {% endfor %}
+
+  <button type="submit">Submit Answers</button>
+</form>
+
+<hr>
+
+<!-- Navigation -->
+<a href="{% url 'grammar:teach' lesson.id chunk.id point.id %}" class="btn btn-secondary">
+  ← Back to Teaching
+</a>
+<a href="{% url 'grammar:test' lesson.id chunk.id point.id %}" class="btn btn-primary">
+  Go to Test →
+</a>

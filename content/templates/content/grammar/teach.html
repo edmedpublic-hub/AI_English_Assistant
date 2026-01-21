@@ -1,0 +1,26 @@
+<!-- content/templates/content/grammar/teach.html -->
+{% extends "base.html" %}
+<h2>Grammar Point: {{ point.title }}</h2>
+<p><em>Lesson: {{ lesson.title }} | Chunk: {{ chunk.title }}</em></p>
+
+<div class="grammar-explanation">
+  <h3>Explanation</h3>
+  <p>{{ point.explanation }}</p>
+</div>
+
+<div class="grammar-examples">
+  <h3>Examples</h3>
+  <p>{{ point.examples }}</p>
+</div>
+
+<hr>
+
+<!-- Navigation forward -->
+<a href="{% url 'grammar:exercise' lesson.id chunk.id point.id %}" class="btn btn-primary">
+  Start Practice →
+</a>
+
+<!-- Navigation back -->
+<a href="{% url 'chunk_grammar' lesson.id chunk.id %}" class="btn btn-secondary">
+  ← Back to Grammar Points
+</a>

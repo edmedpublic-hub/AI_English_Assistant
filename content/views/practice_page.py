@@ -8,7 +8,7 @@ def chunk_vocabulary_practice(request, lesson_id, chunk_id):
 
     vocabulary_items = VocabularyItem.objects.filter(chunk=chunk)
 
-    return render(request, "content/chunk_vocabulary_practice.html", {
+    return render(request, "content/vocab/chunk_vocabulary_practice.html", {
         "lesson": lesson,
         "chunk": chunk,
         "vocabulary_items": vocabulary_items,

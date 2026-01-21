@@ -32,7 +32,7 @@ def chunk_vocab_fill(request, lesson_id, chunk_id):
             "answer": vocab.word
         })
 
-    return render(request, "content/chunk_vocab_fill.html", {
+    return render(request, "content/vocab/chunk_vocab_fill.html", {
         "lesson": lesson,
         "chunk": chunk,
         "questions": questions,
@@ -74,7 +74,7 @@ def chunk_vocab_synonyms(request, lesson_id, chunk_id):
             "answer": correct
         })
 
-    return render(request, "content/chunk_vocab_synonyms.html", {
+    return render(request, "content/vocab/chunk_vocab_synonyms.html", {
         "lesson": lesson,
         "chunk": chunk,
         "questions": questions,
@@ -107,7 +107,7 @@ def chunk_vocab_antonyms(request, lesson_id, chunk_id):
             "answer": correct
         })
 
-    return render(request, "content/chunk_vocab_antonyms.html", {
+    return render(request, "content/vocab/chunk_vocab_antonyms.html", {
         "lesson": lesson,
         "chunk": chunk,
         "questions": questions,

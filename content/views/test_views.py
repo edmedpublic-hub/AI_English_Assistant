@@ -51,7 +51,7 @@ def chunk_vocabulary_test(request, lesson_id, chunk_id):
             test["saved"] = True
             request.session.modified = True
 
-        return render(request, "content/test_result.html", {
+        return render(request, "content/vocab/test_result.html", {
             "lesson": lesson,
             "chunk": chunk,
             "score": percent,
@@ -68,7 +68,7 @@ def chunk_vocabulary_test(request, lesson_id, chunk_id):
         request.session.modified = True
         return redirect(request.path)
 
-    return render(request, "content/chunk_vocabulary_test.html", {
+    return render(request, "content/vocab/chunk_vocabulary_test.html", {
         "lesson": lesson,
         "chunk": chunk,
         "question": current,

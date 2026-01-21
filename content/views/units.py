@@ -7,7 +7,7 @@ def unit_list(request):
     serializer = UnitSerializer(units, many=True)
     return render(
         request,
-        "content/unit_list.html",
+        "content/main/unit_list.html",
         {
             "units": units,
             "units_data": serializer.data,
@@ -19,7 +19,7 @@ def unit_detail(request, pk):
     serializer = UnitSerializer(unit)
     return render(
         request,
-        "content/unit_detail.html",
+        "content/main/unit_detail.html",
         {
             "unit": unit,
             "unit_data": serializer.data,

@@ -7,7 +7,7 @@ def textbook_list(request):
     serializer = TextbookSerializer(textbooks, many=True)
     return render(
         request,
-        "content/textbook_list.html",
+        "content/main/textbook_list.html",
         {
             "textbooks": textbooks,
             "textbooks_data": serializer.data,
@@ -19,7 +19,7 @@ def textbook_detail(request, pk):
     serializer = TextbookSerializer(textbook)
     return render(
         request,
-        "content/textbook_detail.html",
+        "content/main/textbook_detail.html",
         {
             "textbook": textbook,
             "textbook_data": serializer.data,

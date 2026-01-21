@@ -12,7 +12,7 @@ def test_history(request):
         .order_by("-created_at")
     )
 
-    return render(request, "content/test_history.html", {
+    return render(request, "content/vocab/test_history.html", {
         "attempts": attempts
     })
 
@@ -25,7 +25,7 @@ def attempt_detail(request, attempt_id):
         user=request.user
     )
 
-    return render(request, "content/attempt_detail.html", {
+    return render(request, "content/vocab/attempt_detail.html", {
         "attempt": attempt,
         "questions": attempt.questions_data or []
     })

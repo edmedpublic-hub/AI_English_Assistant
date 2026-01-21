@@ -7,7 +7,7 @@ def lesson_list(request):
     serializer = LessonSerializer(lessons, many=True)
     return render(
         request,
-        "content/lesson_list.html",
+        "content/main/lesson_list.html",
         {
             "lessons": lessons,
             "lessons_data": serializer.data,
@@ -19,7 +19,7 @@ def lesson_detail(request, pk):
     serializer = LessonSerializer(lesson)
     return render(
         request,
-        "content/lesson_detail.html",
+        "content/main/lesson_detail.html",
         {
             "lesson": lesson,
             "lesson_data": serializer.data,

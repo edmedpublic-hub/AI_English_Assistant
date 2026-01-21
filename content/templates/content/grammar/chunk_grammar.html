@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Grammar Section: {{ chunk.title }}</h2>
+  <p>Lesson: {{ lesson.title }}</p>
+
+  <ul>
+    {% for gp in grammar_points %}
+      <li>
+        <strong>{{ gp.title }}</strong><br>
+        {{ gp.explanation|truncatewords:20 }}<br>
+
+        <!-- Links to dedicated grammar views -->
+        <a href="{% url 'grammar:teach' lesson.id chunk.id gp.id %}">Teach</a> |
+        <a href="{% url 'grammar:exercise' lesson.id chunk.id gp.id %}">Exercise</a> |
+        <a href="{% url 'grammar:test' lesson.id chunk.id gp.id %}">Test</a>
+      </li>
+    {% empty %}
+      <li>No grammar points yet for this chunk.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
