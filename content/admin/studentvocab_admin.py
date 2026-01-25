@@ -1,5 +1,6 @@
 from django.contrib import admin
-from ..models import StudentVocabMastery
+from ..models.vocabulary import StudentVocabMastery
+
 
 @admin.register(StudentVocabMastery)
 class StudentVocabMasteryAdmin(admin.ModelAdmin):

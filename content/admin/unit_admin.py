@@ -1,6 +1,7 @@
 from django.contrib import admin
-from ..models import Unit
+from ..models.core import Unit
 from .inlines import LessonInline
+
 
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from ..models import ComprehensionQuestion
+from ..models.comprehension import ComprehensionQuestion
+
 
 @admin.register(ComprehensionQuestion)
 class ComprehensionAdmin(admin.ModelAdmin):

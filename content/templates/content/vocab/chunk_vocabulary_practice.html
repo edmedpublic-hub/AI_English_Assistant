@@ -48,15 +48,15 @@
   ========================= -->
   <section class="practice-actions">
     <div class="practice-buttons">
-      <a href="{% url 'chunk_vocab_fill' lesson.id chunk.id %}">
+      <a href="{% url 'content:chunk_vocab_fill' lesson.id chunk.id %}">
         <button type="button">📝 Fill in the Blanks</button>
       </a>
 
-      <a href="{% url 'chunk_vocab_synonyms' lesson.id chunk.id %}">
+      <a href="{% url 'content:chunk_vocab_synonyms' lesson.id chunk.id %}">
         <button type="button">🔄 Synonyms</button>
       </a>
 
-      <a href="{% url 'chunk_vocab_antonyms' lesson.id chunk.id %}">
+      <a href="{% url 'content:chunk_vocab_antonyms' lesson.id chunk.id %}">
         <button type="button">↔ Antonyms</button>
       </a>
     </div>

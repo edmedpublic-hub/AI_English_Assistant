@@ -1,6 +1,7 @@
 from django.contrib import admin
-from ..models import Lesson
-from .inlines import LessonChunkInline, VocabularyInline, WritingTaskInline, GrammarPointInline, ComprehensionInline
+from ..models.core import Lesson
+from .inlines import LessonChunkInline, VocabularyInline, WritingTaskInline
+
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
@@ -12,6 +13,4 @@ class LessonAdmin(admin.ModelAdmin):
         LessonChunkInline,
         VocabularyInline,
         WritingTaskInline,
-        GrammarPointInline,
-        ComprehensionInline,
     ]

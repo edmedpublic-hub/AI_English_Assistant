@@ -1,5 +1,6 @@
 from django.contrib import admin
-from ..models import SentenceAttempt
+from ..models.writing import SentenceAttempt
+
 
 @admin.register(SentenceAttempt)
 class SentenceAttemptAdmin(admin.ModelAdmin):

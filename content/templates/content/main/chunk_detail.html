@@ -12,19 +12,19 @@ Chunk Detail
        Navigation
   ========================= -->
   <nav class="page-navigation">
-    <a href="{% url 'lesson_detail' chunk.lesson.id %}">
+    <a href="{% url 'content:lesson_detail' chunk.lesson.id %}">
       ← Lesson {{ chunk.lesson.number }}
     </a>
     <span>|</span>
-    <a href="{% url 'unit_detail' chunk.lesson.unit.id %}">
+    <a href="{% url 'content:unit_detail' chunk.lesson.unit.id %}">
       Unit {{ chunk.lesson.unit.number }}
     </a>
     <span>|</span>
-    <a href="{% url 'textbook_detail' chunk.lesson.unit.textbook.id %}">
+    <a href="{% url 'content:textbook_detail' chunk.lesson.unit.textbook.id %}">
       {{ chunk.lesson.unit.textbook.title }}
     </a>
     <span>|</span>
-    <a href="{% url 'content_index' %}">Content Index</a>
+    <a href="{% url 'content:content_index' %}">Content Index</a>
     <span>|</span>
     <a href="{% url 'index' %}">Global Home</a>
   </nav>
@@ -67,12 +67,12 @@ Chunk Detail
   <section class="study-section">
     <h2>Study this chunk</h2>
     <div class="study-nav">
-      <a class="btn" href="{% url 'chunk_vocabulary' chunk.lesson.id chunk.id %}">Vocabulary</a>
-      <a class="btn" href="{% url 'chunk_grammar' chunk.lesson.id chunk.id %}">Grammar</a>
-      <a class="btn" href="{% url 'chunk_punctuation' chunk.lesson.id chunk.id %}">Punctuation</a>
-      <a class="btn" href="{% url 'chunk_punctuation' chunk.lesson.id chunk.id %}">Comprehension</a>
-      <a class="btn" href="{% url 'chunk_writing' chunk.lesson.id chunk.id %}">Writing</a>
-      <a class="btn" href="{% url 'chunk_progress' chunk.lesson.id chunk.id %}">Progress</a>
+      <a class="btn" href="{% url 'content:chunk_vocabulary' chunk.lesson.id chunk.id %}">Vocabulary</a>
+      <a class="btn" href="{% url 'content:chunk_grammar' chunk.lesson.id chunk.id %}">Grammar</a>
+      <a class="btn" href="{% url 'content:chunk_punctuation' chunk.lesson.id chunk.id %}">Punctuation</a>
+      <a class="btn" href="{% url 'content:chunk_comprehension' chunk.lesson.id chunk.id %}">Comprehension</a>
+      <a class="btn" href="{% url 'content:chunk_writing' chunk.lesson.id chunk.id %}">Writing</a>
+      <a class="btn" href="{% url 'content:chunk_progress' chunk.lesson.id chunk.id %}">Progress</a>
     </div>
   </section>
 

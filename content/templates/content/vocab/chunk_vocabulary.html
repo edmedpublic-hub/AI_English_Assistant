@@ -10,7 +10,7 @@
        Page Navigation
   ========================= -->
   <div class="page-navigation">
-    <a href="{% url 'chunk_detail' chunk.id %}">← Back to Chunk</a>
+    <a href="{% url 'content:chunk_detail' chunk.id %}">← Back to Chunk</a>
   </div>
 
   <!-- =========================
@@ -86,10 +86,10 @@
        Bottom Actions
   ========================= -->
   <div class="actions">
-    <a class="btn practice" href="{% url 'chunk_vocabulary_practice' lesson.id chunk.id %}">
+    <a class="btn practice" href="{% url 'content:chunk_vocabulary_practice' lesson.id chunk.id %}">
       Start Practice
     </a>
-    <a class="btn test" href="{% url 'chunk_vocabulary_test' lesson.id chunk.id %}">
+    <a class="btn test" href="{% url 'content:chunk_vocabulary_test' lesson.id chunk.id %}">
       Take Test
     </a>
   </div>

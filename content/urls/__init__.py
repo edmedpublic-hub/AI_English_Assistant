@@ -1,7 +1,17 @@
-from .core_urls import urlpatterns as core_urls
-from .chunk_urls import urlpatterns as chunk_urls
-from .tests_urls import urlpatterns as test_urls
-from .vocabulary_urls import urlpatterns as vocabulary_urls
-from .grammar_urls import urlpatterns as grammar_urls
+# content/urls/__init__.py
+import importlib
+import pkgutil
+from django.urls import path
 
-urlpatterns = core_urls + chunk_urls + test_urls + vocabulary_urls + grammar_urls   
+# Namespace for reverse lookups in templates
+app_name = "content"
+
+urlpatterns = []
+
+# Dynamically import all *_urls.py modules inside this package
+package = __name__  # "content.urls"
+for _, module_name, is_pkg in pkgutil.iter_modules(__path__):
+    if module_name.endswith("_urls"):
+        module = importlib.import_module(f"{package}.{module_name}")
+        if hasattr(module, "urlpatterns"):
+            urlpatterns.extend(module.urlpatterns)

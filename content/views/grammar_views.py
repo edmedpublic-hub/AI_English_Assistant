@@ -1,7 +1,7 @@
 # content/views/grammar_views.py
 
 from django.shortcuts import render, get_object_or_404
-from ..models import Lesson, LessonChunk, GrammarPoint, GrammarQuestion
+from ..models import Lesson, LessonChunk, GrammarQuestion
 
 # -------------------------------
 # Grammar: Teach view
@@ -9,12 +9,12 @@ from ..models import Lesson, LessonChunk, GrammarPoint, GrammarQuestion
 def grammar_teach(request, lesson_id, chunk_id, point_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     chunk = get_object_or_404(LessonChunk, id=chunk_id, lesson=lesson)
-    point = get_object_or_404(GrammarPoint, id=point_id, chunk=chunk)
+   
 
     return render(
         request,
         "content/grammar/teach.html",
-        {"lesson": lesson, "chunk": chunk, "point": point},
+        {"lesson": lesson, "chunk": chunk},
     )
 
 # -------------------------------
@@ -23,7 +23,7 @@ def grammar_teach(request, lesson_id, chunk_id, point_id):
 # content/views/grammar_views.py
 
 from django.shortcuts import render, get_object_or_404, redirect
-from ..models import Lesson, LessonChunk, GrammarPoint, GrammarQuestion, GrammarAttempt
+from ..models import Lesson, LessonChunk, GrammarQuestion, GrammarAttempt
 
 # -------------------------------
 # Grammar: Exercise view
@@ -31,8 +31,7 @@ from ..models import Lesson, LessonChunk, GrammarPoint, GrammarQuestion, Grammar
 def grammar_exercise(request, lesson_id, chunk_id, point_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     chunk = get_object_or_404(LessonChunk, id=chunk_id, lesson=lesson)
-    point = get_object_or_404(GrammarPoint, id=point_id, chunk=chunk)
-    questions = GrammarQuestion.objects.filter(grammar_point=point)
+    
 
     feedback = []
 
@@ -60,8 +59,8 @@ def grammar_exercise(request, lesson_id, chunk_id, point_id):
         {
             "lesson": lesson,
             "chunk": chunk,
-            "point": point,
-            "questions": questions,
+            
+            
             "feedback": feedback,
         },
     )
@@ -71,11 +70,10 @@ def grammar_exercise(request, lesson_id, chunk_id, point_id):
 def grammar_test(request, lesson_id, chunk_id, point_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     chunk = get_object_or_404(LessonChunk, id=chunk_id, lesson=lesson)
-    point = get_object_or_404(GrammarPoint, id=point_id, chunk=chunk)
-    questions = GrammarQuestion.objects.filter(grammar_point=point)
+   
 
     return render(
         request,
         "content/grammar/test.html",
-        {"lesson": lesson, "chunk": chunk, "point": point, "questions": questions},
+        {"lesson": lesson, "chunk": chunk},
     )

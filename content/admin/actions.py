@@ -1,7 +1,8 @@
 import spacy
-from ..models import VocabularyItem
+from ..models.vocabulary import VocabularyItem
 
 nlp = spacy.load("en_core_web_sm")
+
 
 def generate_vocab(modeladmin, request, queryset):
     """Admin action: generate vocabulary for selected LessonChunks"""
@@ -16,5 +17,6 @@ def generate_vocab(modeladmin, request, queryset):
                 part_of_speech=token.pos_.lower()
             )
     modeladmin.message_user(request, "Vocabulary generated for selected chunks.")
+
 
 generate_vocab.short_description = "Generate vocabulary for selected chunks"

@@ -1,13 +1,13 @@
 import random, re
 from django.shortcuts import render, get_object_or_404
-from ..models import LessonChunk, Lesson, GrammarPoint
+from ..models import LessonChunk, Lesson
 
 # -------------------------------
 # Core chunk view
 # -------------------------------
 def chunk_detail(request, pk):
     chunk = get_object_or_404(LessonChunk, pk=pk)
-    return render(request, "content/chunk_detail.html", {"chunk": chunk})
+    return render(request, "content/main/chunk_detail.html", {"chunk": chunk})
 
 # -------------------------------
 # Study views
@@ -23,7 +23,7 @@ def chunk_grammar(request, lesson_id, chunk_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     chunk = get_object_or_404(LessonChunk, id=chunk_id, lesson=lesson)
 
-    grammar_points = GrammarPoint.objects.filter(chunk=chunk)
+    
 
     return render(
         request,
@@ -31,7 +31,7 @@ def chunk_grammar(request, lesson_id, chunk_id):
         {
             "lesson": lesson,
             "chunk": chunk,
-            "grammar_points": grammar_points,
+            
         },
     )
 

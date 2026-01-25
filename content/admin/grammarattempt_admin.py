@@ -4,7 +4,14 @@ from ..models.grammar import GrammarAttempt
 
 @admin.register(GrammarAttempt)
 class GrammarAttemptAdmin(admin.ModelAdmin):
-    list_display = ("student", "grammar_question", "selected_answer", "is_correct", "timestamp")
-    search_fields = ("student__username", "grammar_question__question_text")
-    list_filter = ("is_correct", "timestamp", "grammar_question__grammar_point")
-    ordering = ("-timestamp",)
+    list_display = (
+        "student",
+        "question",
+        "selected_answer",
+        "is_correct",
+        "attempted_at",
+    )
+
+    list_filter = ("is_correct", "attempted_at")
+    search_fields = ("student__username", "question__question_text")
+    ordering = ("-attempted_at",)

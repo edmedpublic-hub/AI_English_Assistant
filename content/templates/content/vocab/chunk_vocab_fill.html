@@ -15,7 +15,7 @@
 
   <div class="quiz-wrapper"
        data-total="{{ questions|length }}"
-       data-synonyms-url="{% url 'chunk_vocab_synonyms' lesson.id chunk.id %}">
+       data-synonyms-url="{% url 'content:chunk_vocab_synonyms' lesson.id chunk.id %}">
 
     <!-- Progress + Score -->
     <div class="quiz-meta">
@@ -73,7 +73,7 @@
       <p>🎉 Well done! You’ve completed Fill in the Blanks.</p>
       <a
         id="goSynonymsBtn"
-        href="{% url 'chunk_vocab_synonyms' lesson.id chunk.id %}"
+        href="{% url 'content:chunk_vocab_synonyms' lesson.id chunk.id %}"
         class="go-synonyms-btn"
       >
         Go to Synonyms Practice →

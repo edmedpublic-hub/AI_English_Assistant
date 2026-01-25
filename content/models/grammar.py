@@ -1,154 +1,269 @@
 # content/models/grammar.py
 
 from django.db import models
-from .core import Lesson, LessonChunk
+from django.core.validators import MinValueValidator, MaxValueValidator
+from .core import LessonChunk
 
 
 # ============================================================
-# Grammar: future-proof, scalable, and pedagogy-aligned models
-# Teach → Exercise → Test, with granular logging and summaries
+# KNOWLEDGE LAYER (Global Grammar Curriculum)
 # ============================================================
 
-class GrammarPoint(models.Model):
+class GrammarConcept(models.Model):
     """
-    A single grammar concept taught within a lesson/chunk.
-    Example: "Nouns", "Present Simple", "Relative Clauses".
+    A global grammar concept independent of textbooks.
+    Examples: Noun, Proper Noun, Present Simple, Relative Clause.
     """
-    lesson = models.ForeignKey(
-        Lesson,
-        on_delete=models.CASCADE,
-        related_name="grammar_points"
+    name = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+
+    category = models.CharField(
+        max_length=100,
+        help_text="e.g. Parts of Speech, Tense, Clause, Sentence Structure"
     )
+
+    order_index = models.PositiveIntegerField(
+        help_text="Controls global progression order across the curriculum"
+    )
+
+    class Meta:
+        ordering = ["order_index", "name"]
+        indexes = [
+            models.Index(fields=["slug"]),
+            models.Index(fields=["category"]),
+            models.Index(fields=["order_index"]),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class GrammarRule(models.Model):
+    """
+    A specific rule under a grammar concept.
+    Example: 'Proper nouns begin with capital letters.'
+    """
+    concept = models.ForeignKey(
+        GrammarConcept,
+        on_delete=models.CASCADE,
+        related_name="rules"
+    )
+
+    rule_text = models.TextField()
+
+    def __str__(self):
+        return f"{self.concept.name}: {self.rule_text[:60]}"
+
+
+class GrammarExample(models.Model):
+    """
+    Example sentence illustrating a grammar rule.
+    """
+    rule = models.ForeignKey(
+        GrammarRule,
+        on_delete=models.CASCADE,
+        related_name="examples"
+    )
+
+    sentence = models.TextField()
+
+    def __str__(self):
+        return self.sentence[:80]
+
+
+# ============================================================
+# TEACHING LAYER (Chunk-level Pedagogical Focus)
+# ============================================================
+
+class ChunkGrammarFocus(models.Model):
+    """
+    Represents how a grammar concept is taught in a specific chunk.
+    Enables spiral learning and progressive depth.
+    """
+
     chunk = models.ForeignKey(
         LessonChunk,
         on_delete=models.CASCADE,
-        related_name="grammar_points",
-        null=True,
-        blank=True
+        related_name="grammar_focuses"
     )
-    title = models.CharField(max_length=200)
-    explanation = models.TextField()   # Teaching content
-    examples = models.TextField()      # Example sentences
+
+    concept = models.ForeignKey(
+        GrammarConcept,
+        on_delete=models.CASCADE,
+        related_name="teaching_instances"
+    )
+
+    focus_title = models.CharField(
+        max_length=200,
+        help_text="e.g. 'Kinds of Nouns', 'Present Simple vs Present Continuous'"
+    )
+
+    focus_description = models.TextField()
+
+    depth_level = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="1 = Introductory, 5 = Expert-level treatment"
+    )
+
+    sequence_order = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(3)],
+        help_text="1–3 (maximum three grammar focuses per chunk)"
+    )
 
     class Meta:
-        indexes = [
-            models.Index(fields=["lesson"]),
-            models.Index(fields=["chunk"]),
-            models.Index(fields=["title"]),
+        ordering = ["chunk_id", "sequence_order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["chunk", "sequence_order"],
+                name="unique_focus_order_per_chunk"
+            )
         ]
-        ordering = ["lesson_id", "chunk_id", "title"]
+        indexes = [
+            models.Index(fields=["chunk"]),
+            models.Index(fields=["concept"]),
+            models.Index(fields=["depth_level"]),
+        ]
 
     def __str__(self):
-        return f"{self.lesson} — {self.title}"
+        return f"{self.chunk} → {self.focus_title}"
 
+
+# ============================================================
+# PRACTICE & TEST QUESTIONS
+# ============================================================
 
 class GrammarQuestion(models.Model):
     """
-    A reusable exercise/test item linked to a GrammarPoint.
-    Supports multiple question types and flexible options via JSON.
+    Questions tied to a specific teaching instance (not abstract concepts).
     """
+
     TYPE_MCQ = "mcq"
     TYPE_FILL = "fill"
     TYPE_REWRITE = "rewrite"
+    TYPE_IDENTIFY = "identify"
 
     QUESTION_TYPES = [
         (TYPE_MCQ, "Multiple Choice"),
         (TYPE_FILL, "Fill in the Blank"),
-        (TYPE_REWRITE, "Rewrite"),
+        (TYPE_REWRITE, "Rewrite Sentence"),
+        (TYPE_IDENTIFY, "Identify Part / Function"),
     ]
 
-    grammar_point = models.ForeignKey(
-        GrammarPoint,
+    focus = models.ForeignKey(
+        ChunkGrammarFocus,
         on_delete=models.CASCADE,
         related_name="questions"
     )
+
     question_text = models.TextField()
-    options = models.JSONField(null=True, blank=True)  # For MCQs or structured choices
-    correct_answer = models.CharField(max_length=200)
-    question_type = models.CharField(max_length=50, choices=QUESTION_TYPES, default=TYPE_MCQ)
-    difficulty = models.PositiveSmallIntegerField(default=1)  # 1–5 scale (optional)
+    options = models.JSONField(null=True, blank=True)
+    correct_answer = models.CharField(max_length=255)
+
+    question_type = models.CharField(
+        max_length=30,
+        choices=QUESTION_TYPES,
+        default=TYPE_MCQ
+    )
+
+    difficulty = models.PositiveSmallIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+
+    explanation = models.TextField(
+        blank=True,
+        help_text="Explanation shown after answering (why this is correct)"
+    )
 
     class Meta:
+        ordering = ["focus_id", "id"]
         indexes = [
-            models.Index(fields=["grammar_point"]),
+            models.Index(fields=["focus"]),
             models.Index(fields=["question_type"]),
             models.Index(fields=["difficulty"]),
         ]
-        ordering = ["grammar_point_id", "id"]
 
     def __str__(self):
-        return f"[{self.get_question_type_display()}] {self.question_text[:60]}..."
+        return f"{self.focus.focus_title}: {self.question_text[:60]}"
 
+
+# ============================================================
+# ATTEMPTS & ANALYTICS
+# ============================================================
 
 class GrammarAttempt(models.Model):
     """
-    Per-question attempt logging for analytics and review.
-    Stores the selected answer and correctness for each question.
+    Per-question logging for analytics and learner diagnostics.
     """
+
     student = models.ForeignKey(
         "auth.User",
         on_delete=models.CASCADE,
-        related_name="grammar_attempts",
-        null=True, blank=True   # ✅ allow nulls for existing rows
+        related_name="grammar_attempts"
     )
-    grammar_question = models.ForeignKey(
+
+    question = models.ForeignKey(
         GrammarQuestion,
         on_delete=models.CASCADE,
-        related_name="attempts",
-        null=True, blank=True   # ✅ allow nulls for existing rows
+        related_name="attempts"
     )
-    selected_answer = models.CharField(max_length=200, null=True, blank=True)
+
+    selected_answer = models.CharField(max_length=255, blank=True)
     is_correct = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(auto_now_add=True)
+
+    attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        ordering = ["-attempted_at"]
         indexes = [
             models.Index(fields=["student"]),
-            models.Index(fields=["grammar_question"]),
-            models.Index(fields=["timestamp"]),
+            models.Index(fields=["question"]),
             models.Index(fields=["is_correct"]),
+            models.Index(fields=["attempted_at"]),
         ]
-        ordering = ["-timestamp"]
 
     def __str__(self):
-        student_name = self.student.username if self.student else "Unknown Student"
-        gp_title = self.grammar_question.grammar_point.title if self.grammar_question else "Unknown Grammar Point"
-        return f"{student_name} — {gp_title} ({'✓' if self.is_correct else '✗'})"
+        return f"{self.student.username} — Q{self.question_id} ({'✓' if self.is_correct else '✗'})"
 
 
 class GrammarTestAttempt(models.Model):
     """
-    Per-test summary for a GrammarPoint.
-    Stores aggregate score and the full question set used in the test.
+    Aggregate assessment result for a test session.
     """
+
     student = models.ForeignKey(
         "auth.User",
         on_delete=models.CASCADE,
-        related_name="grammar_test_attempts",
-        null=True, blank=True   # ✅ allow nulls for existing rows
+        related_name="grammar_test_attempts"
     )
-    grammar_point = models.ForeignKey(
-        GrammarPoint,
+
+    focus = models.ForeignKey(
+        ChunkGrammarFocus,
         on_delete=models.CASCADE,
-        related_name="test_attempts",
-        null=True, blank=True   # ✅ allow nulls for existing rows
+        related_name="test_attempts"
     )
-    score_percent = models.IntegerField(null=True, blank=True)
-    correct_answers = models.IntegerField(null=True, blank=True)
-    total_questions = models.IntegerField(null=True, blank=True)
-    questions_data = models.JSONField(null=True, blank=True)  # Entire test set for review
+
+    score_percent = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+
+    correct_answers = models.PositiveSmallIntegerField()
+    total_questions = models.PositiveSmallIntegerField()
+
+    questions_snapshot = models.JSONField(
+        help_text="Snapshot of questions used in this test for review consistency"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["student"]),
-            models.Index(fields=["grammar_point"]),
+            models.Index(fields=["focus"]),
             models.Index(fields=["created_at"]),
-            models.Index(fields=["score_percent"]),
         ]
-        ordering = ["-created_at"]
 
     def __str__(self):
-        student_name = self.student.username if self.student else "Unknown Student"
-        gp_title = self.grammar_point.title if self.grammar_point else "Unknown Grammar Point"
-        return f"{student_name} — {gp_title} ({self.score_percent or 0}%)"
+        return f"{self.student.username} — {self.focus.focus_title} ({self.score_percent}%)"

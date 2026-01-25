@@ -1,5 +1,6 @@
 from django.contrib import admin
-from ..models import VocabularyAttempt
+from ..models.vocabulary import VocabularyAttempt
+
 
 @admin.register(VocabularyAttempt)
 class VocabularyAttemptAdmin(admin.ModelAdmin):

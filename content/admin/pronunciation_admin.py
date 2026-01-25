@@ -1,5 +1,6 @@
 from django.contrib import admin
-from ..models import PronunciationAttempt
+from ..models.pronunciation import PronunciationAttempt
+
 
 @admin.register(PronunciationAttempt)
 class PronunciationAdmin(admin.ModelAdmin):

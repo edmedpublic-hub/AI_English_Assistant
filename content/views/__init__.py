@@ -1,5 +1,5 @@
 # Ensure these imports exist so urls can resolve attributes on content.views
-from .index import index
+from .index import content_index
 from .textbooks import textbook_list, textbook_detail
 from .units import unit_list, unit_detail
 from .lessons import lesson_list, lesson_detail

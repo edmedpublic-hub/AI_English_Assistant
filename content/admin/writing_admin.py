@@ -1,5 +1,6 @@
 from django.contrib import admin
-from ..models import WritingTask
+from ..models.writing import WritingTask
+
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):

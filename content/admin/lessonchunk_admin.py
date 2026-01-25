@@ -1,6 +1,7 @@
 from django.contrib import admin
-from ..models import LessonChunk
+from ..models.core import LessonChunk
 from .actions import generate_vocab
+
 
 @admin.register(LessonChunk)
 class LessonChunkAdmin(admin.ModelAdmin):

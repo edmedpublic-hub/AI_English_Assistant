@@ -14,13 +14,13 @@
   </header>
 
   <nav class="page-navigation">
-    <a href="{% url 'textbook_detail' unit.textbook.id %}">
+    <a href="{% url 'content:textbook_detail' unit.textbook.id %}">
       ← Back to {{ unit.textbook.title }}
     </a>
     <span class="nav-separator">|</span>
-    <a href="{% url 'textbook_list' %}">Textbooks</a>
+    <a href="{% url 'content:textbook_list' %}">Textbooks</a>
     <span class="nav-separator">|</span>
-    <a href="{% url 'content_index' %}">Content Index</a>
+    <a href="{% url 'content:content_index' %}">Content Index</a>
     <span class="nav-separator">|</span>
     <a href="{% url 'index' %}">Global Home</a>
   </nav>
@@ -33,7 +33,7 @@
         {% for lesson in unit.lessons.all %}
           <li class="lesson-item">
             <article class="lesson-card">
-              <a href="{% url 'lesson_detail' lesson.id %}" class="lesson-link">
+              <a href="{% url 'content:lesson_detail' lesson.id %}" class="lesson-link">
                 Lesson {{ lesson.number }}: {{ lesson.title }}
               </a>
             </article>

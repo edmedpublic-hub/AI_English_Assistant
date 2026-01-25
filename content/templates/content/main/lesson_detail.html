@@ -16,19 +16,19 @@ Lesson {{ lesson.number }} — {{ lesson.title }}
   </header>
 
   <nav class="page-navigation">
-    <a href="{% url 'unit_detail' lesson.unit.id %}">
+    <a href="{% url 'content:unit_detail' lesson.unit.id %}">
       ← Back to Unit {{ lesson.unit.number }}
     </a>
     <span class="nav-separator">|</span>
-    <a href="{% url 'textbook_detail' lesson.unit.textbook.id %}">
+    <a href="{% url 'content:textbook_detail' lesson.unit.textbook.id %}">
       {{ lesson.unit.textbook.title }}
     </a>
     <span class="nav-separator">|</span>
-    <a href="{% url 'textbook_list' %}">Textbooks</a>
+    <a href="{% url 'content:textbook_list' %}">Textbooks</a>
     <span class="nav-separator">|</span>
-    <a href="{% url 'content_index' %}">Content Index</a>
+    <a href="{% url 'content:content_index' %}">Content Index</a>
     <span class="nav-separator">|</span>
-    <a href="{% url 'index' %}">Global Home</a>
+    <a href="{% url 'content:content_index' %}">Global Home</a>
   </nav>
 
   <section class="chunks-section">
@@ -39,7 +39,7 @@ Lesson {{ lesson.number }} — {{ lesson.title }}
         {% for chunk in lesson.chunks.all %}
           <li class="chunk-item">
             <article class="chunk-card">
-              <a href="{% url 'chunk_detail' chunk.id %}" class="chunk-link">
+              <a href="{% url 'content:chunk_detail' chunk.id %}" class="chunk-link">
                 <span class="chunk-label">Chunk {{ chunk.order }}</span>
                 <span class="chunk-preview">
                   {{ chunk.english_text|truncatewords:10 }}
