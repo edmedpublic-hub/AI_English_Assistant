@@ -7,6 +7,16 @@
 
 <section class="quiz-page" aria-labelledby="quiz-title">
   <header class="quiz-header">
+    <header class="quiz-header">
+  <nav class="breadcrumb-nav">
+    <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-link">
+      &larr; Back to Chunk
+    </a>
+  </nav>
+
+  <h1 id="quiz-title" class="page-title">Fill in the Blanks</h1>
+  ...
+</header>
     <h1 id="quiz-title" class="page-title">Fill in the Blanks</h1>
     <p class="practice-intro">
       Choose the correct option to complete the sentence.
@@ -78,6 +88,14 @@
       >
         Go to Synonyms Practice →
       </a>
+      <div class="completion-actions">
+      <a href="{% url 'content:chunk_vocab_synonyms' lesson.id chunk.id %}" class="go-synonyms-btn">
+        Go to Synonyms Practice &rarr;
+      </a>
+      <a href="{% url 'content:chunk_detail' chunk.id %}" class="finish-btn">
+        Done (Back to Chunk)
+      </a>
+  </div>
     </div>
 
   </div>

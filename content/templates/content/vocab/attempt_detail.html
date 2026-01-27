@@ -1,44 +1,160 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Test Review{% endblock %}
+{% block title %}Review — {{ attempt.lesson.title }}{% endblock %}
 
 {% block content %}
+<div class="review-container">
+    <nav class="breadcrumb-nav">
+        <a href="{% url 'content:test_history' %}" class="back-link">&larr; Back to Mastery Record</a>
+    </nav>
 
-<h1>Test Review</h1>
+    <header class="review-header">
+        <h1>Test Review</h1>
+        <div class="meta-card">
+            <div class="meta-item">
+                <span class="label">Lesson:</span>
+                <span class="value">{{ attempt.lesson.title }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="label">Chunk:</span>
+                <span class="value">Chunk {{ attempt.chunk.order }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="label">Score:</span>
+                <span class="value score-text {% if attempt.score_percent == 100 %}mastered{% endif %}">
+                    {{ attempt.score_percent }}%
+                </span>
+            </div>
+            <div class="meta-item">
+                <span class="label">Date:</span>
+                <span class="value">{{ attempt.created_at|date:"M d, Y | h:i A" }}</span>
+            </div>
+        </div>
+    </header>
 
-<p>
-  Lesson: {{ attempt.lesson }}<br>
-  Chunk: {{ attempt.chunk }}<br>
-  Score: <strong>{{ attempt.score_percent }}%</strong><br>
-  Date: {{ attempt.created_at }}
-</p>
+    <hr class="separator">
 
-<hr>
+    <section class="questions-list">
+        {% for q in questions %}
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="q-number">Q{{ forloop.counter }}</span>
+                    <p>{{ q.question }}</p>
+                </div>
 
-{% for q in questions %}
-  <div style="margin-bottom: 20px;">
-    <strong>Q{{ forloop.counter }}. {{ q.question }}</strong>
+                <ul class="options-list">
+                    {% for opt in q.options %}
+                        <li class="option-item {% if opt == q.answer %}correct-option{% endif %}">
+                            <span class="indicator">
+                                {% if opt == q.answer %}✔{% else %}○{% endif %}
+                            </span>
+                            {{ opt }}
+                        </li>
+                    {% endfor %}
+                </ul>
 
-    <ul>
-      {% for opt in q.options %}
-        <li
-          {% if opt == q.answer %}
-            style="color: green; font-weight: bold;"
-          {% endif %}
-        >
-          {{ opt }}
-        </li>
-      {% endfor %}
-    </ul>
+                <div class="answer-explanation">
+                    <p>The correct answer is: <strong>{{ q.answer }}</strong></p>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <p>Detailed question data is not available for this attempt.</p>
+            </div>
+        {% endfor %}
+    </section>
 
-    <p>Correct Answer: <strong>{{ q.answer }}</strong></p>
-  </div>
-{% empty %}
-  <p>No question data available.</p>
-{% endfor %}
+    <footer class="review-footer">
+        <a href="{% url 'content:test_history' %}" class="btn-secondary">Return to History</a>
+        <a href="{% url 'content:chunk_detail' attempt.chunk.id %}" class="btn-primary">Back to Chunk Hub</a>
+    </footer>
+</div>
 
-<p>
-  <a href="{% url 'test_history' %}">← Back to History</a>
-</p>
+<style>
+    .review-container { max-width: 800px; margin: 0 auto; padding: 20px; font-family: 'Inter', sans-serif; }
+    
+    /* Breadcrumb */
+    .breadcrumb-nav { margin-bottom: 20px; }
+    .back-link { color: #3498db; text-decoration: none; font-weight: 500; }
 
+    /* Header & Meta Card */
+    .review-header h1 { color: #2c3e50; margin-bottom: 20px; }
+    .meta-card { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+        gap: 15px; 
+        background: #f8f9fa; 
+        padding: 20px; 
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+    .meta-item .label { display: block; font-size: 0.85rem; color: #6c757d; text-transform: uppercase; }
+    .meta-item .value { font-weight: 600; color: #333; }
+    .score-text.mastered { color: #2ecc71; }
+
+    .separator { margin: 40px 0; border: 0; border-top: 1px solid #eee; }
+
+    /* Question Cards */
+    .question-card { 
+        background: #fff; 
+        border: 1px solid #edf2f7; 
+        border-radius: 8px; 
+        padding: 20px; 
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .question-title { display: flex; gap: 15px; margin-bottom: 15px; }
+    .q-number { 
+        background: #3498db; 
+        color: white; 
+        padding: 2px 8px; 
+        border-radius: 4px; 
+        font-size: 0.8rem; 
+        height: fit-content;
+    }
+    .question-title p { font-size: 1.1rem; font-weight: 600; margin: 0; color: #2d3748; }
+
+    /* Options Styling */
+    .options-list { list-style: none; padding: 0; margin-bottom: 15px; }
+    .option-item { 
+        padding: 10px 15px; 
+        border-radius: 6px; 
+        margin-bottom: 8px; 
+        border: 1px solid #f1f3f5;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .correct-option { 
+        background-color: #e6ffed; 
+        border-color: #b1dfbb; 
+        color: #1e7e34; 
+        font-weight: 600; 
+    }
+    .indicator { font-size: 0.9rem; }
+
+    .answer-explanation { font-size: 0.9rem; color: #718096; border-top: 1px solid #f1f3f5; padding-top: 10px; }
+
+    /* Footer Navigation */
+    .review-footer { 
+        margin-top: 50px; 
+        padding-top: 20px; 
+        border-top: 2px solid #f8f9fa; 
+        display: flex; 
+        gap: 20px; 
+        justify-content: center; 
+    }
+    .btn-primary, .btn-secondary { 
+        padding: 12px 24px; 
+        border-radius: 6px; 
+        text-decoration: none; 
+        font-weight: 600; 
+        transition: 0.2s; 
+    }
+    .btn-primary { background: #3498db; color: white; }
+    .btn-secondary { background: #edf2f7; color: #4a5568; }
+    .btn-primary:hover { background: #2980b9; }
+    .btn-secondary:hover { background: #e2e8f0; }
+</style>
 {% endblock %}

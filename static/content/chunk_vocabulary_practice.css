@@ -153,3 +153,19 @@
 
 .card:hover .back,
 .card.flipped .back  { transform: rotateY(0deg); }
+
+.breadcrumb-nav {
+    margin-bottom: 20px;
+}
+
+.back-link {
+    color: #007bff; /* Standard link blue */
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}

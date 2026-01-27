@@ -1,12 +1,16 @@
 from django.db import models
 from .core import Lesson, LessonChunk
 
-
 # ============================================================
 # 5. VOCABULARY
 # ============================================================
+
 class VocabularyItem(models.Model):
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="vocab_items")
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name="vocab_items"
+    )
     chunk = models.ForeignKey(
         LessonChunk,
         on_delete=models.CASCADE,
@@ -32,7 +36,12 @@ class VocabularyItem(models.Model):
         ("conjunction", "Conjunction"),
         ("interjection", "Interjection"),
     ]
-    part_of_speech = models.CharField(max_length=20, choices=PARTS_OF_SPEECH, default="noun")
+
+    part_of_speech = models.CharField(
+        max_length=20,
+        choices=PARTS_OF_SPEECH,
+        default="noun"
+    )
 
     class Meta:
         ordering = ["lesson_id", "word"]
@@ -47,7 +56,11 @@ class VocabularyItem(models.Model):
 
 class VocabularyAttempt(models.Model):
     student_id = models.CharField(max_length=50, db_index=True)
-    vocab_item = models.ForeignKey(VocabularyItem, on_delete=models.CASCADE, related_name="attempts")
+    vocab_item = models.ForeignKey(
+        VocabularyItem,
+        on_delete=models.CASCADE,
+        related_name="attempts"
+    )
     is_correct = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -61,9 +74,14 @@ class VocabularyAttempt(models.Model):
 # ============================================================
 # 5b. VOCABULARY MASTERY
 # ============================================================
+
 class StudentVocabMastery(models.Model):
     student_id = models.CharField(max_length=50, db_index=True)
-    vocab_item = models.ForeignKey(VocabularyItem, on_delete=models.CASCADE, related_name="mastery_records")
+    vocab_item = models.ForeignKey(
+        VocabularyItem,
+        on_delete=models.CASCADE,
+        related_name="mastery_records"
+    )
 
     MASTERY_LEVELS = [
         ("new", "New"),
@@ -71,13 +89,20 @@ class StudentVocabMastery(models.Model):
         ("review", "Needs Review"),
         ("mastered", "Mastered"),
     ]
-    mastery_level = models.CharField(max_length=20, choices=MASTERY_LEVELS, default="new")
 
+    mastery_level = models.CharField(
+        max_length=20,
+        choices=MASTERY_LEVELS,
+        default="new"
+    )
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["student_id", "vocab_item"], name="unique_student_vocab_mastery"),
+            models.UniqueConstraint(
+                fields=["student_id", "vocab_item"],
+                name="unique_student_vocab_mastery"
+            ),
         ]
 
     def __str__(self):

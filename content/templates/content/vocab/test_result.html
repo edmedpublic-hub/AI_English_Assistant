@@ -37,9 +37,19 @@
 {% endif %}
 
 <p class="nav-links">
-  <a href="{% url 'chunk_vocabulary' lesson.id chunk.id %}">← Back to Vocabulary</a>
-  |
-  <a href="{% url 'test_history' %}">View Test History</a>
+  <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-hub-link">
+    &larr; Back to Chunk Detail (Hub)
+  </a>
+  
+  <span class="nav-divider">|</span>
+
+  <a href="{% url 'content:chunk_vocabulary' lesson.id chunk.id %}">
+    Back to Vocabulary List
+  </a>
+  
+  <span class="nav-divider">|</span>
+
+  <a href="{% url 'content:test_history' %}">View Test History</a>
 </p>
 
 <style>
@@ -75,6 +85,20 @@
     text-align: center;
     margin-top: 30px;
   }
+  .back-hub-link {
+  font-weight: bold;
+  color: #2c3e50; /* Darker color to match your buttons */
+  text-decoration: none;
+}
+
+.back-hub-link:hover {
+  text-decoration: underline;
+}
+
+.nav-divider {
+  color: #ccc;
+  margin: 0 5px;
+}
 </style>
 
 {% endblock %}

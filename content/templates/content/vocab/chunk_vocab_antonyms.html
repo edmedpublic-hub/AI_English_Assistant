@@ -9,6 +9,14 @@
 
 {% block content %}
 <div class="quiz-page">
+    <div class="quiz-page">
+    <nav class="breadcrumb-nav" style="margin-bottom: 20px;">
+        <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-link">
+            &larr; Back to Chunk
+        </a>
+    </nav>
+
+    <h1 class="page-title">Antonyms Practice</h1>
     <h1 class="page-title">Antonyms Practice</h1>
     
     <div class="quiz-wrapper" 
@@ -56,17 +64,23 @@
         </div>
 
         <div id="completion" class="hidden completion-message">
-            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🎓</div>
-            <h2>Vocabulary Mastery Achieved!</h2>
-            <p>You have successfully completed the practice for this chunk.</p>
+    <div style="font-size: 3.5rem; margin-bottom: 1rem;">🎓</div>
+    <h2>Vocabulary Mastery Achieved!</h2>
+    <p>You have successfully completed the practice for this chunk.</p>
 
-            {% if lesson.id and chunk.id %}
-            <a href="{% url 'chunk_vocabulary_test' lesson.id chunk.id %}"
-               class="go-synonyms-btn" style="background-color: #2ecc71;">
-               Take a Test Now →
-            </a>
-            {% endif %}
-        </div>
+    <div class="completion-actions" style="margin-top: 25px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        {% if lesson.id and chunk.id %}
+        <a href="{% url 'content:chunk_vocabulary_test' lesson.id chunk.id %}"
+           class="go-synonyms-btn" style="background-color: #2ecc71;">
+           Take a Test Now &rarr;
+        </a>
+        {% endif %}
+
+        <a href="{% url 'content:chunk_detail' chunk.id %}" class="finish-btn">
+            Done (Back to Chunk)
+        </a>
+    </div>
+</div>
     </div>
 </div>
 {% endblock %}

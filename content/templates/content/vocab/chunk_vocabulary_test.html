@@ -3,9 +3,20 @@
 
 {% block content %}
 
-<p>
-  <a href="{% url 'chunk_vocabulary_practice' lesson.id chunk.id %}" class="back-link">← Back to Practice</a>
-  <a href="{% url 'chunk_vocabulary' lesson.id chunk.id %}" class="forward-link">Back to Vocabulary</a>
+<p class="test-nav-links">
+  <a href="{% url 'content:chunk_detail' chunk.id %}" class="exit-link">
+    &larr; Exit to Chunk Hub
+  </a>
+  
+  <span class="nav-divider">|</span>
+
+  <a href="{% url 'content:chunk_vocabulary_practice' lesson.id chunk.id %}" class="back-link">
+    Back to Practice
+  </a>
+  
+  <a href="{% url 'content:chunk_vocabulary' lesson.id chunk.id %}" class="forward-link">
+    Back to Vocabulary List
+  </a>
 </p>
 
 <h1 class="page-title">Vocabulary Test — Chunk {{ chunk.order }}</h1>
@@ -121,6 +132,26 @@ const interval = setInterval(() => {
 
 .submit-btn:hover {
   background-color: #2980b9;
+}
+.test-nav-links {
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.exit-link {
+  text-decoration: none;
+  font-weight: bold;
+  color: #e67e22; /* A warmer color to indicate "Leaving the Test" */
+  margin-right: 10px;
+}
+
+.nav-divider {
+  color: #ccc;
+  margin-right: 10px;
+}
+
+.exit-link:hover {
+  text-decoration: underline;
 }
 </style>
 

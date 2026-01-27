@@ -6,6 +6,11 @@
 {% block content %}
 
 <div class="practice-wrapper">
+  <nav class="breadcrumb-nav">
+    <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-link">
+      &larr; Back to Chunk
+    </a>
+  </nav>
 
   <!-- Page header -->
   <h1 class="page-title">Vocabulary Practice — Chunk {{ chunk.order }}</h1>
@@ -51,6 +56,7 @@
       <a href="{% url 'content:chunk_vocab_fill' lesson.id chunk.id %}">
         <button type="button">📝 Fill in the Blanks</button>
       </a>
+
 
       <a href="{% url 'content:chunk_vocab_synonyms' lesson.id chunk.id %}">
         <button type="button">🔄 Synonyms</button>

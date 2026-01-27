@@ -1,37 +1,114 @@
 {% extends "base.html" %}
-{% block title %}Test History{% endblock %}
+{% load static %}
+
+{% block title %}Mastery Record — Test History{% endblock %}
 
 {% block content %}
-<h1>My Test History</h1>
+<div class="history-container">
+    <nav class="breadcrumb-nav">
+        <a href="{% url 'content:content_index' %}" class="back-link">&larr; Back to Lessons Index</a>
+    </nav>
 
-{% if attempts %}
-<table style="width:100%; border-collapse: collapse;">
-  <thead>
-    <tr>
-      <th align="left">Lesson</th>
-      <th align="left">Chunk</th>
-      <th align="left">Score</th>
-      <th align="left">Correct</th>
-      <th align="left">Date</th>
-      <th align="left">Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for a in attempts %}
-    <tr>
-      <td>{{ a.lesson.title }}</td>
-      <td>Chunk {{ a.chunk.order }}</td>
-      <td>{{ a.score_percent }}%</td>
-      <td>{{ a.correct_answers }}/{{ a.total_questions }}</td>
-      <td>{{ a.created_at|date:"Y-m-d H:i" }}</td>
-      <td>
-        <a href="{% url 'attempt_detail' a.id %}">View Details</a>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<p>No test attempts yet.</p>
-{% endif %}
+    <header class="page-header">
+        <h1>My Mastery Record</h1>
+        <p class="subtitle">Review your progress and retake tests to achieve 100% mastery.</p>
+    </header>
+
+    {% if attempts %}
+    <div class="table-responsive">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Topic / Lesson</th>
+                    <th>Chunk</th>
+                    <th>Score</th>
+                    <th>Result</th>
+                    <th>Date Completed</th>
+                    <th class="text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in attempts %}
+                <tr class="{% if a.score_percent == 100 %}row-mastered{% endif %}">
+                    <td>
+                        <span class="lesson-title">{{ a.lesson.title }}</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'content:chunk_detail' a.chunk.id %}" class="chunk-link">
+                            Chunk {{ a.chunk.order }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="score-pill">
+                            {{ a.score_percent }}%
+                            <small>{{ a.correct_answers }}/{{ a.total_questions }}</small>
+                        </div>
+                    </td>
+                    <td>
+                        {% if a.score_percent == 100 %}
+                            <span class="badge badge-success">Mastered</span>
+                        {% elif a.score_percent >= 80 %}
+                            <span class="badge badge-warning">Passed</span>
+                        {% else %}
+                            <span class="badge badge-danger">Needs Review</span>
+                        {% endif %}
+                    </td>
+                    <td class="date-col">{{ a.created_at|date:"M d, Y" }} <small>{{ a.created_at|date:"h:i A" }}</small></td>
+                    <td class="text-right">
+                        <a href="{% url 'content:attempt_detail' a.id %}" class="btn-detail">View Breakdown</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">📊</div>
+        <p>No test attempts recorded yet. Start practicing to see your history!</p>
+        <a href="{% url 'content:index' %}" class="btn-primary">Go to Lessons</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Layout */
+    .history-container { max-width: 1000px; margin: 0 auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .page-header { margin-bottom: 30px; }
+    .subtitle { color: #666; font-size: 1.1rem; }
+
+    /* Breadcrumbs */
+    .breadcrumb-nav { margin-bottom: 15px; }
+    .back-link { text-decoration: none; color: #3498db; font-weight: 500; }
+
+    /* Table Styling */
+    .table-responsive { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+    .history-table { width: 100%; border-collapse: collapse; }
+    .history-table th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #eee; color: #2c3e50; }
+    .history-table td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    
+    /* Hover and Row Effects */
+    .history-table tr:hover { background-color: #fcfcfc; }
+    .row-mastered { border-left: 4px solid #2ecc71; }
+
+    /* Links and Typography */
+    .chunk-link { font-weight: bold; color: #3498db; text-decoration: none; }
+    .lesson-title { display: block; font-weight: 500; color: #333; }
+    .score-pill { font-weight: bold; }
+    .score-pill small { display: block; color: #888; font-weight: normal; }
+    .date-col small { display: block; color: #aaa; }
+
+    /* Badges */
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+    .badge-success { background: #e6ffed; color: #2ecc71; }
+    .badge-warning { background: #fff9db; color: #f08c00; }
+    .badge-danger { background: #fff5f5; color: #fa5252; }
+
+    /* Buttons */
+    .btn-detail { font-size: 0.9rem; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 5px 12px; border-radius: 4px; transition: all 0.2s; }
+    .btn-detail:hover { background: #3498db; color: white; }
+    
+    .empty-state { text-align: center; padding: 50px; background: #f9f9f9; border-radius: 8px; }
+    .text-right { text-align: right; }
+</style>
 {% endblock %}

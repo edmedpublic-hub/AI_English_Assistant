@@ -9,6 +9,14 @@
 
 {% block content %}
 <div class="quiz-page">
+    <div class="quiz-page">
+    <nav class="breadcrumb-nav" style="margin-bottom: 20px;">
+        <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-link">
+            &larr; Back to Chunk
+        </a>
+    </nav>
+
+    <h1 class="page-title">Synonyms Practice</h1>
     <h1 class="page-title">Synonyms Practice</h1>
     
     <div class="quiz-wrapper" 
@@ -56,17 +64,22 @@
         </div>
 
         <div id="completion" class="hidden completion-message">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-            <h2>Mastery Achieved!</h2>
-            <p>You correctly identified every synonym in this set.</p>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+    <h2>Mastery Achieved!</h2>
+    <p>You correctly identified every synonym in this set.</p>
 
-            {% if lesson.id and chunk.id %}
-            <a href="{% url 'chunk_vocab_antonyms' lesson.id chunk.id %}"
-               class="go-synonyms-btn">
-               Go to Antonyms Practice →
+    <div class="completion-actions" style="margin-top: 20px; display: flex; gap: 15px; justify-content: center;">
+        {% if lesson.id and chunk.id %}
+            <a href="{% url 'content:chunk_vocab_antonyms' lesson.id chunk.id %}" class="go-synonyms-btn">
+                Go to Antonyms Practice &rarr;
             </a>
-            {% endif %}
-        </div>
+        {% endif %}
+
+        <a href="{% url 'content:chunk_detail' chunk.id %}" class="finish-btn">
+            Done (Back to Chunk)
+        </a>
+    </div>
+</div>
     </div>
 </div>
 {% endblock %}
