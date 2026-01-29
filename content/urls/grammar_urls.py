@@ -1,11 +1,5 @@
-# urls/grammar_urls.py
-
 from django.urls import path
-from content.views.grammar_views import (
-    grammar_teach,
-    grammar_exercise,
-    grammar_test,
-)
+from content.views import grammar_teach, grammar_exercise, grammar_test
 
 app_name = "grammar"
 

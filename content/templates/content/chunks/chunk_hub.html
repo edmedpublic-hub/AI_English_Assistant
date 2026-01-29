@@ -2,26 +2,26 @@
 {% load static %}
 
 {% block title %}
-Chunk Detail
+Chunk {{ chunk.order }}
 {% endblock %}
 
 {% block content %}
-<section class="chunk-detail-page">
+<section class="chunk-hub-page">
 
   <!-- =========================
        Navigation
   ========================= -->
   <nav class="page-navigation">
-    <a href="{% url 'content:lesson_detail' chunk.lesson.id %}">
-      ← Lesson {{ chunk.lesson.number }}
+    <a href="{% url 'content:lesson_detail' lesson.pk %}">
+      ← Lesson {{ lesson.number }}
     </a>
     <span>|</span>
-    <a href="{% url 'content:unit_detail' chunk.lesson.unit.id %}">
-      Unit {{ chunk.lesson.unit.number }}
+    <a href="{% url 'content:unit_detail' unit.pk %}">
+      Unit {{ unit.number }}
     </a>
     <span>|</span>
-    <a href="{% url 'content:textbook_detail' chunk.lesson.unit.textbook.id %}">
-      {{ chunk.lesson.unit.textbook.title }}
+    <a href="{% url 'content:textbook_detail' textbook.pk %}">
+      {{ textbook.title }}
     </a>
     <span>|</span>
     <a href="{% url 'content:content_index' %}">Content Index</a>
@@ -67,12 +67,12 @@ Chunk Detail
   <section class="study-section">
     <h2>Study this chunk</h2>
     <div class="study-nav">
-      <a class="btn" href="{% url 'content:chunk_vocabulary' chunk.lesson.id chunk.id %}">Vocabulary</a>
-      <a class="btn" href="{% url 'content:chunk_grammar' chunk.lesson.id chunk.id %}">Grammar</a>
-      <a class="btn" href="{% url 'content:chunk_punctuation' chunk.lesson.id chunk.id %}">Punctuation</a>
-      <a class="btn" href="{% url 'content:chunk_comprehension' chunk.lesson.id chunk.id %}">Comprehension</a>
-      <a class="btn" href="{% url 'content:chunk_writing' chunk.lesson.id chunk.id %}">Writing</a>
-      <a class="btn" href="{% url 'content:chunk_progress' chunk.lesson.id chunk.id %}">Progress</a>
+      <a class="btn" href="{% url 'content:chunk_vocabulary' chunk.pk %}">Vocabulary</a>
+      <a class="btn" href="{% url 'content:chunk_grammar' chunk.pk %}">Grammar</a>
+      <a class="btn" href="{% url 'content:chunk_punctuation' chunk.pk %}">Punctuation</a>
+      <a class="btn" href="{% url 'content:chunk_comprehension' chunk.pk %}">Comprehension</a>
+      <a class="btn" href="{% url 'content:chunk_writing' chunk.pk %}">Writing</a>
+      <a class="btn" href="{% url 'content:chunk_progress' chunk.pk %}">Progress</a>
     </div>
   </section>
 
@@ -89,9 +89,9 @@ Chunk Detail
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'content/chunk_detail.css' %}">
+<link rel="stylesheet" href="{% static 'content/chunk_hub.css' %}">
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'content/chunk_detail.js' %}"></script>
+<script src="{% static 'content/chunk_hub.js' %}"></script>
 {% endblock %}

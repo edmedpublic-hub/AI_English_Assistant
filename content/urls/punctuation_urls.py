@@ -1,7 +1,5 @@
-# content/urls/punctuation.py
-
 from rest_framework.routers import DefaultRouter
-from content.views.punctuation_views import (
+from content.views import (
     PunctuationMarkViewSet,
     ChunkPunctuationFocusViewSet,
     PunctuationQuestionViewSet,

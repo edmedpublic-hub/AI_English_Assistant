@@ -4,13 +4,13 @@
 {% block content %}
 
 <p class="test-nav-links">
-  <a href="{% url 'content:chunk_detail' chunk.id %}" class="exit-link">
+  <a href="{% url 'content:chunk_hub' chunk.id %}" class="exit-link">
     &larr; Exit to Chunk Hub
   </a>
   
   <span class="nav-divider">|</span>
 
-  <a href="{% url 'content:chunk_vocabulary_practice' lesson.id chunk.id %}" class="back-link">
+  <a href="{% url 'content:chunk_vocabulary_practice' chunk.id %}" class="back-link">
     Back to Practice
   </a>
   

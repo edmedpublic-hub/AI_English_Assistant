@@ -9,9 +9,10 @@
   <!-- =========================
        Page Navigation
   ========================= -->
-  <div class="page-navigation">
-    <a href="{% url 'content:chunk_detail' chunk.id %}">← Back to Chunk</a>
-  </div>
+  <!-- Page Navigation -->
+<div class="page-navigation">
+  <a href="{% url 'content:chunk_hub' chunk.id %}">← Back to Chunk</a>
+</div>
 
   <!-- =========================
        Page Header
@@ -83,16 +84,15 @@
   </section>
 
   <!-- =========================
-       Bottom Actions
-  ========================= -->
-  <div class="actions">
-    <a class="btn practice" href="{% url 'content:chunk_vocabulary_practice' lesson.id chunk.id %}">
-      Start Practice
-    </a>
-    <a class="btn test" href="{% url 'content:chunk_vocabulary_test' lesson.id chunk.id %}">
-      Take Test
-    </a>
-  </div>
+      <!-- Bottom Actions -->
+<div class="actions">
+  <a class="btn practice" href="{% url 'content:chunk_vocabulary_practice' chunk.id %}">
+    Start Practice
+  </a>
+  <a class="btn test" href="{% url 'content:chunk_vocabulary_test' chunk.id %}">
+    Take Test
+  </a>
+</div>
 
 </div>
 {% endblock %}

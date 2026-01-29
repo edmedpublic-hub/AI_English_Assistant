@@ -7,7 +7,7 @@
 
 <div class="practice-wrapper">
   <nav class="breadcrumb-nav">
-    <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-link">
+    <a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
       &larr; Back to Chunk
     </a>
   </nav>
@@ -53,16 +53,16 @@
   ========================= -->
   <section class="practice-actions">
     <div class="practice-buttons">
-      <a href="{% url 'content:chunk_vocab_fill' lesson.id chunk.id %}">
+      <a href="{% url 'content:chunk_vocab_fill' chunk.id %}">
         <button type="button">📝 Fill in the Blanks</button>
       </a>
 
 
-      <a href="{% url 'content:chunk_vocab_synonyms' lesson.id chunk.id %}">
+      <a href="{% url 'content:chunk_vocab_synonyms' chunk.id %}">
         <button type="button">🔄 Synonyms</button>
       </a>
 
-      <a href="{% url 'content:chunk_vocab_antonyms' lesson.id chunk.id %}">
+      <a href="{% url 'content:chunk_vocab_antonyms' chunk.id %}">
         <button type="button">↔ Antonyms</button>
       </a>
     </div>

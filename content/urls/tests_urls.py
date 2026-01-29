@@ -1,13 +1,7 @@
 from django.urls import path
-from content import views
-from content.views import history_views
+from content.views import test_history, attempt_detail
 
 urlpatterns = [
-    path("tests/history/", views.test_history, name="test_history"),
-
-    path(
-        "tests/history/<int:attempt_id>/",
-        history_views.attempt_detail,
-        name="attempt_detail",
-    ),
+    path("tests/history/", test_history, name="test_history"),
+    path("tests/history/<int:attempt_id>/", attempt_detail, name="attempt_detail"),
 ]

@@ -14,7 +14,7 @@
   </header>
 
   <nav class="page-navigation">
-    <a href="{% url 'content:textbook_detail' unit.textbook.id %}">
+    <a href="{% url 'content:textbook_detail' unit.textbook.pk %}">
       ← Back to {{ unit.textbook.title }}
     </a>
     <span class="nav-separator">|</span>
@@ -28,12 +28,12 @@
   <section class="lessons-section">
     <h2>Lessons</h2>
 
-    {% if unit.lessons.all %}
+    {% if lessons %}
       <ul class="lesson-list">
-        {% for lesson in unit.lessons.all %}
+        {% for lesson in lessons %}
           <li class="lesson-item">
             <article class="lesson-card">
-              <a href="{% url 'content:lesson_detail' lesson.id %}" class="lesson-link">
+              <a href="{% url 'content:lesson_detail' lesson.pk %}" class="lesson-link">
                 Lesson {{ lesson.number }}: {{ lesson.title }}
               </a>
             </article>

@@ -21,9 +21,9 @@
   </header>
 
   <nav class="page-navigation">
-    <a href="{% url 'textbook_list' %}">← Back to Textbooks</a>
+    <a href="{% url 'content:textbook_list' %}">← Back to Textbooks</a>
     <span class="nav-separator">|</span>
-    <a href="{% url 'content_index' %}">Content Index</a>
+    <a href="{% url 'content:content_index' %}">Content Index</a>
     <span class="nav-separator">|</span>
     <a href="{% url 'index' %}">Global Home</a>
   </nav>
@@ -31,12 +31,12 @@
   <section class="units-section">
     <h2>Units</h2>
 
-    {% if textbook.units.all %}
+    {% if units %}
       <ul class="unit-list">
-        {% for unit in textbook.units.all %}
+        {% for unit in units %}
           <li class="unit-item">
             <article class="unit-card">
-              <a href="{% url 'unit_detail' unit.id %}" class="unit-link">
+              <a href="{% url 'content:unit_detail' unit.pk %}" class="unit-link">
                 Unit {{ unit.number }}: {{ unit.title }}
               </a>
             </article>

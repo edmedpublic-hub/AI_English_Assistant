@@ -11,7 +11,7 @@
 <div class="quiz-page">
     <div class="quiz-page">
     <nav class="breadcrumb-nav" style="margin-bottom: 20px;">
-        <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-link">
+        <a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
             &larr; Back to Chunk
         </a>
     </nav>
@@ -70,13 +70,13 @@
 
     <div class="completion-actions" style="margin-top: 25px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
         {% if lesson.id and chunk.id %}
-        <a href="{% url 'content:chunk_vocabulary_test' lesson.id chunk.id %}"
+        <a href="{% url 'content:chunk_vocabulary_test' chunk.id %}"
            class="go-synonyms-btn" style="background-color: #2ecc71;">
            Take a Test Now &rarr;
         </a>
         {% endif %}
 
-        <a href="{% url 'content:chunk_detail' chunk.id %}" class="finish-btn">
+        <a href="{% url 'content:chunk_hub' chunk.id %}" class="finish-btn">
             Done (Back to Chunk)
         </a>
     </div>

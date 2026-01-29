@@ -37,13 +37,13 @@
 {% endif %}
 
 <p class="nav-links">
-  <a href="{% url 'content:chunk_detail' chunk.id %}" class="back-hub-link">
+  <a href="{% url 'content:chunk_hub' chunk.id %}" class="back-hub-link">
     &larr; Back to Chunk Detail (Hub)
   </a>
   
   <span class="nav-divider">|</span>
 
-  <a href="{% url 'content:chunk_vocabulary' lesson.id chunk.id %}">
+  <a href="{% url 'content:chunk_vocabulary' chunk.id %}">
     Back to Vocabulary List
   </a>
   
