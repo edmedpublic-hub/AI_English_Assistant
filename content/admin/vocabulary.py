@@ -13,7 +13,7 @@ from content.models.vocabulary import (
 class VocabularyItemAdmin(admin.ModelAdmin):
     list_display = ("word", "part_of_speech", "lesson", "chunk")
     list_filter = ("part_of_speech", "lesson")
-    search_fields = ("word", "meaning", "urdu")
+    search_fields = ("word", "meaning", "urdu", "example_sentence")
     ordering = ("lesson", "word")
 
     fieldsets = (
@@ -31,6 +31,8 @@ class VocabularyItemAdmin(admin.ModelAdmin):
         }),
     )
 
+    autocomplete_fields = ("lesson", "chunk")  # ✅ ensures smooth linking
+
 
 # -----------------------------
 # Analytics (read-only)
@@ -38,6 +40,8 @@ class VocabularyItemAdmin(admin.ModelAdmin):
 @admin.register(VocabularyAttempt)
 class VocabularyAttemptAdmin(admin.ModelAdmin):
     list_display = ("student_id", "vocab_item", "is_correct", "timestamp")
+    list_filter = ("is_correct", "timestamp")
+    search_fields = ("student_id", "vocab_item__word")
     ordering = ("-timestamp",)
     readonly_fields = [f.name for f in VocabularyAttempt._meta.fields]
 
@@ -51,8 +55,9 @@ class VocabularyAttemptAdmin(admin.ModelAdmin):
 @admin.register(StudentVocabMastery)
 class StudentVocabMasteryAdmin(admin.ModelAdmin):
     list_display = ("student_id", "vocab_item", "mastery_level", "last_updated")
-    ordering = ("-last_updated",)
+    list_filter = ("mastery_level", "last_updated")
     search_fields = ("student_id", "vocab_item__word")
+    ordering = ("-last_updated",)
     readonly_fields = [f.name for f in StudentVocabMastery._meta.fields]
 
     def has_add_permission(self, request):

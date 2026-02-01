@@ -19,6 +19,7 @@ class ChunkGrammarFocusInline(admin.StackedInline):
         "sequence_order",
     )
     ordering = ("sequence_order",)
+    autocomplete_fields = ("concept",)
 
 
 class GrammarQuestionInline(admin.TabularInline):
@@ -37,3 +38,6 @@ class GrammarQuestionInline(admin.TabularInline):
         "explanation",
     )
     ordering = ("difficulty",)
+
+    def short_question(self, obj):
+        return obj.question_text[:80]

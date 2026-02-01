@@ -1,33 +1,39 @@
 from django.contrib import admin
-from content.models.punctuation import ChunkPunctuationFocus, PunctuationQuestion
+from content.models.punctuation import (
+    PunctuationRule,
+    PunctuationExample,
+    ChunkPunctuationFocus,
+    PunctuationQuestion,
+)
 
 
-class ChunkPunctuationFocusInline(admin.StackedInline):
+class PunctuationRuleInline(admin.TabularInline):
     """
-    Appears inside LessonChunk admin.
-    Primary punctuation authoring surface.
+    Inline for punctuation rules under a mark.
     """
-    model = ChunkPunctuationFocus
-    extra = 0
-    show_change_link = True
+    model = PunctuationRule
+    extra = 1
+    fields = ("rule_text",)
+    ordering = ("id",)
 
-    fields = (
-        "mark",
-        "focus_title",
-        "focus_description",
-        "depth_level",
-        "sequence_order",
-    )
-    ordering = ("sequence_order",)
+
+class PunctuationExampleInline(admin.TabularInline):
+    """
+    Inline for punctuation examples under a rule.
+    """
+    model = PunctuationExample
+    extra = 1
+    fields = ("sentence",)
+    ordering = ("id",)
 
 
 class PunctuationQuestionInline(admin.TabularInline):
     """
-    Questions edited inside ChunkPunctuationFocus admin.
+    Appears inside ChunkPunctuationFocus admin.
+    This is the main authoring interface for punctuation practice questions.
     """
     model = PunctuationQuestion
     extra = 1
-
     fields = (
         "question_text",
         "question_type",

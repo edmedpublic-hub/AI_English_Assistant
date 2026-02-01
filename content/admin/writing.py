@@ -7,19 +7,23 @@ from content.models.writing import WritingTask, SentenceAttempt
 # ----------------------------
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):
-    list_display = (
-        "lesson",
-        "difficulty",
-        "short_prompt",
-    )
+    list_display = ("lesson", "difficulty", "short_prompt")
+    list_filter = ("difficulty", "lesson__unit__textbook")
+    search_fields = ("prompt", "lesson__title", "lesson__unit__title")
+    ordering = ("lesson", "difficulty")
 
-    list_filter = ("difficulty",)
-    search_fields = ("prompt", "lesson__title")
-    ordering = ("lesson",)
+    fieldsets = (
+        ("Core", {
+            "fields": ("lesson", "difficulty", "prompt")
+        }),
+        ("Metadata", {
+            "fields": ()
+        }),
+    )
 
     def short_prompt(self, obj):
         return obj.prompt[:80]
-    short_prompt.short_description = "Prompt"
+    short_prompt.short_description = "Prompt preview"
 
 
 # ----------------------------
@@ -27,17 +31,10 @@ class WritingTaskAdmin(admin.ModelAdmin):
 # ----------------------------
 @admin.register(SentenceAttempt)
 class SentenceAttemptAdmin(admin.ModelAdmin):
-    list_display = (
-        "student_id",
-        "writing_task",
-        "ai_score",
-        "timestamp",
-    )
-
+    list_display = ("student_id", "writing_task", "ai_score", "timestamp")
     list_filter = ("ai_score", "timestamp")
     search_fields = ("student_id", "writing_task__prompt")
     ordering = ("-timestamp",)
-
     readonly_fields = [f.name for f in SentenceAttempt._meta.fields]
 
     def has_add_permission(self, request):

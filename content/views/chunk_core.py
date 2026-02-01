@@ -30,10 +30,6 @@ def chunk_vocabulary(request, chunk_id):
     context = build_chunk_context(chunk_id)
     return render(request, "content/vocab/chunk_vocabulary.html", context)
 
-@require_GET
-def chunk_grammar(request, chunk_id):
-    context = build_chunk_context(chunk_id)
-    return render(request, "content/grammar/chunk_grammar.html", context)
 
 @require_GET
 def chunk_comprehension(request, chunk_id):

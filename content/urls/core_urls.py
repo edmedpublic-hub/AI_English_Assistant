@@ -8,7 +8,7 @@ from content.views.core import (
 )
 from content.views.chunk_core import chunk_hub
 
-app_name = "core"  # ✅ namespace for reverse lookups
+
 
 urlpatterns = [
     # Entry

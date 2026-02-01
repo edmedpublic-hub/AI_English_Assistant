@@ -1,7 +1,7 @@
 # content/models/grammar.py
 
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, ValidationError
 from .core import LessonChunk
 
 
@@ -135,7 +135,8 @@ class ChunkGrammarFocus(models.Model):
 
 class GrammarQuestion(models.Model):
     """
-    Questions tied to a specific teaching instance (not abstract concepts).
+    Concrete grammar questions tied to a specific ChunkGrammarFocus.
+    Designed for teacher-friendly content entry.
     """
 
     TYPE_MCQ = "mcq"
@@ -151,14 +152,24 @@ class GrammarQuestion(models.Model):
     ]
 
     focus = models.ForeignKey(
-        ChunkGrammarFocus,
+        "ChunkGrammarFocus",
         on_delete=models.CASCADE,
         related_name="questions"
     )
 
     question_text = models.TextField()
-    options = models.JSONField(null=True, blank=True)
-    correct_answer = models.CharField(max_length=255)
+
+    # ⬇️ CHANGED: JSONField → TextField (teacher-friendly)
+    options = models.TextField(
+        null=True,
+        blank=True,
+        help_text="For MCQs: enter one option per line"
+    )
+
+    correct_answer = models.CharField(
+        max_length=255,
+        help_text="Must exactly match one of the options (for MCQs)"
+    )
 
     question_type = models.CharField(
         max_length=30,
@@ -182,6 +193,41 @@ class GrammarQuestion(models.Model):
             models.Index(fields=["focus"]),
             models.Index(fields=["question_type"]),
             models.Index(fields=["difficulty"]),
+        ]
+
+    def clean(self):
+        """
+        Model-level validation to protect data integrity
+        without burdening teachers.
+        """
+        if self.question_type == self.TYPE_MCQ:
+            if not self.options:
+                raise ValidationError("MCQ questions must have options.")
+
+            option_list = [
+                opt.strip()
+                for opt in self.options.splitlines()
+                if opt.strip()
+            ]
+
+            if len(option_list) < 2:
+                raise ValidationError("MCQ questions must have at least two options.")
+
+            if self.correct_answer not in option_list:
+                raise ValidationError(
+                    "Correct answer must exactly match one of the options."
+                )
+
+    def get_options_list(self):
+        """
+        Utility method for views/templates.
+        """
+        if not self.options:
+            return []
+        return [
+            opt.strip()
+            for opt in self.options.splitlines()
+            if opt.strip()
         ]
 
     def __str__(self):

@@ -9,29 +9,21 @@ from content.models.punctuation import (
     PunctuationTestAttempt,
 )
 
-from content.admin.inlines.punctuation import PunctuationQuestionInline
+from content.admin.inlines.punctuation import (
+    PunctuationRuleInline,
+    PunctuationExampleInline,
+    PunctuationQuestionInline,
+)
 
 
 # -----------------------------
 # Curriculum (rare edits)
 # -----------------------------
-
-class PunctuationRuleInline(admin.TabularInline):
-    model = PunctuationRule
-    extra = 1
-
-
-class PunctuationExampleInline(admin.TabularInline):
-    model = PunctuationExample
-    extra = 1
-
-
 @admin.register(PunctuationMark)
 class PunctuationMarkAdmin(admin.ModelAdmin):
     list_display = ("name", "symbol", "order_index")
     search_fields = ("name", "symbol")
     ordering = ("order_index",)
-
     inlines = [PunctuationRuleInline]
 
 
@@ -54,23 +46,25 @@ class PunctuationExampleAdmin(admin.ModelAdmin):
 # -----------------------------
 # Authoring (core work area)
 # -----------------------------
-
 @admin.register(ChunkPunctuationFocus)
 class ChunkPunctuationFocusAdmin(admin.ModelAdmin):
     list_display = ("focus_title", "chunk", "mark", "depth_level", "sequence_order")
     list_filter = ("mark", "depth_level")
     search_fields = ("focus_title", "chunk__lesson__title")
-
+    ordering = ("chunk", "sequence_order")
+    autocomplete_fields = ("chunk", "mark")
     inlines = [PunctuationQuestionInline]
 
 
 # -----------------------------
 # Analytics (read-only)
 # -----------------------------
-
 @admin.register(PunctuationAttempt)
 class PunctuationAttemptAdmin(admin.ModelAdmin):
     list_display = ("student", "question", "is_correct", "attempted_at")
+    list_filter = ("is_correct", "attempted_at")
+    search_fields = ("student__username", "question__question_text")
+    ordering = ("-attempted_at",)
     readonly_fields = [f.name for f in PunctuationAttempt._meta.fields]
 
     def has_add_permission(self, request):
@@ -83,6 +77,9 @@ class PunctuationAttemptAdmin(admin.ModelAdmin):
 @admin.register(PunctuationTestAttempt)
 class PunctuationTestAttemptAdmin(admin.ModelAdmin):
     list_display = ("student", "focus", "score_percent", "created_at")
+    list_filter = ("score_percent", "created_at")
+    search_fields = ("student__username", "focus__focus_title")
+    ordering = ("-created_at",)
     readonly_fields = [f.name for f in PunctuationTestAttempt._meta.fields]
 
     def has_add_permission(self, request):

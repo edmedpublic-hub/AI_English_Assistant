@@ -1,40 +1,94 @@
-<!-- content/templates/content/grammar/test.html -->
 {% extends "base.html" %}
-<h2>Grammar Test: {{ point.title }}</h2>
-<p><em>Lesson: {{ lesson.title }} | Chunk: {{ chunk.title }}</em></p>
 
-<form method="post">
-  {% csrf_token %}
-  {% for q in questions %}
-    <div class="question-block">
-      <p><strong>Q{{ forloop.counter }}:</strong> {{ q.question_text }}</p>
+{% block content %}
+<style>
+  .test-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .test-header { 
+    background: #2c3e50; color: white; padding: 30px; 
+    border-radius: 12px; margin-bottom: 30px; text-align: center;
+  }
+  .test-header h2 { margin: 0; font-size: 1.8rem; }
+  .test-header p { margin: 10px 0 0 0; opacity: 0.8; }
 
-      {% if q.question_type == "mcq" %}
-        {% for option in q.options %}
-          <label>
-            <input type="radio" name="q{{ q.id }}" value="{{ option }}">
-            {{ option }}
-          </label><br>
-        {% endfor %}
-      {% elif q.question_type == "fill" %}
-        <input type="text" name="q{{ q.id }}">
-      {% elif q.question_type == "rewrite" %}
-        <textarea name="q{{ q.id }}"></textarea>
-      {% endif %}
+  .question-card { 
+    background: #fff; border: 1px solid #e1e8ed; border-radius: 10px; 
+    padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .question-text { font-size: 1.15rem; font-weight: 500; color: #2c3e50; margin-bottom: 15px; }
+
+  /* Input Styling */
+  .option-label { 
+    display: block; padding: 12px 15px; margin-bottom: 8px; 
+    border: 1px solid #eee; border-radius: 8px; cursor: pointer; transition: 0.2s;
+  }
+  .option-label:hover { background: #f8f9fa; border-color: #3498db; }
+  .option-label input { margin-right: 10px; }
+
+  .text-input, textarea { 
+    width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;
+  }
+  textarea { height: 100px; resize: vertical; }
+
+  .btn-finish { 
+    width: 100%; padding: 18px; background: #e74c3c; color: white; 
+    border: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem; 
+    cursor: pointer; margin-top: 20px; box-shadow: 0 4px 6px rgba(231, 76, 60, 0.2);
+  }
+  .btn-finish:hover { background: #c0392b; }
+
+  .action-footer { margin-top: 40px; display: flex; gap: 15px; justify-content: center; }
+  .btn-nav { text-decoration: none; color: #7f8c8d; font-size: 0.9rem; font-weight: 500; }
+</style>
+
+<div class="test-container">
+  <header class="test-header">
+    <h2>Grammar Mastery Test</h2>
+    <p>{{ focus.focus_title }}</p>
+    <div style="font-size: 0.8rem; margin-top: 10px; color: #ecf0f1;">
+      Goal: 100% Score Required for Mastery
     </div>
-  {% empty %}
-    <p>No test questions available yet for this grammar point.</p>
-  {% endfor %}
+  </header>
 
-  <button type="submit">Finish Test</button>
-</form>
+  <form method="post">
+    {% csrf_token %}
+    {% for q in questions %}
+      <div class="question-card">
+        <p class="question-text"><strong>{{ forloop.counter }}.</strong> {{ q.question_text }}</p>
 
-<hr>
+        <div class="answer-area">
+          {% if q.question_type == "mcq" %}
+            {% for option in q.options %}
+              <label class="option-label">
+                <input type="radio" name="q{{ q.id }}" value="{{ option }}" required>
+                {{ option }}
+              </label>
+            {% endfor %}
 
-<!-- Navigation -->
-<a href="{% url 'grammar:exercise' lesson.id chunk.id point.id %}" class="btn btn-secondary">
-  ← Back to Practice
-</a>
-<a href="{% url 'chunk_grammar' lesson.id chunk.id %}" class="btn btn-secondary">
-  ← Back to Grammar Points
-</a>
+          {% elif q.question_type == "rewrite" %}
+            <textarea name="q{{ q.id }}" placeholder="Type your answer carefully..." required></textarea>
+
+          {% else %}
+            <input type="text" name="q{{ q.id }}" class="text-input" placeholder="Your answer" required>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="question-card" style="text-align: center;">
+        <p>No test questions available for this focus yet.</p>
+      </div>
+    {% endfor %}
+
+    {% if questions %}
+      <button type="submit" class="btn-finish" onclick="return confirm('Are you sure you want to submit your test?');">
+        Submit for Mastery Evaluation
+      </button>
+    {% endif %}
+  </form>
+
+  <footer class="action-footer">
+    <a href="{% url 'content:grammar_exercise' chunk.id focus.id %}" class="btn-nav">← Back to Practice</a>
+    <span style="color: #ddd;">|</span>
+    <a href="{% url 'content:chunk_grammar' chunk.id %}" class="btn-nav">Return to List</a>
+  </footer>
+</div>
+{% endblock %}

@@ -1,10 +1,29 @@
 from django.urls import path
-from content.views import grammar_teach, grammar_exercise, grammar_test
+# Import each module from the new grammar views package
+from content.views.grammar import teach, exercise, test, hub
 
-app_name = "grammar"
+# Note: chunk_grammar_view (the hub) wasn't in your previous URL list, 
+# but I've kept these consistent with your existing names.
 
 urlpatterns = [
-    path("<int:lesson_id>/<int:chunk_id>/<int:point_id>/teach/", grammar_teach, name="teach"),
-    path("<int:lesson_id>/<int:chunk_id>/<int:point_id>/exercise/", grammar_exercise, name="exercise"),
-    path("<int:lesson_id>/<int:chunk_id>/<int:point_id>/test/", grammar_test, name="test"),
+    # Grammar → Teach
+    path(
+        "chunks/<int:chunk_id>/grammar/<int:focus_id>/teach/",
+        teach.grammar_teach,
+        name="grammar_teach",
+    ),
+
+    # Grammar → Practice / Exercise
+    path(
+        "chunks/<int:chunk_id>/grammar/<int:focus_id>/exercise/",
+        exercise.grammar_exercise,
+        name="grammar_exercise",
+    ),
+
+    # Grammar → Test
+    path(
+        "chunks/<int:chunk_id>/grammar/<int:focus_id>/test/",
+        test.grammar_test,
+        name="grammar_test",
+    ),
 ]

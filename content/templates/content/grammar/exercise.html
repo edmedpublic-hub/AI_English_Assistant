@@ -1,40 +1,128 @@
-<!-- content/templates/content/grammar/exercise.html -->
 {% extends "base.html" %}
-<h2>Practice: {{ point.title }}</h2>
-<p><em>Lesson: {{ lesson.title }} | Chunk: {{ chunk.title }}</em></p>
 
-<form method="post">
-  {% csrf_token %}
-  {% for q in questions %}
-    <div class="question-block">
-      <p><strong>Q{{ forloop.counter }}:</strong> {{ q.question_text }}</p>
+{% block content %}
+<style>
+  .exercise-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .exercise-header { border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
 
-      {% if q.question_type == "mcq" %}
-        {% for option in q.options %}
-          <label>
-            <input type="radio" name="q{{ q.id }}" value="{{ option }}">
-            {{ option }}
-          </label><br>
-        {% endfor %}
-      {% elif q.question_type == "fill" %}
-        <input type="text" name="q{{ q.id }}">
-      {% elif q.question_type == "rewrite" %}
-        <textarea name="q{{ q.id }}"></textarea>
-      {% endif %}
-    </div>
-  {% empty %}
-    <p>No practice questions available yet for this grammar point.</p>
-  {% endfor %}
+  .question-block {
+    background: white;
+    border: 1px solid #e1e8ed;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+  }
 
-  <button type="submit">Submit Answers</button>
-</form>
+  .q-text { font-size: 1.1rem; font-weight: 600; color: #34495e; }
 
-<hr>
+  .input-area { margin-top: 15px; }
+  .input-text, .input-area textarea {
+    width: 100%; padding: 10px; border-radius: 5px;
+    border: 1px solid #ccc; font-size: 1rem;
+  }
 
-<!-- Navigation -->
-<a href="{% url 'grammar:teach' lesson.id chunk.id point.id %}" class="btn btn-secondary">
-  ← Back to Teaching
-</a>
-<a href="{% url 'grammar:test' lesson.id chunk.id point.id %}" class="btn btn-primary">
-  Go to Test →
-</a>
+  .radio-label { display: block; margin-bottom: 10px; cursor: pointer; }
+
+  .feedback-box { margin-top: 15px; padding: 15px; border-radius: 8px; border-left: 5px solid; }
+  .feedback-correct { background: #e8f5e9; border-color: #2e7d32; color: #1b5e20; }
+  .feedback-wrong { background: #ffebee; border-color: #c62828; color: #b71c1c; }
+
+  .explanation-text {
+    margin-top: 10px; font-size: 0.9rem; color: #555;
+    border-top: 1px dashed #ccc; padding-top: 10px; font-style: italic;
+  }
+
+  .btn-submit {
+    width: 100%; padding: 15px; background: #3498db;
+    color: white; border: none; border-radius: 8px;
+    font-weight: bold; cursor: pointer; font-size: 1rem;
+  }
+  .btn-test {
+    flex: 1; text-align: center; padding: 15px;
+    background: #e74c3c; color: white;
+    text-decoration: none; border-radius: 8px; font-weight: bold;
+  }
+  .btn-again {
+    flex: 1; text-align: center; padding: 15px;
+    background: #95a5a6; color: white;
+    text-decoration: none; border-radius: 8px; font-weight: bold;
+  }
+</style>
+
+<div class="exercise-container">
+  <header class="exercise-header">
+    <h2>Practice: {{ focus.focus_title }}</h2>
+    <p><em>Lesson: {{ lesson.title }} | Chunk: {{ chunk.title }}</em></p>
+  </header>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% for q in questions %}
+      <div class="question-block">
+        <p class="q-text">
+          <strong>Q{{ forloop.counter }}:</strong> {{ q.question_text }}
+        </p>
+
+        <div class="input-area">
+
+          {% if q.question_type == "mcq" %}
+            {% for option in q.parsed_options %}
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="q{{ q.id }}"
+                  value="{{ option }}"
+                  {% if q.user_answer == option %}checked{% endif %}
+                >
+                <span>{{ option }}</span>
+              </label>
+            {% endfor %}
+
+          {% elif q.question_type == "rewrite" %}
+            <textarea name="q{{ q.id }}">{{ q.user_answer|default:"" }}</textarea>
+
+          {% else %}
+            <input
+              type="text"
+              name="q{{ q.id }}"
+              class="input-text"
+              value="{{ q.user_answer|default:"" }}"
+            >
+          {% endif %}
+        </div>
+
+        {% if submitted and q.feedback_ready %}
+          <div class="feedback-box {% if q.is_correct %}feedback-correct{% else %}feedback-wrong{% endif %}">
+            {% if q.is_correct %}
+              <strong>✓ Correct</strong>
+            {% else %}
+              <strong>✗ Incorrect</strong>
+              <p><strong>Correct Answer:</strong> {{ q.correct_answer }}</p>
+            {% endif %}
+
+            {% if q.explanation %}
+              <p class="explanation-text">
+                <strong>Explanation:</strong> {{ q.explanation }}
+              </p>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p>No questions available.</p>
+    {% endfor %}
+
+    {% if not submitted %}
+      <button type="submit" class="btn-submit">Check Answers</button>
+    {% else %}
+      <div style="display: flex; gap: 10px;">
+        <a href="." class="btn-again">Try Again</a>
+        <a href="{% url 'content:grammar_test' chunk.id focus.id %}" class="btn-test">
+          Take Final Test →
+        </a>
+      </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

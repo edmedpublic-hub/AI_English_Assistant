@@ -20,4 +20,5 @@ class VocabularyItemInline(admin.TabularInline):
         "example_sentence",
     )
 
-    autocomplete_fields = ()
+    autocomplete_fields = ("lesson", "chunk")  # ✅ ensures consistency
+    ordering = ("word",)

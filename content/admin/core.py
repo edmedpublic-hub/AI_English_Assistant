@@ -15,6 +15,7 @@ from content.admin.inlines.comprehension import ComprehensionQuestionInline, Les
 class TextbookAdmin(admin.ModelAdmin):
     list_display = ("title", "class_level")
     search_fields = ("title", "class_level")
+    ordering = ("class_level", "title")
 
 
 # -----------------------------
@@ -24,6 +25,7 @@ class TextbookAdmin(admin.ModelAdmin):
 class UnitAdmin(admin.ModelAdmin):
     list_display = ("title", "number", "textbook")
     list_filter = ("textbook",)
+    search_fields = ("title", "textbook__title")
     ordering = ("textbook", "number")
 
 
@@ -34,6 +36,7 @@ class UnitAdmin(admin.ModelAdmin):
 class LessonAdmin(admin.ModelAdmin):
     list_display = ("title", "number", "unit")
     list_filter = ("unit",)
+    search_fields = ("title", "unit__title", "unit__textbook__title")
     ordering = ("unit", "number")
 
     inlines = [
@@ -49,6 +52,9 @@ class LessonAdmin(admin.ModelAdmin):
 class LessonChunkAdmin(admin.ModelAdmin):
     list_display = ("lesson", "order", "short_text")
     ordering = ("lesson", "order")
+
+    # ✅ Required for autocomplete_fields in ChunkGrammarFocusAdmin
+    search_fields = ("english_text", "lesson__title", "lesson__unit__title")
 
     # This is the key: everything flows through the chunk
     inlines = [

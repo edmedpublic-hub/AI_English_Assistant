@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .result-container { max-width: 700px; margin: 50px auto; padding: 20px; text-align: center; }
+    
+    /* Result Card Base */
+    .result-card { 
+        background: white; border-radius: 15px; padding: 40px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 8px solid;
+    }
+    
+    /* Mastery Theme (100%) */
+    .mastery-pass { border-color: #27ae60; }
+    .mastery-pass h2 { color: #27ae60; }
+    
+    /* Revision Theme (<100%) */
+    .mastery-fail { border-color: #e74c3c; }
+    .mastery-fail h2 { color: #e74c3c; }
+
+    .score-circle {
+        width: 120px; height: 120px; border-radius: 50%;
+        margin: 20px auto; display: flex; align-items: center; justify-content: center;
+        font-size: 2rem; font-weight: bold; color: white;
+    }
+    .bg-pass { background: #27ae60; }
+    .bg-fail { background: #e74c3c; }
+
+    .stats-table { width: 100%; margin: 30px 0; border-collapse: collapse; }
+    .stats-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 1.1rem; }
+    
+    .action-btns { display: flex; gap: 15px; justify-content: center; margin-top: 30px; }
+    .btn-action { 
+        padding: 15px 30px; border-radius: 8px; text-decoration: none; 
+        font-weight: bold; transition: 0.3s; 
+    }
+    .btn-green { background: #27ae60; color: white; }
+    .btn-blue { background: #3498db; color: white; }
+    .btn-gray { background: #95a5a6; color: white; }
+</style>
+
+<div class="result-container">
+    {% if score == 100 %}
+        <div class="result-card mastery-pass">
+            <h2>MASTERED!</h2>
+            <div class="score-circle bg-pass">{{ score }}%</div>
+            <p style="font-size: 1.2rem; color: #2c3e50;">
+                Perfect! You have demonstrated full mastery of <strong>{{ focus.focus_title }}</strong>.
+            </p>
+            
+            <table class="stats-table">
+                <tr>
+                    <td>Correct Answers:</td>
+                    <td><strong>{{ correct }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Total Questions:</td>
+                    <td><strong>{{ total }}</strong></td>
+                </tr>
+            </table>
+
+            <div class="action-btns">
+                <a href="{% url 'content:chunk_grammar' chunk.id %}" class="btn-action btn-green">
+                    Unlock Next Topic &rarr;
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="result-card mastery-fail">
+            <h2>NOT YET MASTERED</h2>
+            <div class="score-circle bg-fail">{{ score }}%</div>
+            <p style="font-size: 1.2rem; color: #2c3e50;">
+                Mastery requires <strong>100%</strong>. You are almost there!
+            </p>
+
+            <table class="stats-table">
+                <tr>
+                    <td>Questions Correct:</td>
+                    <td><strong>{{ correct }} / {{ total }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Remaining for Mastery:</td>
+                    <td><strong>{{ total|add:correct_neg }}</strong></td>
+                </tr>
+            </table>
+
+            <div class="action-btns">
+                <a href="{% url 'content:grammar_exercise' chunk.id focus.id %}" class="btn-action btn-blue">
+                    Review Practice
+                </a>
+                <a href="{% url 'content:grammar_test' chunk.id focus.id %}" class="btn-action btn-gray">
+                    Try Test Again
+                </a>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div style="margin-top: 30px;">
+        <a href="{% url 'content:chunk_hub' chunk.id %}" style="color: #7f8c8d; text-decoration: none;">
+            &larr; Back to Lesson Hub
+        </a>
+    </div>
+</div>
+{% endblock %}
