@@ -57,7 +57,7 @@
 
         <div class="answer-area">
           {% if q.question_type == "mcq" %}
-            {% for option in q.options %}
+            {% for option in q.parsed_options %}
               <label class="option-label">
                 <input type="radio" name="q{{ q.id }}" value="{{ option }}" required>
                 {{ option }}
@@ -65,7 +65,13 @@
             {% endfor %}
 
           {% elif q.question_type == "rewrite" %}
-            <textarea name="q{{ q.id }}" placeholder="Type your answer carefully..." required></textarea>
+            <textarea name="q{{ q.id }}" placeholder="Type your rewritten sentence carefully..." required></textarea>
+
+          {% elif q.question_type == "fill" %}
+            <input type="text" name="q{{ q.id }}" class="text-input" placeholder="Type the missing word(s)" required>
+
+          {% elif q.question_type == "identify" %}
+            <input type="text" name="q{{ q.id }}" class="text-input" placeholder="Identify the part/function requested" required>
 
           {% else %}
             <input type="text" name="q{{ q.id }}" class="text-input" placeholder="Your answer" required>
@@ -79,14 +85,14 @@
     {% endfor %}
 
     {% if questions %}
-      <button type="submit" class="btn-finish" onclick="return confirm('Are you sure you want to submit your test?');">
+      <button type="submit" class="btn-finish" onclick="return confirm('Are you sure you want to submit your test? Mastery requires 100%.');">
         Submit for Mastery Evaluation
       </button>
     {% endif %}
   </form>
 
   <footer class="action-footer">
-    <a href="{% url 'content:grammar_exercise' chunk.id focus.id %}" class="btn-nav">← Back to Practice</a>
+    <a href="{% url 'content:grammar_practice' chunk.id focus.id %}" class="btn-nav">← Back to Practice</a>
     <span style="color: #ddd;">|</span>
     <a href="{% url 'content:chunk_grammar' chunk.id %}" class="btn-nav">Return to List</a>
   </footer>

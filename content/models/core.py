@@ -1,6 +1,5 @@
 from django.db import models
 
-
 # ============================================================
 # 1. TEXTBOOK
 # ============================================================
@@ -58,7 +57,7 @@ class Lesson(models.Model):
 # 4. LESSON CHUNKS
 # ============================================================
 class LessonChunk(models.Model):
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="chunks")
+    lesson = models.ForeignKey("Lesson", on_delete=models.CASCADE, related_name="chunks")
     order = models.PositiveIntegerField(help_text="Display order within the lesson")
 
     english_text = models.TextField()
@@ -72,6 +71,31 @@ class LessonChunk(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["lesson", "order"], name="unique_chunk_order_per_lesson"),
         ]
+
+    # --- NEW MASTERY LOGIC (Safe from Circular Imports) ---
+    def is_mastered_by(self, user):
+        """
+        Calculates if the student has achieved 100% on every 
+        grammar focus associated with this chunk.
+        """
+        if not user.is_authenticated:
+            return False
+        
+        # Move import inside the method to prevent Circular Import error
+        from content.models.grammar import GrammarTestAttempt
+            
+        focuses = self.grammar_focuses.all()
+        if not focuses.exists():
+            return True  # Unlocked if no grammar is assigned
+
+        # Count distinct focuses passed at 100%
+        mastered_count = GrammarTestAttempt.objects.filter(
+            student=user,
+            focus__in=focuses,
+            score_percent=100
+        ).values('focus').distinct().count()
+
+        return mastered_count == focuses.count()
 
     def __str__(self):
         return f"{self.lesson} • Chunk {self.order}"

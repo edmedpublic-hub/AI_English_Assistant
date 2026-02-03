@@ -8,9 +8,6 @@ Chunk {{ chunk.order }}
 {% block content %}
 <section class="chunk-hub-page">
 
-  <!-- =========================
-       Navigation
-  ========================= -->
   <nav class="page-navigation">
     <a href="{% url 'content:lesson_detail' lesson.pk %}">
       ← Lesson {{ lesson.number }}
@@ -29,9 +26,6 @@ Chunk {{ chunk.order }}
     <a href="{% url 'index' %}">Global Home</a>
   </nav>
 
-  <!-- =========================
-       Playback Controls
-  ========================= -->
   <div class="controls">
     <button id="play-btn">▶ Play All</button>
     <button id="pause-btn">⏸ Pause</button>
@@ -41,9 +35,6 @@ Chunk {{ chunk.order }}
     </span>
   </div>
 
-  <!-- =========================
-       Sentence Table
-  ========================= -->
   <table class="chunk-table">
     <thead>
       <tr>
@@ -61,14 +52,21 @@ Chunk {{ chunk.order }}
     <audio id="urdu-audio" src="{{ chunk.translated_audio_file.url }}"></audio>
   {% endif %}
 
-  <!-- =========================
-       Study Navigation
-  ========================= -->
   <section class="study-section">
     <h2>Study this chunk</h2>
     <div class="study-nav">
       <a class="btn" href="{% url 'content:chunk_vocabulary' chunk.pk %}">Vocabulary</a>
-      <a class="btn" href="{% url 'content:chunk_grammar' chunk.pk %}">Grammar</a>
+      
+      <a class="btn {% if chunk_mastered %}btn-mastered{% else %}btn-pending{% endif %}" 
+         href="{% url 'content:chunk_grammar' chunk.pk %}">
+         Grammar
+         {% if chunk_mastered %}
+           <span class="status-badge status-pass">✅ Mastered</span>
+         {% else %}
+           <span class="status-badge status-goal">🎯 Goal: 100%</span>
+         {% endif %}
+      </a>
+
       <a class="btn" href="{% url 'content:chunk_punctuation' chunk.pk %}">Punctuation</a>
       <a class="btn" href="{% url 'content:chunk_comprehension' chunk.pk %}">Comprehension</a>
       <a class="btn" href="{% url 'content:chunk_writing' chunk.pk %}">Writing</a>
@@ -78,7 +76,14 @@ Chunk {{ chunk.order }}
 
 </section>
 
-<!-- Safe data bridge -->
+<style>
+    .btn-mastered { border: 2px solid #27ae60 !important; color: #27ae60 !important; background-color: #fafffa !important; }
+    .btn-pending { border: 1px dashed #3498db !important; }
+    .status-badge { display: block; font-size: 0.75rem; font-weight: bold; margin-top: 5px; }
+    .status-pass { color: #27ae60; }
+    .status-goal { color: #3498db; }
+</style>
+
 <script>
   window.CHUNK_DATA = {
     englishText: "{{ chunk.english_text|escapejs }}",

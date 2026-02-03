@@ -10,13 +10,10 @@ from .core import (
 
 from .chunk_core import (
     chunk_hub,
-    chunk_vocabulary,
-    chunk_comprehension,
-    chunk_punctuation,
-    chunk_writing,
-    chunk_progress,
 )
 
+# --- VOCABULARY VIEWS ---
+# Ensure these folders (vocabulary/practice.py and vocabulary/test.py) exist
 from .vocabulary.practice import (
     chunk_vocabulary_practice,
     chunk_vocab_fill,
@@ -32,12 +29,8 @@ from .vocabulary.test import (
 # --- REFACTORED GRAMMAR IMPORTS ---
 from .grammar.hub import chunk_grammar_view
 from .grammar.teach import grammar_teach
-from .grammar.exercise import grammar_exercise
+from .grammar.practice import grammar_practice
 from .grammar.test import grammar_test
-# ----------------------------------
 
-from .punctuation_views import (
-    PunctuationMarkViewSet,
-    ChunkPunctuationFocusViewSet,
-    PunctuationQuestionViewSet,
-)
+# NOTE: Punctuation, Writing, and Comprehension imports have been purged.
+# Add them back only after the respective folders and functions are created.

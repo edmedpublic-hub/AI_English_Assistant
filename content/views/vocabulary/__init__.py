@@ -1,4 +1,8 @@
 # content/views/vocabulary/__init__.py
+from .core import (
+    get_vocab_context,
+    _vocab_base_context,
+)
 
 from .practice import (
     chunk_vocabulary_practice,

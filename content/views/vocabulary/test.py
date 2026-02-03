@@ -3,9 +3,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from content.models.testing import VocabularyTestAttempt
-from ..test_engine import build_questions  # Import from the parent views directory
+from ..test_engine import build_questions  # Ensure this file exists!
 from .core import get_vocab_context, _vocab_base_context
 
+@login_required # Added to ensure request.user exists for the save
 def chunk_vocabulary_test(request, chunk_id):
     """
     High-stakes vocabulary assessment with session-based progress.
@@ -19,7 +20,9 @@ def chunk_vocabulary_test(request, chunk_id):
 
     # Initialize test in session if not present
     if "test_data" not in request.session:
-        questions = build_questions(list(chunk.vocab_items.all()))
+        # Use the related_name="vocab_items" confirmed in your models
+        vocab_list = list(chunk.vocab_items.all())
+        questions = build_questions(vocab_list)
 
         if not questions:
             context = _vocab_base_context(chunk, lesson)
@@ -44,7 +47,7 @@ def chunk_vocabulary_test(request, chunk_id):
     if index >= len(questions):
         total = len(questions)
         correct = test["score"]
-        percent = round((correct / total) * 100)
+        percent = round((correct / total) * 100) if total > 0 else 0
 
         # Save result to database if not already saved for this session
         if not test.get("saved"):
@@ -64,7 +67,7 @@ def chunk_vocabulary_test(request, chunk_id):
         context.update({
             "score": percent,
             "passed": percent == 100,
-            "can_retake": percent < 80,
+            "can_retake": percent < 100, # Requirement: 100% to unlock next
         })
         return render(request, "content/vocab/test_result.html", context)
 
@@ -86,29 +89,19 @@ def chunk_vocabulary_test(request, chunk_id):
     })
     return render(request, "content/vocab/chunk_vocabulary_test.html", context)
 
-
 @login_required
 def test_history(request):
-    """
-    Displays all previous vocabulary test attempts for the logged-in student.
-    """
     attempts = (
         VocabularyTestAttempt.objects
         .filter(user=request.user)
         .select_related("lesson", "chunk")
         .order_by("-created_at")
     )
-
     return render(request, "content/vocab/test_history.html", {"attempts": attempts})
-
 
 @login_required
 def attempt_detail(request, attempt_id):
-    """
-    Detailed view of a specific past test attempt.
-    """
     attempt = get_object_or_404(VocabularyTestAttempt, id=attempt_id, user=request.user)
-    
     return render(request, "content/vocab/attempt_detail.html", {
         "attempt": attempt,
         "questions": attempt.questions_data or [],

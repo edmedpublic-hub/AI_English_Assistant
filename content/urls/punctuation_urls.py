@@ -1,14 +1,6 @@
-from rest_framework.routers import DefaultRouter
-from content.views import (
-    PunctuationMarkViewSet,
-    ChunkPunctuationFocusViewSet,
-    PunctuationQuestionViewSet,
-)
+# D:\AI_English_Assistant\content\urls\punctuation_urls.py
 
-router = DefaultRouter()
+from django.urls import path
 
-router.register(r"punctuation/marks", PunctuationMarkViewSet, basename="punctuation-mark")
-router.register(r"punctuation/focuses", ChunkPunctuationFocusViewSet, basename="punctuation-focus")
-router.register(r"punctuation/questions", PunctuationQuestionViewSet, basename="punctuation-question")
-
-urlpatterns = router.urls
+# Everything is commented out until the Punctuation section is rebuilt
+urlpatterns = []

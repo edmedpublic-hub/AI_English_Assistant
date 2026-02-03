@@ -136,7 +136,7 @@ class ChunkGrammarFocus(models.Model):
 class GrammarQuestion(models.Model):
     """
     Concrete grammar questions tied to a specific ChunkGrammarFocus.
-    Designed for teacher-friendly content entry.
+    Designed for teacher-friendly content entry (one option per line).
     """
 
     TYPE_MCQ = "mcq"
@@ -159,11 +159,11 @@ class GrammarQuestion(models.Model):
 
     question_text = models.TextField()
 
-    # ⬇️ CHANGED: JSONField → TextField (teacher-friendly)
+    # TextField is best for "one option per line" entry
     options = models.TextField(
         null=True,
         blank=True,
-        help_text="For MCQs: enter one option per line"
+        help_text="For MCQs: Enter one option per line."
     )
 
     correct_answer = models.CharField(
@@ -197,31 +197,24 @@ class GrammarQuestion(models.Model):
 
     def clean(self):
         """
-        Model-level validation to protect data integrity
-        without burdening teachers.
+        Validates MCQ logic: ensures options exist and the correct answer is among them.
         """
         if self.question_type == self.TYPE_MCQ:
             if not self.options:
                 raise ValidationError("MCQ questions must have options.")
 
-            option_list = [
-                opt.strip()
-                for opt in self.options.splitlines()
-                if opt.strip()
-            ]
+            option_list = self.get_options_list()
 
             if len(option_list) < 2:
                 raise ValidationError("MCQ questions must have at least two options.")
 
             if self.correct_answer not in option_list:
                 raise ValidationError(
-                    "Correct answer must exactly match one of the options."
+                    f"Correct answer '{self.correct_answer}' must exactly match one of the options provided."
                 )
 
     def get_options_list(self):
-        """
-        Utility method for views/templates.
-        """
+        """Helper to split the text area into a clean list of options."""
         if not self.options:
             return []
         return [
@@ -230,9 +223,13 @@ class GrammarQuestion(models.Model):
             if opt.strip()
         ]
 
+    @property
+    def parsed_options(self):
+        """Standard property for template access: q.parsed_options"""
+        return self.get_options_list()
+
     def __str__(self):
         return f"{self.focus.focus_title}: {self.question_text[:60]}"
-
 
 # ============================================================
 # ATTEMPTS & ANALYTICS

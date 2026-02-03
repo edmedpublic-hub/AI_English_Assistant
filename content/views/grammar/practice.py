@@ -6,30 +6,38 @@ from .core import _chunk_context, get_grammar_objects
 
 
 @login_required
-def grammar_exercise(request, chunk_id, focus_id):
-    # Resolve core objects
+def grammar_practice(request, chunk_id, focus_id):
+    """
+    Practice View:
+    - Renders chunk-scoped grammar questions
+    - Parses plain-text MCQ options in the view layer
+    - Provides immediate feedback
+    - Records GrammarAttempt per question
+    """
+    # 1. Resolve core objects
     chunk, focus = get_grammar_objects(chunk_id, focus_id)
     concept = focus.concept
 
-    # Fetch questions
+    # 2. Fetch questions for this focus
     questions = GrammarQuestion.objects.filter(
         focus=focus
     ).order_by("id")
 
-    # Normalize options for template consumption
+    # 3. Normalize questions for template consumption
     for q in questions:
         if q.question_type == GrammarQuestion.TYPE_MCQ:
-            q.parsed_options = q.get_options_list()
+            q.display_options = q.get_options_list()
         else:
-            q.parsed_options = []
+            q.display_options = []
 
-        # Defaults for template
+        # Template defaults
         q.user_answer = None
         q.is_correct = None
         q.feedback_ready = False
 
     submitted = False
 
+    # 4. Handle submission
     if request.method == "POST":
         submitted = True
 
@@ -44,7 +52,6 @@ def grammar_exercise(request, chunk_id, focus_id):
                 == q.correct_answer.strip().lower()
             )
 
-            # Record attempt
             GrammarAttempt.objects.create(
                 student=request.user,
                 question=q,
@@ -57,6 +64,7 @@ def grammar_exercise(request, chunk_id, focus_id):
             q.is_correct = is_correct
             q.feedback_ready = True
 
+    # 5. Build context
     context = _chunk_context(chunk, focus, concept)
     context.update({
         "questions": questions,
@@ -65,6 +73,6 @@ def grammar_exercise(request, chunk_id, focus_id):
 
     return render(
         request,
-        "content/grammar/exercise.html",
+        "content/grammar/practice.html",
         context
     )
