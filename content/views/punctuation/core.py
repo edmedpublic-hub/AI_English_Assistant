@@ -1,14 +1,13 @@
-# content/views/grammar/core.py
+# content/views/punctuation/core.py
 
 from django.shortcuts import get_object_or_404
-
 from content.models.core import LessonChunk
-from content.models.grammar import ChunkGrammarFocus
+from content.models.punctuation import ChunkPunctuationFocus
 
 
-def _chunk_context(chunk_or_id, focus=None, concept=None):
+def _chunk_context(chunk_or_id, focus=None, mark=None):
     """
-    Standardized context for all grammar views.
+    Standardized context for all punctuation views.
 
     Accepts either:
     - LessonChunk instance
@@ -38,19 +37,19 @@ def _chunk_context(chunk_or_id, focus=None, concept=None):
     if focus is not None:
         context["focus"] = focus
 
-    if concept is not None:
-        context["concept"] = concept
+    if mark is not None:
+        context["mark"] = mark
 
     return context
 
 
-def get_grammar_objects(chunk_id, focus_id=None):
+def get_punctuation_objects(chunk_id, focus_id=None):
     """
-    Fetch and validate grammar navigation objects.
+    Fetch and validate punctuation navigation objects.
 
     Always returns:
     - chunk (LessonChunk)
-    - focus (ChunkGrammarFocus or None)
+    - focus (ChunkPunctuationFocus or None)
     """
 
     chunk = get_object_or_404(
@@ -63,7 +62,7 @@ def get_grammar_objects(chunk_id, focus_id=None):
     focus = None
     if focus_id is not None:
         focus = get_object_or_404(
-            ChunkGrammarFocus.objects.select_related("concept"),
+            ChunkPunctuationFocus.objects.select_related("mark"),
             id=focus_id,
             chunk=chunk,
         )

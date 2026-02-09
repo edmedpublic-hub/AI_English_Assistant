@@ -120,8 +120,8 @@
     </table>
 
     <div class="action-btns">
-      <a href="{% url 'content:chunk_grammar' chunk.id %}" class="btn-action btn-green">
-        Return to Grammar List
+      <a href="{% url 'content:chunk_punctuation' chunk.id %}" class="btn-action btn-green">
+        Return to Punctuation List
       </a>
     </div>
   </div>
@@ -147,7 +147,7 @@
     </table>
 
     <div class="action-btns">
-      <a href="{% url 'content:grammar_practice' chunk.id focus.id %}"
+      <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}"
          class="btn-action btn-blue">
         Review Practice
       </a>

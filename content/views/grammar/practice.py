@@ -1,70 +1,108 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+# content/views/grammar/practice.py
 
-from content.models.grammar import GrammarQuestion, GrammarAttempt
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+
+from content.models.grammar import (
+    GrammarQuestion,
+    GrammarAttempt,
+    GrammarPracticeAttempt,
+)
 from .core import _chunk_context, get_grammar_objects
 
 
 @login_required
 def grammar_practice(request, chunk_id, focus_id):
     """
-    Practice View:
-    - Renders chunk-scoped grammar questions
-    - Parses plain-text MCQ options in the view layer
-    - Provides immediate feedback
-    - Records GrammarAttempt per question
+    Grammar Practice View
+    - Chunk + focus scoped
+    - Safe if no questions
+    - Test unlocked if ≥1 correct answer
     """
+
     # 1. Resolve core objects
     chunk, focus = get_grammar_objects(chunk_id, focus_id)
     concept = focus.concept
 
-    # 2. Fetch questions for this focus
+    # 2. Fetch questions
     questions = GrammarQuestion.objects.filter(
         focus=focus
     ).order_by("id")
 
-    # 3. Normalize questions for template consumption
-    for q in questions:
-        if q.question_type == GrammarQuestion.TYPE_MCQ:
-            q.display_options = q.get_options_list()
-        else:
-            q.display_options = []
+    if not questions.exists():
+        messages.error(
+            request,
+            "This grammar focus has no practice questions yet."
+        )
+        return redirect(
+            "content:chunk_grammar",
+            chunk_id=chunk.id
+        )
 
-        # Template defaults
+    # 3. Normalize (DO NOT touch parsed_options)
+    for q in questions:
         q.user_answer = None
         q.is_correct = None
         q.feedback_ready = False
 
     submitted = False
 
-    # 4. Handle submission
+    # 4. Handle POST
     if request.method == "POST":
         submitted = True
+        any_correct = False
+        any_answered = False
 
         for q in questions:
             user_answer = request.POST.get(f"q{q.id}", "").strip()
-
             if not user_answer:
                 continue
+
+            any_answered = True
 
             is_correct = (
                 user_answer.lower()
                 == q.correct_answer.strip().lower()
             )
 
-            GrammarAttempt.objects.create(
+            if is_correct:
+                any_correct = True
+
+            GrammarAttempt.objects.update_or_create(
                 student=request.user,
                 question=q,
-                selected_answer=user_answer,
-                is_correct=is_correct,
+                defaults={
+                    "selected_answer": user_answer,
+                    "is_correct": is_correct,
+                }
             )
 
-            # Attach feedback for UI
             q.user_answer = user_answer
             q.is_correct = is_correct
             q.feedback_ready = True
 
-    # 5. Build context
+        if not any_answered:
+            messages.warning(
+                request,
+                "Please attempt at least one question."
+            )
+        elif any_correct:
+            GrammarPracticeAttempt.objects.get_or_create(
+                student=request.user,
+                focus=focus,
+            )
+            messages.success(
+                request,
+                "Practice complete! The Final Test is now unlocked."
+            )
+        else:
+            messages.warning(
+                request,
+                "You must answer at least one question correctly to unlock the Final Test."
+            )
+
+    # 5. Context
     context = _chunk_context(chunk, focus, concept)
     context.update({
         "questions": questions,

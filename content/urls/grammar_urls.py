@@ -1,34 +1,22 @@
 from django.urls import path
+from content.views.grammar import teach, practice, test
 
-from content.views.grammar import hub, teach, practice, test
-
+app_name = "grammar"
 
 urlpatterns = [
-    # Grammar Hub (per chunk)
     path(
-        "chunks/<int:chunk_id>/grammar/",
-        hub.chunk_grammar_view,
-        name="chunk_grammar",
-    ),
-
-    # Grammar → Teach
-    path(
-        "chunks/<int:chunk_id>/grammar/<int:focus_id>/teach/",
+        "<int:focus_id>/teach/",
         teach.grammar_teach,
-        name="grammar_teach",
+        name="teach",
     ),
-
-    # Grammar → Practice
     path(
-        "chunks/<int:chunk_id>/grammar/<int:focus_id>/practice/",
+        "<int:focus_id>/practice/",
         practice.grammar_practice,
-        name="grammar_practice",
+        name="practice",
     ),
-
-    # Grammar → Test
     path(
-        "chunks/<int:chunk_id>/grammar/<int:focus_id>/test/",
+        "<int:focus_id>/test/",
         test.grammar_test,
-        name="grammar_test",
+        name="test",
     ),
 ]

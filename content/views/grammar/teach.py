@@ -1,33 +1,51 @@
-# content/views/grammar/teach.py
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
-from django.shortcuts import render
 from .core import _chunk_context, get_grammar_objects
+
 
 def grammar_teach(request, chunk_id, focus_id):
     """
-    English-immersion teaching view. 
-    Focuses on the logical link between Rules and their Examples 
-    to encourage cognitive growth without over-reliance on translation.
+    English-immersion teaching view.
+    Presents grammar rules and examples in a cognitively progressive way.
+    This view is always accessible (no mastery gate).
     """
-    # 1. Fetch the chunk and the specific focus (e.g., 'Kinds of Nouns')
-    # get_grammar_objects handles the 404 logic for us.
+
+    # 1. Fetch chunk and focus (hard validation)
     chunk, focus = get_grammar_objects(chunk_id, focus_id)
+
     concept = focus.concept
+    if not concept:
+        messages.error(request, "This grammar focus is not ready yet.")
+        return redirect("content:chunk_grammar", chunk_id=chunk.id)
 
-    # 2. Optimized Query: Fetch rules and prefetch their related examples.
-    # This prevents the 'N+1' database problem when looping in the template.
-    rules = concept.rules.all().prefetch_related('examples').order_by("id")
+    # 2. Fetch rules with examples (N+1 safe)
+    rules = (
+        concept.rules
+        .all()
+        .prefetch_related("examples")
+        .order_by("id")
+    )
 
-    # 3. Build context using the centralized helper.
-    # We pass 'focus' and 'concept' so the breadcrumbs and headers are accurate.
-    context = _chunk_context(chunk_id, focus, concept)
-    
-    # 4. Inject teaching-specific data.
+    if not rules.exists():
+        messages.warning(
+            request,
+            "Teaching content for this topic will be added soon."
+        )
+
+    # 3. Base context (FIXED: chunk object, not chunk_id)
+    context = _chunk_context(chunk, focus, concept)
+
+    # 4. Teaching-specific context
     context.update({
         "rules": rules,
         "focus_title": focus.focus_title,
         "focus_description": focus.focus_description,
+        "has_rules": rules.exists(),
     })
 
-    # 5. Render the high-immersion teaching template.
-    return render(request, "content/grammar/teach.html", context)
+    return render(
+        request,
+        "content/grammar/teach.html",
+        context
+    )

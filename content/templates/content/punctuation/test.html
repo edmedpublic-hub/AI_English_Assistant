@@ -62,7 +62,7 @@
 <div class="test-container">
 
   <header class="test-header">
-    <h2>Grammar Mastery Test</h2>
+    <h2>Punctuation Mastery Test</h2>
     <p>{{ focus.focus_title }}</p>
     <small>100% score required for mastery</small>
   </header>
@@ -117,12 +117,12 @@
   </form>
 
   <div style="margin-top:30px; text-align:center;">
-    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}">
+    <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}">
       ← Back to Practice
     </a>
     &nbsp;|&nbsp;
-    <a href="{% url 'content:chunk_grammar' chunk.id %}">
-      Back to Grammar Hub
+    <a href="{% url 'content:chunk_punctuation' chunk.id %}">
+      Back to Punctuation Hub
     </a>
   </div>
 

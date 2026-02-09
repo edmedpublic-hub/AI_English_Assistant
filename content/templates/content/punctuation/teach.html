@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="grammar-teach-wrapper" style="max-width: 850px; margin: 0 auto; padding: 20px;">
+<div class="punctuation-teach-wrapper" style="max-width: 850px; margin: 0 auto; padding: 20px;">
 
   <nav class="breadcrumb-nav" style="margin-bottom: 25px;">
-    <a href="{% url 'content:chunk_grammar' chunk.id %}"
+    <a href="{% url 'content:chunk_punctuation' chunk.id %}"
        style="text-decoration: none; color: #3498db; font-weight: 500; font-size: 0.9rem;">
-      &larr; Back to Grammar List
+      &larr; Back to Punctuation List
     </a>
   </nav>
 
@@ -20,18 +20,18 @@
     </p>
   </header>
 
-  <section class="grammar-explanation card"
+  <section class="punctuation-explanation card"
            style="background: #fff; padding: 25px; border: 1px solid #e1e8ed; border-radius: 12px;
                   box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;">
     <h3 style="margin-top: 0; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-      The Concept
+      The Mark
     </h3>
     <div style="line-height: 1.6; color: #444; font-size: 1.1rem;">
-      {{ concept.description|linebreaks }}
+      {{ mark.description|linebreaks }}
     </div>
   </section>
 
-  <section class="grammar-rules-flow">
+  <section class="punctuation-rules-flow">
     <h3 style="color: #2c3e50; margin-bottom: 20px;">Rules & Usage</h3>
 
     {% for rule in rules %}
@@ -69,7 +69,7 @@
       </div>
     {% empty %}
       <p style="text-align: center; color: #95a5a6; padding: 20px;">
-        No specific rules available for this concept yet.
+        No specific rules available for this punctuation mark yet.
       </p>
     {% endfor %}
   </section>
@@ -79,12 +79,12 @@
               border-top: 1px solid #eee; border-radius: 12px;
               display: flex; justify-content: space-between; align-items: center;">
 
-    <a href="{% url 'content:chunk_grammar' chunk.id %}"
+    <a href="{% url 'content:chunk_punctuation' chunk.id %}"
        style="color: #7f8c8d; text-decoration: none; font-weight: 500;">
       &larr; Review other topics
     </a>
 
-    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}"
+    <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}"
        class="btn-primary"
        style="display: inline-block; padding: 15px 35px; background: #27ae60;
               color: white; text-decoration: none; border-radius: 8px;

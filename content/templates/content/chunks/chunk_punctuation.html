@@ -2,7 +2,7 @@
 
 {% block content %}
 <style>
-  .chunk-grammar-wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .chunk-punctuation-wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
   .breadcrumb-nav { margin-bottom: 30px; background: #f8f9fa; padding: 12px; border-radius: 8px; }
   .breadcrumb-nav a { text-decoration: none; color: #3498db; font-weight: 500; }
 
@@ -59,7 +59,7 @@
   }
 </style>
 
-<div class="chunk-grammar-wrapper">
+<div class="chunk-punctuation-wrapper">
 
   <nav class="breadcrumb-nav">
     <a href="{% url 'content:chunk_hub' chunk.id %}">
@@ -68,14 +68,14 @@
   </nav>
 
   <header class="chunk-header">
-    <h1 class="page-title">Grammar Curriculum: {{ chunk.title }}</h1>
+    <h1 class="page-title">Punctuation Curriculum: {{ chunk.title }}</h1>
     <p class="meta-info">
       <strong>Lesson:</strong> {{ lesson.title }} |
       <strong>Unit:</strong> {{ unit.title }}
     </p>
   </header>
 
-  <section class="grammar-focus-list">
+  <section class="punctuation-focus-list">
     {% for focus in focuses %}
       <div class="focus-card">
 
@@ -94,34 +94,34 @@
         <p class="focus-desc">{{ focus.focus_description }}</p>
 
         <div class="focus-actions">
-  <a href="{% url 'content:grammar:teach' chunk.id focus.id %}"
-     class="btn-action btn-learn">
-    Study Theory
-  </a>
+          <a href="{% url 'content:punctuation:teach' chunk.id focus.id %}"
+             class="btn-action btn-learn">
+            Study Theory
+          </a>
 
-  <a href="{% url 'content:grammar:practice' chunk.id focus.id %}"
-     class="btn-action btn-practice">
-    Practice
-  </a>
+          <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}"
+             class="btn-action btn-practice">
+            Practice
+          </a>
 
-  {% if focus.practice_attempted %}
-    <a href="{% url 'content:grammar:test' chunk.id focus.id %}"
-       class="btn-action btn-test">
-      Final Test
-    </a>
-  {% else %}
-    <span class="btn-action btn-test"
-          style="opacity: 0.4; cursor: not-allowed;"
-          title="Complete practice to unlock the final test">
-      Final Test 🔒
-    </span>
-  {% endif %}
-</div>
+          {% if focus.practice_attempted %}
+            <a href="{% url 'content:punctuation:test' chunk.id focus.id %}"
+               class="btn-action btn-test">
+              Final Test
+            </a>
+          {% else %}
+            <span class="btn-action btn-test"
+                  style="opacity: 0.4; cursor: not-allowed;"
+                  title="Complete practice to unlock the final test">
+              Final Test 🔒
+            </span>
+          {% endif %}
+        </div>
       </div>
     {% empty %}
       <div style="text-align: center; padding: 60px; background: #fff; border-radius: 12px; border: 1px dashed #ccc;">
         <p style="color: #95a5a6; font-size: 1.1rem;">
-          No English grammar modules assigned to this chunk yet.
+          No punctuation modules assigned to this chunk yet.
         </p>
       </div>
     {% endfor %}

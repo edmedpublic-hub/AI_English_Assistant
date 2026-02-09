@@ -1,5 +1,6 @@
-from django.contrib import admin
+# content/admin/punctuation.py
 
+from django.contrib import admin
 from content.models.punctuation import (
     PunctuationMark,
     PunctuationRule,
@@ -8,7 +9,6 @@ from content.models.punctuation import (
     PunctuationAttempt,
     PunctuationTestAttempt,
 )
-
 from content.admin.inlines.punctuation import (
     PunctuationRuleInline,
     PunctuationExampleInline,
@@ -26,10 +26,16 @@ class PunctuationMarkAdmin(admin.ModelAdmin):
     ordering = ("order_index",)
     inlines = [PunctuationRuleInline]
 
+    # Prevent accidental deletion of global marks
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(PunctuationRule)
 class PunctuationRuleAdmin(admin.ModelAdmin):
     list_display = ("mark", "short_rule")
+    search_fields = ("rule_text", "mark__name")
+    ordering = ("mark",)
 
     def short_rule(self, obj):
         return obj.rule_text[:80]
@@ -38,6 +44,8 @@ class PunctuationRuleAdmin(admin.ModelAdmin):
 @admin.register(PunctuationExample)
 class PunctuationExampleAdmin(admin.ModelAdmin):
     list_display = ("rule", "short_sentence")
+    search_fields = ("sentence", "rule__rule_text")
+    ordering = ("rule",)
 
     def short_sentence(self, obj):
         return obj.sentence[:80]
@@ -54,6 +62,10 @@ class ChunkPunctuationFocusAdmin(admin.ModelAdmin):
     ordering = ("chunk", "sequence_order")
     autocomplete_fields = ("chunk", "mark")
     inlines = [PunctuationQuestionInline]
+
+    # Prevent duplicate sequence orders per chunk (enforced at DB level too)
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("chunk", "mark")
 
 
 # -----------------------------

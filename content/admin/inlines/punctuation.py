@@ -1,8 +1,9 @@
+# content/admin/inlines/punctuation.py
+
 from django.contrib import admin
 from content.models.punctuation import (
     PunctuationRule,
     PunctuationExample,
-    ChunkPunctuationFocus,
     PunctuationQuestion,
 )
 
@@ -15,6 +16,7 @@ class PunctuationRuleInline(admin.TabularInline):
     extra = 1
     fields = ("rule_text",)
     ordering = ("id",)
+    show_change_link = True  # allow quick jump to full rule edit
 
 
 class PunctuationExampleInline(admin.TabularInline):
@@ -25,6 +27,7 @@ class PunctuationExampleInline(admin.TabularInline):
     extra = 1
     fields = ("sentence",)
     ordering = ("id",)
+    show_change_link = True  # quick navigation to full example
 
 
 class PunctuationQuestionInline(admin.TabularInline):
@@ -42,4 +45,6 @@ class PunctuationQuestionInline(admin.TabularInline):
         "difficulty",
         "explanation",
     )
-    ordering = ("difficulty",)
+    ordering = ("difficulty", "id")
+    show_change_link = True
+    autocomplete_fields = ()  # reserved for future if options grow large

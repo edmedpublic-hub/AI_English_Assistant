@@ -1,7 +1,9 @@
 # content/models/grammar.py
 
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator, ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+
 from .core import LessonChunk
 
 
@@ -42,7 +44,6 @@ class GrammarConcept(models.Model):
 class GrammarRule(models.Model):
     """
     A specific rule under a grammar concept.
-    Example: 'Proper nouns begin with capital letters.'
     """
     concept = models.ForeignKey(
         GrammarConcept,
@@ -51,6 +52,16 @@ class GrammarRule(models.Model):
     )
 
     rule_text = models.TextField()
+    order = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["concept", "order"],
+                name="unique_rule_order_per_concept"
+            )
+        ]
 
     def __str__(self):
         return f"{self.concept.name}: {self.rule_text[:60]}"
@@ -67,6 +78,16 @@ class GrammarExample(models.Model):
     )
 
     sentence = models.TextField()
+    order = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["rule", "order"],
+                name="unique_example_order_per_rule"
+            )
+        ]
 
     def __str__(self):
         return self.sentence[:80]
@@ -79,7 +100,6 @@ class GrammarExample(models.Model):
 class ChunkGrammarFocus(models.Model):
     """
     Represents how a grammar concept is taught in a specific chunk.
-    Enables spiral learning and progressive depth.
     """
 
     chunk = models.ForeignKey(
@@ -94,21 +114,15 @@ class ChunkGrammarFocus(models.Model):
         related_name="teaching_instances"
     )
 
-    focus_title = models.CharField(
-        max_length=200,
-        help_text="e.g. 'Kinds of Nouns', 'Present Simple vs Present Continuous'"
-    )
-
+    focus_title = models.CharField(max_length=200)
     focus_description = models.TextField()
 
     depth_level = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
-        help_text="1 = Introductory, 5 = Expert-level treatment"
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
 
     sequence_order = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(3)],
-        help_text="1–3 (maximum three grammar focuses per chunk)"
+        validators=[MinValueValidator(1), MaxValueValidator(3)]
     )
 
     class Meta:
@@ -135,8 +149,7 @@ class ChunkGrammarFocus(models.Model):
 
 class GrammarQuestion(models.Model):
     """
-    Concrete grammar questions tied to a specific ChunkGrammarFocus.
-    Designed for teacher-friendly content entry (one option per line).
+    Grammar questions tied to a specific ChunkGrammarFocus.
     """
 
     TYPE_MCQ = "mcq"
@@ -152,24 +165,14 @@ class GrammarQuestion(models.Model):
     ]
 
     focus = models.ForeignKey(
-        "ChunkGrammarFocus",
+        ChunkGrammarFocus,
         on_delete=models.CASCADE,
         related_name="questions"
     )
 
     question_text = models.TextField()
-
-    # TextField is best for "one option per line" entry
-    options = models.TextField(
-        null=True,
-        blank=True,
-        help_text="For MCQs: Enter one option per line."
-    )
-
-    correct_answer = models.CharField(
-        max_length=255,
-        help_text="Must exactly match one of the options (for MCQs)"
-    )
+    options = models.TextField(blank=True, null=True)
+    correct_answer = models.CharField(max_length=255)
 
     question_type = models.CharField(
         max_length=30,
@@ -182,10 +185,7 @@ class GrammarQuestion(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
 
-    explanation = models.TextField(
-        blank=True,
-        help_text="Explanation shown after answering (why this is correct)"
-    )
+    explanation = models.TextField(blank=True)
 
     class Meta:
         ordering = ["focus_id", "id"]
@@ -196,9 +196,6 @@ class GrammarQuestion(models.Model):
         ]
 
     def clean(self):
-        """
-        Validates MCQ logic: ensures options exist and the correct answer is among them.
-        """
         if self.question_type == self.TYPE_MCQ:
             if not self.options:
                 raise ValidationError("MCQ questions must have options.")
@@ -210,26 +207,26 @@ class GrammarQuestion(models.Model):
 
             if self.correct_answer not in option_list:
                 raise ValidationError(
-                    f"Correct answer '{self.correct_answer}' must exactly match one of the options provided."
+                    "Correct answer must exactly match one of the options."
+                )
+        else:
+            if not self.correct_answer.strip():
+                raise ValidationError(
+                    "Non-MCQ questions must define a correct answer."
                 )
 
     def get_options_list(self):
-        """Helper to split the text area into a clean list of options."""
         if not self.options:
             return []
-        return [
-            opt.strip()
-            for opt in self.options.splitlines()
-            if opt.strip()
-        ]
+        return [opt.strip() for opt in self.options.splitlines() if opt.strip()]
 
     @property
     def parsed_options(self):
-        """Standard property for template access: q.parsed_options"""
         return self.get_options_list()
 
     def __str__(self):
         return f"{self.focus.focus_title}: {self.question_text[:60]}"
+
 
 # ============================================================
 # ATTEMPTS & ANALYTICS
@@ -237,7 +234,7 @@ class GrammarQuestion(models.Model):
 
 class GrammarAttempt(models.Model):
     """
-    Per-question logging for analytics and learner diagnostics.
+    Per-question logging for analytics and diagnostics.
     """
 
     student = models.ForeignKey(
@@ -254,11 +251,16 @@ class GrammarAttempt(models.Model):
 
     selected_answer = models.CharField(max_length=255, blank=True)
     is_correct = models.BooleanField(default=False)
-
     attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-attempted_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "question"],
+                name="unique_attempt_per_question"
+            )
+        ]
         indexes = [
             models.Index(fields=["student"]),
             models.Index(fields=["question"]),
@@ -267,7 +269,7 @@ class GrammarAttempt(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.student.username} — Q{self.question_id} ({'✓' if self.is_correct else '✗'})"
+        return f"{self.student.username} — Q{self.question_id}"
 
 
 class GrammarTestAttempt(models.Model):
@@ -294,10 +296,7 @@ class GrammarTestAttempt(models.Model):
     correct_answers = models.PositiveSmallIntegerField()
     total_questions = models.PositiveSmallIntegerField()
 
-    questions_snapshot = models.JSONField(
-        help_text="Snapshot of questions used in this test for review consistency"
-    )
-
+    questions_snapshot = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -310,3 +309,38 @@ class GrammarTestAttempt(models.Model):
 
     def __str__(self):
         return f"{self.student.username} — {self.focus.focus_title} ({self.score_percent}%)"
+
+
+# ============================================================
+# PRACTICE TRACKING
+# ============================================================
+
+class GrammarPracticeAttempt(models.Model):
+    """
+    Records whether a student has attempted practice for a grammar focus.
+    """
+
+    student = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        related_name="grammar_practice_attempts"
+    )
+
+    focus = models.ForeignKey(
+        ChunkGrammarFocus,
+        on_delete=models.CASCADE,
+        related_name="practice_attempts"
+    )
+
+    attempted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("student", "focus")
+        indexes = [
+            models.Index(fields=["student"]),
+            models.Index(fields=["focus"]),
+            models.Index(fields=["attempted_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.student.username} — Practice attempted ({self.focus.focus_title})"

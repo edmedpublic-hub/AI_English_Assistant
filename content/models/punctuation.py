@@ -2,7 +2,10 @@
 
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 from .core import LessonChunk
+
+
 
 
 # ============================================================
@@ -43,7 +46,6 @@ class PunctuationRule(models.Model):
         on_delete=models.CASCADE,
         related_name="rules"
     )
-
     rule_text = models.TextField()
 
     def __str__(self):
@@ -59,7 +61,6 @@ class PunctuationExample(models.Model):
         on_delete=models.CASCADE,
         related_name="examples"
     )
-
     sentence = models.TextField()
 
     def __str__(self):
@@ -81,7 +82,6 @@ class ChunkPunctuationFocus(models.Model):
         on_delete=models.CASCADE,
         related_name="punctuation_focuses"
     )
-
     mark = models.ForeignKey(
         PunctuationMark,
         on_delete=models.CASCADE,
@@ -92,14 +92,12 @@ class ChunkPunctuationFocus(models.Model):
         max_length=200,
         help_text="e.g. 'Comma in Lists', 'Apostrophe for Possession'"
     )
-
     focus_description = models.TextField()
 
     depth_level = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         help_text="1 = Introductory, 5 = Advanced"
     )
-
     sequence_order = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(3)],
         help_text="Max 3 punctuation focuses per chunk"
@@ -151,7 +149,7 @@ class PunctuationQuestion(models.Model):
     )
 
     question_text = models.TextField()
-    options = models.JSONField(null=True, blank=True)
+    options = models.TextField(null=True, blank=True)
     correct_answer = models.CharField(max_length=255)
 
     question_type = models.CharField(
@@ -159,12 +157,10 @@ class PunctuationQuestion(models.Model):
         choices=QUESTION_TYPES,
         default=TYPE_MCQ
     )
-
     difficulty = models.PositiveSmallIntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-
     explanation = models.TextField(blank=True)
 
     class Meta:
@@ -178,6 +174,18 @@ class PunctuationQuestion(models.Model):
     def __str__(self):
         return f"{self.focus.focus_title}: {self.question_text[:60]}"
 
+    @property
+    def parsed_options(self):
+        """
+        Return the options field as a clean list.
+        Splits on semicolons and strips whitespace.
+        Safe for templates to iterate.
+        """
+        if not self.options:
+            return []
+        return [opt.strip() for opt in self.options.split(";") if opt.strip()]
+
+
 
 # ============================================================
 # ATTEMPTS & ANALYTICS
@@ -189,11 +197,10 @@ class PunctuationAttempt(models.Model):
     """
 
     student = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="punctuation_attempts"
     )
-
     question = models.ForeignKey(
         PunctuationQuestion,
         on_delete=models.CASCADE,
@@ -202,7 +209,6 @@ class PunctuationAttempt(models.Model):
 
     selected_answer = models.CharField(max_length=255, blank=True)
     is_correct = models.BooleanField(default=False)
-
     attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -214,7 +220,7 @@ class PunctuationAttempt(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.student.username} — Q{self.question_id}"
+        return f"{self.student} — Q{self.question_id}"
 
 
 class PunctuationTestAttempt(models.Model):
@@ -223,11 +229,10 @@ class PunctuationTestAttempt(models.Model):
     """
 
     student = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="punctuation_test_attempts"
     )
-
     focus = models.ForeignKey(
         ChunkPunctuationFocus,
         on_delete=models.CASCADE,
@@ -237,11 +242,12 @@ class PunctuationTestAttempt(models.Model):
     score_percent = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(100)]
     )
-
     correct_answers = models.PositiveSmallIntegerField()
     total_questions = models.PositiveSmallIntegerField()
 
-    questions_snapshot = models.JSONField()
+    questions_snapshot = models.JSONField(
+        help_text="Stores the state of questions at test time for audit"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -253,4 +259,4 @@ class PunctuationTestAttempt(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.student.username} — {self.focus.focus_title} ({self.score_percent}%)"
+        return f"{self.student} — {self.focus.focus_title} ({self.score_percent}%)"
