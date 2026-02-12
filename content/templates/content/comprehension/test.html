@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .test-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .test-header {
+    background: #2c3e50; color: white; padding: 30px;
+    border-radius: 12px; margin-bottom: 30px; text-align: center;
+  }
+  .test-header h2 { margin: 0; font-size: 1.8rem; }
+  .test-header p { margin-top: 8px; opacity: 0.85; }
+
+  .question-card {
+    background: #fff;
+    border: 1px solid #e1e8ed;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+  }
+  .question-text {
+    font-size: 1.15rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+  }
+
+  .option-label {
+    display: block;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .option-label:hover {
+    background: #f8f9fa;
+    border-color: #3498db;
+  }
+  .option-label input { margin-right: 10px; }
+
+  textarea, .text-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  textarea { height: 100px; resize: vertical; }
+
+  .btn-finish {
+    width: 100%;
+    margin-top: 20px;
+    padding: 18px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+</style>
+
+<div class="test-container">
+
+  <header class="test-header">
+    <h2>Comprehension Mastery Test</h2>
+    <p>{{ focus.focus_title }}</p>
+    <small>100% score required for mastery</small>
+  </header>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% for q in questions %}
+      <div class="question-card">
+        <p class="question-text">
+          <strong>{{ forloop.counter }}.</strong> {{ q.question_text }}
+        </p>
+
+        {% if q.question_type == "mcq" or q.question_type == "true_false" %}
+          {% for option in q.parsed_options %}
+            <label class="option-label">
+              <input
+                type="radio"
+                name="q{{ q.id }}"
+                value="{{ option }}"
+                {% if forloop.first %}required{% endif %}
+              >
+              {{ option }}
+            </label>
+          {% endfor %}
+
+        {% elif q.question_type == "short_answer" %}
+          <input
+            type="text"
+            name="q{{ q.id }}"
+            class="text-input"
+            required
+          >
+
+        {% else %}
+          <textarea name="q{{ q.id }}" required></textarea>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p style="text-align:center;">No test questions available.</p>
+    {% endfor %}
+
+    {% if questions %}
+      <button
+        type="submit"
+        class="btn-finish"
+        onclick="return confirm('Submit test? Mastery requires 100%.');"
+      >
+        Submit for Evaluation
+      </button>
+    {% endif %}
+  </form>
+
+  <div style="margin-top:30px; text-align:center;">
+    <a href="{% url 'content:comprehension:practice' focus.id %}">
+      ← Back to Practice
+    </a>
+    &nbsp;|&nbsp;
+    <a href="{% url 'content:chunk_comprehension' chunk.id %}">
+      Back to Comprehension Hub
+    </a>
+  </div>
+
+</div>
+{% endblock %}

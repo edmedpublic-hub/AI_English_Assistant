@@ -1,44 +1,61 @@
+# content/admin/writing.py
+
 from django.contrib import admin
-from content.models.writing import WritingTask, SentenceAttempt
+from content.models.writing import (
+    ChunkWritingFocus,
+    UnitWritingTask,
+    WritingPrompt,
+    WritingResponse,
+    WritingAttempt,
+    WritingTestAttempt,
+)
+from .inlines.writing import (
+    WritingPromptInline,
+    WritingResponseInline,
+    WritingAttemptInline,
+)
 
 
-# ----------------------------
-# Writing tasks (authoring)
-# ----------------------------
-@admin.register(WritingTask)
-class WritingTaskAdmin(admin.ModelAdmin):
-    list_display = ("lesson", "difficulty", "short_prompt")
-    list_filter = ("difficulty", "lesson__unit__textbook")
-    search_fields = ("prompt", "lesson__title", "lesson__unit__title")
-    ordering = ("lesson", "difficulty")
-
-    fieldsets = (
-        ("Core", {
-            "fields": ("lesson", "difficulty", "prompt")
-        }),
-        ("Metadata", {
-            "fields": ()
-        }),
-    )
-
-    def short_prompt(self, obj):
-        return obj.prompt[:80]
-    short_prompt.short_description = "Prompt preview"
+@admin.register(ChunkWritingFocus)
+class ChunkWritingFocusAdmin(admin.ModelAdmin):
+    list_display = ("chunk", "focus_title", "depth_level", "sequence_order")
+    search_fields = ("focus_title", "focus_description")
+    list_filter = ("depth_level",)
+    inlines = [WritingPromptInline]
 
 
-# ----------------------------
-# Sentence attempts (analytics)
-# ----------------------------
-@admin.register(SentenceAttempt)
-class SentenceAttemptAdmin(admin.ModelAdmin):
-    list_display = ("student_id", "writing_task", "ai_score", "timestamp")
-    list_filter = ("ai_score", "timestamp")
-    search_fields = ("student_id", "writing_task__prompt")
-    ordering = ("-timestamp",)
-    readonly_fields = [f.name for f in SentenceAttempt._meta.fields]
+@admin.register(UnitWritingTask)
+class UnitWritingTaskAdmin(admin.ModelAdmin):
+    list_display = ("unit", "task_title", "stage", "difficulty_level", "order")
+    search_fields = ("task_title", "task_description")
+    list_filter = ("stage", "difficulty_level")
+    inlines = [WritingPromptInline]
 
-    def has_add_permission(self, request):
-        return False
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+@admin.register(WritingPrompt)
+class WritingPromptAdmin(admin.ModelAdmin):
+    list_display = ("id", "prompt_text", "focus", "task")
+    search_fields = ("prompt_text", "expected_keywords")
+    list_filter = ("focus", "task")
+    inlines = [WritingResponseInline]
+
+
+@admin.register(WritingResponse)
+class WritingResponseAdmin(admin.ModelAdmin):
+    list_display = ("student", "prompt", "score", "submitted_at")
+    search_fields = ("response_text", "feedback")
+    list_filter = ("score", "submitted_at")
+    inlines = [WritingAttemptInline]
+
+
+@admin.register(WritingAttempt)
+class WritingAttemptAdmin(admin.ModelAdmin):
+    list_display = ("response", "attempt_number", "time_spent", "hints_used")
+    list_filter = ("attempt_number",)
+
+
+@admin.register(WritingTestAttempt)
+class WritingTestAttemptAdmin(admin.ModelAdmin):
+    list_display = ("student", "prompt", "overall_score", "created_at")
+    list_filter = ("overall_score", "created_at")
+    search_fields = ("student__username",)

@@ -5,23 +5,142 @@ Grammar Practice — {{ focus.focus_title }}
 {% endblock %}
 
 {% block content %}
-<div class="grammar-practice-wrapper">
+<style>
+.practice-container {
+  max-width: 820px;
+  margin: 40px auto;
+  padding: 20px;
+}
 
-  <h2>{{ focus.focus_title }}</h2>
-  <p class="text-muted">{{ focus.focus_description }}</p>
+.breadcrumb a {
+  text-decoration: none;
+  color: #3498db;
+  font-weight: 500;
+}
 
+.practice-header {
+  margin: 25px 0 35px;
+}
+
+.practice-header h2 {
+  margin-bottom: 6px;
+  color: #2c3e50;
+}
+
+.practice-header p {
+  color: #7f8c8d;
+}
+
+/* Question Card */
+.question-card {
+  background: #ffffff;
+  border: 1px solid #e6ecf1;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+}
+
+.question-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+
+/* Options */
+.option-label {
+  display: block;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid #e1e8ed;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.option-label:hover {
+  background: #f7f9fb;
+  border-color: #3498db;
+}
+
+.option-label input {
+  margin-right: 10px;
+}
+
+/* Text answer */
+.text-answer {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccd6dd;
+}
+
+/* Feedback */
+.feedback {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.correct {
+  background: #eafaf1;
+  color: #27ae60;
+}
+
+.incorrect {
+  background: #fdecea;
+  color: #e74c3c;
+}
+
+.explanation {
+  margin-top: 8px;
+  color: #555;
+}
+
+/* Submit */
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 10px;
+  background: #2c3e50;
+  color: white;
+  font-size: 1.05rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submit-btn:hover {
+  background: #1a252f;
+}
+</style>
+
+<div class="practice-container">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="{% url 'content:chunk_grammar' chunk.id %}">← Back to Grammar Hub</a>
+  </div>
+
+  <!-- Header -->
+  <div class="practice-header">
+    <h2>{{ focus.focus_title }}</h2>
+    <p>{{ focus.focus_description }}</p>
+  </div>
+
+  {% if questions %}
   <form method="post">
     {% csrf_token %}
 
     {% for q in questions %}
-      <div class="question-block">
+      <div class="question-card">
 
-        <p class="question-text">
-          <strong>Q{{ forloop.counter }}.</strong>
-          {{ q.question_text }}
-        </p>
+        <div class="question-text">
+          <strong>Q{{ forloop.counter }}.</strong> {{ q.question_text }}
+        </div>
 
-        {# ---------------- MCQ ---------------- #}
         {% if q.question_type == "mcq" %}
           {% for option in q.parsed_options %}
             <label class="option-label">
@@ -32,50 +151,42 @@ Grammar Practice — {{ focus.focus_title }}
                 {% if q.user_answer == option %}checked{% endif %}
               >
               {{ option }}
-            </label><br>
+            </label>
           {% endfor %}
-
-        {# ------------- NON-MCQ ---------------- #}
         {% else %}
           <input
             type="text"
             name="q{{ q.id }}"
-            class="text-answer"
             value="{{ q.user_answer|default:'' }}"
+            class="text-answer"
           >
         {% endif %}
 
-        {# ----------- FEEDBACK ---------------- #}
         {% if submitted and q.feedback_ready %}
-          <div class="feedback">
+          <div class="feedback {% if q.is_correct %}correct{% else %}incorrect{% endif %}">
             {% if q.is_correct %}
-              <span class="correct">✔ Correct</span>
+              ✔ Correct
             {% else %}
-              <span class="incorrect">
-                ✖ Incorrect
-                <br>
-                <small>
-                  Correct answer: <strong>{{ q.correct_answer }}</strong>
-                </small>
-              </span>
+              ✖ Incorrect — Correct answer: <strong>{{ q.correct_answer }}</strong>
             {% endif %}
 
             {% if q.explanation %}
-              <div class="explanation">
-                {{ q.explanation }}
-              </div>
+              <div class="explanation">{{ q.explanation }}</div>
             {% endif %}
           </div>
         {% endif %}
 
       </div>
-      <hr>
     {% endfor %}
 
-    <button type="submit" class="btn btn-primary">
+    <button type="submit" class="submit-btn">
       Submit Practice
     </button>
   </form>
+
+  {% else %}
+    <p>No practice questions available.</p>
+  {% endif %}
 
 </div>
 {% endblock %}

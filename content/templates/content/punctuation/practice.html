@@ -1,81 +1,88 @@
 {% extends "base.html" %}
 
-{% block title %}
-Punctuation Practice — {{ focus.focus_title }}
-{% endblock %}
+{% block title %}Practice: {{ focus.focus_title }}{% endblock title %}
 
 {% block content %}
-<div class="punctuation-practice-wrapper">
+<div class="practice-wrapper">
 
-  <h2>{{ focus.focus_title }}</h2>
-  <p class="text-muted">{{ focus.focus_description }}</p>
+  <nav style="margin-bottom: 30px;">
+    <a href="{% url 'content:punctuation:teach' chunk.id focus.id %}"
+       style="text-decoration: none; color: #7f8c8d; font-weight: 600;">
+      &larr; Review Theory
+    </a>
+  </nav>
 
-  <form method="post">
-    {% csrf_token %}
+  <header class="practice-header">
+    <span class="instruction-badge">Practice Session</span>
+    <h2>{{ focus.focus_title }}</h2>
+    <p style="color: #7f8c8d;">Master the rules before taking the final test.</p>
+  </header>
 
-    {% for q in questions %}
-      <div class="question-block">
+  {% if practice_cleared %}
+    <div class="feedback-area fb-correct" style="margin-bottom: 30px;">
+      <strong>✔ Practice already cleared.</strong><br>
+      You may proceed directly to the mastery test.
+    </div>
 
-        <p class="question-text">
-          <strong>Q{{ forloop.counter }}.</strong>
-          {{ q.question_text }}
-        </p>
+    <a href="{% url 'content:punctuation:test' chunk.id focus.id %}"
+       class="btn-test-unlock">
+      Take Mastery Test →
+    </a>
 
-        {# ---------------- MCQ ---------------- #}
-        {% if q.question_type == "mcq" %}
-          {% for option in q.parsed_options %}
-            <label class="option-label">
-              <input
-                type="radio"
-                name="q{{ q.id }}"
-                value="{{ option }}"
-                {% if q.user_answer == option %}checked{% endif %}
-              >
-              {{ option }}
-            </label><br>
-          {% endfor %}
+  {% else %}
 
-        {# ------------- NON-MCQ ---------------- #}
-        {% else %}
-          <input
-            type="text"
-            name="q{{ q.id }}"
-            class="text-answer"
-            value="{{ q.user_answer|default:'' }}"
-          >
-        {% endif %}
+    <form method="post">
+      {% csrf_token %}
 
-        {# ----------- FEEDBACK ---------------- #}
-        {% if submitted and q.feedback_ready %}
-          <div class="feedback">
-            {% if q.is_correct %}
-              <span class="correct">✔ Correct</span>
+      {% for q in questions %}
+        <div class="question-card">
+
+          <div class="question-text">
+            <strong>{{ forloop.counter }}.</strong>
+            {{ q.question_text }}
+          </div>
+
+          <div class="options-container">
+            {% if q.question_type == "mcq" %}
+              {% for option in q.options_list %}
+                <label class="option-label">
+                  <input type="radio" name="q{{ q.id }}" value="{{ option }}"
+                    {% if q.user_answer == option %}checked{% endif %} required>
+                  {{ option }}
+                </label>
+              {% endfor %}
             {% else %}
-              <span class="incorrect">
-                ✖ Incorrect
-                <br>
-                <small>
-                  Correct answer: <strong>{{ q.correct_answer }}</strong>
-                </small>
-              </span>
-            {% endif %}
-
-            {% if q.explanation %}
-              <div class="explanation">
-                {{ q.explanation }}
-              </div>
+              <input type="text"
+                     name="q{{ q.id }}"
+                     value="{{ q.user_answer|default:'' }}"
+                     placeholder="Type your answer..."
+                     required>
             {% endif %}
           </div>
-        {% endif %}
 
-      </div>
-      <hr>
-    {% endfor %}
+          {% if submitted and q.feedback_ready %}
+            <div class="feedback-area {% if q.is_correct %}fb-correct{% else %}fb-incorrect{% endif %}">
+              {% if q.is_correct %}
+                ✔ Correct!
+              {% else %}
+                ✖ Incorrect. Correct answer: <strong>{{ q.correct_answer }}</strong>
+              {% endif %}
 
-    <button type="submit" class="btn btn-primary">
-      Submit Practice
-    </button>
-  </form>
+              {% if q.explanation %}
+                <p><em>{{ q.explanation }}</em></p>
+              {% endif %}
+            </div>
+          {% endif %}
+
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn-submit">
+        Check My Answers
+      </button>
+    </form>
+
+  {% endif %}
 
 </div>
-{% endblock %}
+{% endblock content %}

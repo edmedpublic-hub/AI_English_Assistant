@@ -1,17 +1,20 @@
-from django.shortcuts import render
-from django.views.decorators.http import require_GET
-from ..chunk_core import build_chunk_context
+# views/comprehension/hub.py
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-@require_GET
-def chunk_comprehension_view(request, chunk_id):
+class ComprehensionHubView(APIView):
     """
-    Placeholder hub for the Comprehension section.
-    Renders the existing comprehension template with full chunk context.
+    Central hub for comprehension activities.
+    Returns available focuses and entry points.
     """
-    # Use the centralized helper to get chunk, lesson, unit, and textbook
-    context = build_chunk_context(chunk_id)
-    
-    # Add any specific comprehension-related context here in the future
-    # e.g., context['questions'] = chunk.comprehension_questions.all()
 
-    return render(request, "content/chunks/chunk_comprehension.html", context)
+    def get(self, request, chunk_id):
+        return Response({
+            "message": "Comprehension hub",
+            "chunk_id": chunk_id,
+            "routes": {
+                "teach": f"/api/comprehension/{chunk_id}/teach/",
+                "practice": f"/api/comprehension/{chunk_id}/practice/",
+                "test": f"/api/comprehension/{chunk_id}/test/",
+            }
+        })

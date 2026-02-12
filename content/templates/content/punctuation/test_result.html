@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Result: {{ focus.focus_title }}{% endblock title %}
+
 {% block content %}
 <style>
   .result-container {
@@ -7,49 +9,52 @@
     margin: 40px auto;
     padding: 20px;
     text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 
   .result-card {
-    background: #ffffff;
+    background-color: #ffffff;
     border-radius: 15px;
     padding: 40px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    border-top: 8px solid;
+    border-top: 8px solid #dddddd;
   }
 
-  .mastery-pass { border-color: #27ae60; }
-  .mastery-pass h2 { color: #27ae60; }
+  .mastery-pass { border-top-color: #27ae60; }
+  .mastery-fail { border-top-color: #e74c3c; }
 
-  .mastery-fail { border-color: #e74c3c; }
-  .mastery-fail h2 { color: #e74c3c; }
+  .status-title { font-size: 2.2rem; margin-bottom: 10px; }
+  .text-pass { color: #27ae60; }
+  .text-fail { color: #e74c3c; }
 
   .score-circle {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
     border-radius: 50%;
-    margin: 20px auto;
+    margin: 25px auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.2rem;
     font-weight: bold;
     color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   }
 
-  .bg-pass { background: #27ae60; }
-  .bg-fail { background: #e74c3c; }
+  .bg-pass { background-color: #27ae60; }
+  .bg-fail { background-color: #e74c3c; }
 
   .stats-table {
     width: 100%;
-    margin: 25px 0;
+    margin: 30px 0;
     border-collapse: collapse;
     text-align: left;
   }
 
   .stats-table td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    font-size: 1.05rem;
+    padding: 15px;
+    border-bottom: 1px solid #eeeeee;
+    font-size: 1.1rem;
+    color: #2c3e50;
   }
 
   .action-btns {
@@ -60,120 +65,112 @@
     flex-wrap: wrap;
   }
 
-  .btn-action {
-    padding: 14px 24px;
-    border-radius: 8px;
+  .btn-result {
+    padding: 16px 28px;
+    border-radius: 10px;
     text-decoration: none;
     font-weight: bold;
+    transition: transform 0.2s, opacity 0.2s;
+    color: #ffffff;
   }
 
-  .btn-green { background: #27ae60; color: #fff; }
-  .btn-blue { background: #3498db; color: #fff; }
+  .btn-result:hover { transform: translateY(-2px); opacity: 0.9; }
 
-  .review-section {
-    margin-top: 40px;
-    text-align: left;
-  }
-
-  .error-item {
-    background: #fff;
-    border-left: 5px solid #e74c3c;
-    padding: 15px;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 15px;
-  }
+  .btn-green { background-color: #27ae60; }
+  .btn-blue { background-color: #3498db; }
+  .btn-gray { background-color: #95a5a6; }
 
   .back-link {
     display: inline-block;
     margin-top: 40px;
     text-decoration: none;
-    color: #555;
+    color: #7f8c8d;
     font-weight: 500;
   }
+  .back-link:hover { color: #2c3e50; }
 </style>
 
 <div class="result-container">
 
-{% if score == 100 %}
-  <!-- ================= PASS ================= -->
-  <div class="result-card mastery-pass">
-    <h2>Mastered</h2>
+  {% if mastered %}
+    <div class="result-card mastery-pass">
+      <h2 class="status-title text-pass">Mastery Achieved!</h2>
 
-    <div class="score-circle bg-pass">
-      {{ score }}%
+      <div class="score-circle bg-pass">
+        <span style="font-size: 2.5rem;">{{ score }}%</span>
+      </div>
+
+      <p style="font-size: 1.2rem; color: #34495e;">
+        Congratulations! You have fully mastered<br>
+        <strong>{{ focus.focus_title }}</strong>.
+      </p>
+
+      <table class="stats-table">
+        <tr>
+          <td>Correct Answers</td>
+          <td style="text-align: right;">
+            <strong>{{ attempt.correct_answers }}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Total Questions</td>
+          <td style="text-align: right;">
+            <strong>{{ attempt.total_questions }}</strong>
+          </td>
+        </tr>
+      </table>
+
+      <div class="action-btns">
+        <a href="{% url 'content:chunk_punctuation' chunk.id %}" class="btn-result btn-green">
+          Continue Curriculum →
+        </a>
+      </div>
     </div>
 
-    <p>
-      You have fully mastered
-      <strong>{{ focus.focus_title }}</strong>.
-    </p>
+  {% else %}
+    <div class="result-card mastery-fail">
+      <h2 class="status-title text-fail">Not Yet Mastered</h2>
 
-    <table class="stats-table">
-      <tr>
-        <td>Correct Answers</td>
-        <td><strong>{{ correct }}</strong></td>
-      </tr>
-      <tr>
-        <td>Total Questions</td>
-        <td><strong>{{ total }}</strong></td>
-      </tr>
-    </table>
+      <div class="score-circle bg-fail">
+        <span style="font-size: 2.5rem;">{{ score }}%</span>
+      </div>
 
-    <div class="action-btns">
-      <a href="{% url 'content:chunk_punctuation' chunk.id %}" class="btn-action btn-green">
-        Return to Punctuation List
-      </a>
-    </div>
-  </div>
+      <p style="color: #7f8c8d; margin-bottom: 20px;">
+        A 100% score is required to unlock the next level.
+      </p>
 
-{% else %}
-  <!-- ================= FAIL ================= -->
-  <div class="result-card mastery-fail">
-    <h2>Not Yet Mastered</h2>
+      <table class="stats-table">
+        <tr>
+          <td>Accuracy</td>
+          <td style="text-align: right;">
+            <strong>{{ attempt.correct_answers }} / {{ attempt.total_questions }}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Mistakes to Review</td>
+          <td style="text-align: right; color: #e74c3c;">
+            <strong>{{ attempt.total_questions|add:"-attempt.correct_answers" }}</strong>
+          </td>
+        </tr>
+      </table>
 
-    <div class="score-circle bg-fail">
-      {{ score }}%
-    </div>
+      <div class="action-btns">
+        <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}" class="btn-result btn-blue">
+          Review Practice
+        </a>
 
-    <table class="stats-table">
-      <tr>
-        <td>Correct</td>
-        <td><strong>{{ correct }} / {{ total }}</strong></td>
-      </tr>
-      <tr>
-        <td>Mistakes</td>
-        <td><strong>{{ mistakes }}</strong></td>
-      </tr>
-    </table>
-
-    <div class="action-btns">
-      <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}"
-         class="btn-action btn-blue">
-        Review Practice
-      </a>
-    </div>
-  </div>
-
-  {% if results %}
-    <div class="review-section">
-      <h3>Review Your Mistakes</h3>
-
-      {% for res in results %}
-        {% if not res.is_correct %}
-          <div class="error-item">
-            <p><strong>Q:</strong> {{ res.question.question_text }}</p>
-            <p><strong>Your Answer:</strong> {{ res.user_answer|default:"—" }}</p>
-            <p><strong>Correct Answer:</strong> {{ res.question.correct_answer }}</p>
-          </div>
-        {% endif %}
-      {% endfor %}
+        <a href="{% url 'content:punctuation:test' chunk.id focus.id %}" class="btn-result btn-gray">
+          Retake Test
+        </a>
+      </div>
     </div>
   {% endif %}
-{% endif %}
 
-<a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
-  ← Back to Lesson Hub
-</a>
+  <footer>
+    <a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
+      ← Return to Lesson Hub
+    </a>
+  </footer>
 
 </div>
-{% endblock %}
+{% endblock content %}

@@ -10,6 +10,15 @@
   .page-title { color: #2c3e50; margin-bottom: 5px; }
   .meta-info { color: #7f8c8d; font-size: 0.95rem; }
 
+  /* Progress Bar Styles */
+  .mastery-progress-container { background: #eee; border-radius: 10px; height: 10px; margin: 15px 0; overflow: hidden; }
+  .mastery-progress-bar { 
+    background: #2ecc71; 
+    height: 100%; 
+    width: 0%; /* Initial state for JS to animate */
+    transition: width 0.8s ease-out; 
+  }
+
   .focus-card {
     background: white;
     border: 1px solid #ddd;
@@ -33,10 +42,7 @@
   .badge-progress { background: #f1c40f; color: #2c3e50; }
   .badge-locked { background: #bdc3c7; color: #2c3e50; }
 
-  .focus-actions {
-    display: flex;
-    gap: 15px;
-  }
+  .focus-actions { display: flex; gap: 15px; }
 
   .btn-action {
     flex: 1;
@@ -73,12 +79,22 @@
       <strong>Lesson:</strong> {{ lesson.title }} |
       <strong>Unit:</strong> {{ unit.title }}
     </p>
+
+    {% if total_focuses > 0 %}
+    <div style="margin-top: 20px;">
+        <small style="font-weight: bold; color: #2c3e50;">
+            Global Mastery: {{ mastery_percent|default:0 }}%
+        </small>
+        <div class="mastery-progress-container">
+            <div id="masteryBar" class="mastery-progress-bar"></div>
+        </div>
+    </div>
+    {% endif %}
   </header>
 
   <section class="punctuation-focus-list">
     {% for focus in focuses %}
       <div class="focus-card">
-
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
           <h3 class="focus-title">{{ focus.focus_title }}</h3>
 
@@ -126,6 +142,19 @@
       </div>
     {% endfor %}
   </section>
-
 </div>
-{% endblock %}
+
+<script>
+    /**
+     * Audit Fix: We set the width via JS to prevent the VS Code 
+     * CSS validator from throwing syntax errors on Django tags.
+     */
+    document.addEventListener("DOMContentLoaded", function() {
+        const bar = document.getElementById('masteryBar');
+        if (bar) {
+            // Safely injecting the percentage into the JS logic
+            bar.style.width = "{{ mastery_percent|default:0 }}%";
+        }
+    });
+</script>
+{% endblock content %}

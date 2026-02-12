@@ -1,15 +1,13 @@
 from rest_framework import serializers
-
 from content.models.punctuation import (
     PunctuationMark,
     PunctuationRule,
     PunctuationExample,
     ChunkPunctuationFocus,
     PunctuationQuestion,
-    PunctuationAttempt,
+    # PunctuationAttempt removed - now handled via TestAttempt analytics
     PunctuationTestAttempt,
 )
-
 
 # ============================================================
 # KNOWLEDGE LAYER SERIALIZERS
@@ -34,14 +32,7 @@ class PunctuationMarkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PunctuationMark
-        fields = [
-            "id",
-            "name",
-            "symbol",
-            "description",
-            "order_index",
-            "rules",
-        ]
+        fields = ["id", "name", "symbol", "description", "order_index", "rules"]
 
 
 # ============================================================
@@ -54,65 +45,56 @@ class ChunkPunctuationFocusSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChunkPunctuationFocus
         fields = [
-            "id",
-            "chunk",
-            "mark",
-            "mark_detail",
-            "focus_title",
-            "focus_description",
-            "depth_level",
-            "sequence_order",
+            "id", "chunk", "mark", "mark_detail", 
+            "focus_title", "focus_description", 
+            "depth_level", "sequence_order"
         ]
 
 
 # ============================================================
-# QUESTIONS
+# QUESTIONS (Student-safe)
 # ============================================================
 
 class PunctuationQuestionSerializer(serializers.ModelSerializer):
+    """Student-facing: uses get_options_list property from model."""
+    options_list = serializers.ReadOnlyField(source='get_options_list')
+
     class Meta:
         model = PunctuationQuestion
         fields = [
-            "id",
-            "focus",
-            "question_text",
-            "options",
-            "correct_answer",
-            "question_type",
-            "difficulty",
-            "explanation",
+            "id", "question_text", "options_list", 
+            "question_type", "explanation"
         ]
 
 
 # ============================================================
-# ATTEMPTS & ANALYTICS
+# SUBMISSION & ANALYTICS
 # ============================================================
 
-class PunctuationAttemptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PunctuationAttempt
-        fields = [
-            "id",
-            "student",
-            "question",
-            "selected_answer",
-            "is_correct",
-            "attempted_at",
-        ]
-        read_only_fields = ["is_correct", "attempted_at"]
+class PunctuationAnswerSubmitSerializer(serializers.Serializer):
+    """Handles the logic of checking a single answer submission."""
+    question_id = serializers.IntegerField()
+    selected_answer = serializers.CharField(allow_blank=True)
+
+    def validate(self, data):
+        try:
+            question = PunctuationQuestion.objects.get(id=data["question_id"])
+        except PunctuationQuestion.DoesNotExist:
+            raise serializers.ValidationError("Invalid question ID.")
+
+        data["question"] = question
+        # Exact match logic for production grade accuracy
+        data["is_correct"] = (data["selected_answer"].strip() == question.correct_answer.strip())
+        return data
 
 
 class PunctuationTestAttemptSerializer(serializers.ModelSerializer):
+    """Detailed results for the Progress Dashboard."""
     class Meta:
         model = PunctuationTestAttempt
         fields = [
-            "id",
-            "student",
-            "focus",
-            "score_percent",
-            "correct_answers",
-            "total_questions",
-            "questions_snapshot",
-            "created_at",
+            "id", "student", "focus", "score_percent", 
+            "correct_answers", "total_questions", 
+            "attempt_number", "is_mastered", "created_at"
         ]
-        read_only_fields = ["created_at"]
+        read_only_fields = ["is_mastered", "created_at"]

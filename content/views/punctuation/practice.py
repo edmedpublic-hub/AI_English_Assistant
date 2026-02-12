@@ -1,14 +1,10 @@
-# content/views/punctuation/practice.py
-
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from content.models.punctuation import (
     PunctuationQuestion,
-    PunctuationAttempt,
-    PunctuationTestAttempt,   # for mastery check
-    ChunkPunctuationFocus,
+    PunctuationTestAttempt,
 )
 from .core import _chunk_context, get_punctuation_objects
 
@@ -16,34 +12,36 @@ from .core import _chunk_context, get_punctuation_objects
 @login_required
 def punctuation_practice(request, chunk_id, focus_id):
     """
-    Punctuation Practice View
-    - Chunk + focus scoped
-    - Safe if no questions
-    - Redirect logic:
-        * If all correct → go to Test
-        * If any incorrect → go to Teach
-        * If none attempted → stay on Practice
+    Practice View (Production-safe):
+
+    - Provides immediate feedback.
+    - DOES NOT create real mastery attempts.
+    - Creates ONLY a lightweight DB marker when practice is cleared.
+    - Mastery Test unlock depends on DB truth, not template state.
     """
 
-    # 1. Resolve core objects
+    # 1. Resolve objects safely
     chunk, focus = get_punctuation_objects(chunk_id, focus_id)
 
     # 2. Fetch questions
-    questions = PunctuationQuestion.objects.filter(
-        focus=focus
-    ).order_by("id")
+    questions = list(
+        PunctuationQuestion.objects
+        .filter(focus=focus)
+        .order_by("id")
+    )
 
-    if not questions.exists():
-        messages.error(
-            request,
-            "This punctuation focus has no practice questions yet."
-        )
-        return redirect(
-            "content:chunk_punctuation",
-            chunk_id=chunk.id
-        )
+    if not questions:
+        messages.error(request, "This focus has no questions yet.")
+        return redirect("content:chunk_punctuation", chunk_id=chunk.id)
 
-    # 3. Normalize (prepare per-question state)
+    # 3. Check if already cleared in DB
+    practice_cleared = PunctuationTestAttempt.objects.filter(
+        student=request.user,
+        focus=focus,
+        is_mastered=False,   # lightweight marker only
+    ).exists()
+
+    # Runtime state for template
     for q in questions:
         q.user_answer = None
         q.is_correct = None
@@ -51,88 +49,66 @@ def punctuation_practice(request, chunk_id, focus_id):
 
     submitted = False
 
-    # 4. Handle POST
-    if request.method == "POST":
+    # 4. Handle submission ONLY if not already cleared
+    if request.method == "POST" and not practice_cleared:
         submitted = True
-        any_answered = False
-        all_correct = True  # assume true until proven otherwise
+        all_correct = True
+        answered_count = 0
 
         for q in questions:
             user_answer = request.POST.get(f"q{q.id}", "").strip()
-            if not user_answer:
+
+            if user_answer:
+                answered_count += 1
+                is_correct = (
+                    user_answer.lower()
+                    == q.correct_answer.strip().lower()
+                )
+
+                if not is_correct:
+                    all_correct = False
+
+                q.user_answer = user_answer
+                q.is_correct = is_correct
+                q.feedback_ready = True
+            else:
                 all_correct = False
-                continue
-
-            any_answered = True
-
-            is_correct = (
-                user_answer.lower()
-                == q.correct_answer.strip().lower()
-            )
-
-            if not is_correct:
-                all_correct = False
-
-            PunctuationAttempt.objects.update_or_create(
-                student=request.user,
-                question=q,
-                defaults={
-                    "selected_answer": user_answer,
-                    "is_correct": is_correct,
-                }
-            )
-
-            q.user_answer = user_answer
-            q.is_correct = is_correct
-            q.feedback_ready = True
 
         # Branching logic
-        if not any_answered:
-            messages.warning(
-                request,
-                "Please attempt at least one question."
-            )
+        if answered_count == 0:
+            messages.warning(request, "Please attempt the questions before submitting.")
+
         elif all_correct:
-            # Mark practice complete → unlock test
+            # Create lightweight DB marker (ONLY if not exists)
             PunctuationTestAttempt.objects.get_or_create(
                 student=request.user,
                 focus=focus,
-                defaults={
-                    "score_percent": 0,
-                    "correct_answers": 0,
-                    "total_questions": questions.count(),
-                    "questions_snapshot": {},
-                }
+                defaults={"is_mastered": False},
             )
+
             messages.success(
                 request,
-                "Excellent! All practice answers correct. Proceed to the Final Test."
+                "Perfect! Practice cleared. You can now take the Mastery Test."
             )
+
             return redirect(
                 "content:punctuation:test",
                 chunk_id=chunk.id,
-                focus_id=focus.id
+                focus_id=focus.id,
             )
+
         else:
-            messages.warning(
+            messages.error(
                 request,
-                "Some answers were incorrect. Review the theory before retrying."
-            )
-            return redirect(
-                "content:punctuation:teach",
-                chunk_id=chunk.id,
-                focus_id=focus.id
+                "Some answers were incorrect. Review the highlights and try again."
             )
 
     # 5. Context
-    context = _chunk_context(chunk, focus=focus, mark=focus.mark)
+    context = _chunk_context(chunk, focus=focus)
     context.update({
         "questions": questions,
         "submitted": submitted,
+        "practice_cleared": practice_cleared,
     })
 
-    return render(
-        request,
-        "content/punctuation/practice.html",
-        context
-    )
+    return render(request, "content/punctuation/practice.html", context)

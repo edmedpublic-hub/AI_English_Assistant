@@ -2,5 +2,13 @@
 
 from .comprehension import *
 from .grammar import *
-from .punctuation import *
+# content/admin/inlines/__init__.py
+
+from .punctuation import (
+    PunctuationRuleInline,
+    PunctuationExampleInline,
+    PunctuationQuestionInline,
+    FocusRuleInline
+)
 from .vocabulary import *
+from .core import *

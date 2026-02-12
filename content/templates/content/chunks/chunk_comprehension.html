@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<style>
+.wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
+.header { margin-bottom: 25px; }
+.card { border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+.actions { margin-top: 15px; }
+.btn { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: bold; color: white; margin-right: 10px; }
+.btn-read { background: #3498db; }
+.btn-quiz { background: #e67e22; }
+</style>
+
+
+<div class="wrapper">
+
+
+<div class="header">
+<h1>Comprehension: {{ chunk.title }}</h1>
+<p><strong>Lesson:</strong> {{ lesson.title }} | <strong>Unit:</strong> {{ unit.title }}</p>
+</div>
+
+
+{% for passage in passages %}
+<div class="card">
+<h3>{{ passage.title }}</h3>
+<p>{{ passage.description }}</p>
+
+
+<div class="actions">
+<a href="{% url 'content:comprehension:read' chunk.id passage.id %}" class="btn btn-read">Read</a>
+<a href="{% url 'content:comprehension:quiz' chunk.id passage.id %}" class="btn btn-quiz">Quiz</a>
+</div>
+</div>
+{% empty %}
+<p>No comprehension passages available.</p>
+{% endfor %}
+
+
+</div>
+{% endblock %}

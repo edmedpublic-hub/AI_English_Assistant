@@ -1,48 +1,82 @@
-from rest_framework import serializers
+# content/admin/serializers/writing.py
 
+from rest_framework import serializers
 from content.models.writing import (
-    WritingTask,
-    SentenceAttempt,
+    ChunkWritingFocus,
+    UnitWritingTask,
+    WritingPrompt,
+    WritingResponse,
+    WritingAttempt,
+    WritingTestAttempt,
 )
 
-
 # ============================================================
-# WRITING (CONTENT DELIVERY)
+# TEACHING LAYER SERIALIZERS
 # ============================================================
 
-class WritingTaskSerializer(serializers.ModelSerializer):
+class ChunkWritingFocusAdminSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WritingTask
+        model = ChunkWritingFocus
         fields = [
-            "id",
-            "prompt",
-            "difficulty",
+            "id", "chunk", "focus_title", "focus_description",
+            "depth_level", "sequence_order"
+        ]
+
+
+class UnitWritingTaskAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnitWritingTask
+        fields = [
+            "id", "unit", "task_title", "task_description",
+            "stage", "difficulty_level", "order"
         ]
 
 
 # ============================================================
-# WRITING (ATTEMPTS / ANALYTICS)
+# PROMPTS
 # ============================================================
 
-class SentenceAttemptSerializer(serializers.ModelSerializer):
+class WritingPromptAdminSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SentenceAttempt
+        model = WritingPrompt
         fields = [
-            "id",
-            "student_id",
-            "writing_task",
-            "sentence",
-            "ai_score",
-            "feedback",
-            "timestamp",
+            "id", "prompt_text", "expected_keywords", "rubric",
+            "focus", "task"
         ]
-        read_only_fields = ["ai_score", "feedback", "timestamp"]
-        depth = 1
 
-    def validate_ai_score(self, value):
-        """
-        Safety validation for AI scoring range.
-        """
-        if value is not None and not (0 <= value <= 100):
-            raise serializers.ValidationError("AI score must be between 0 and 100.")
-        return value
+
+# ============================================================
+# RESPONSES
+# ============================================================
+
+class WritingResponseAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WritingResponse
+        fields = [
+            "id", "prompt", "student", "response_text",
+            "submitted_at", "score", "feedback"
+        ]
+        read_only_fields = ["submitted_at"]
+
+
+# ============================================================
+# ATTEMPTS & ANALYTICS
+# ============================================================
+
+class WritingAttemptAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WritingAttempt
+        fields = [
+            "id", "response", "attempt_number",
+            "time_spent", "hints_used"
+        ]
+
+
+class WritingTestAttemptAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WritingTestAttempt
+        fields = [
+            "id", "student", "prompt", "rubric_scores",
+            "overall_score", "created_at"
+        ]
+        read_only_fields = ["created_at"]

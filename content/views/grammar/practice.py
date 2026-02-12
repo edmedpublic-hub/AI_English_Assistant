@@ -1,5 +1,3 @@
-# content/views/grammar/practice.py
-
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -19,6 +17,7 @@ def grammar_practice(request, chunk_id, focus_id):
     - Chunk + focus scoped
     - Safe if no questions
     - Test unlocked if ≥1 correct answer
+    - Redirects to Final Test on success
     """
 
     # 1. Resolve core objects
@@ -87,15 +86,24 @@ def grammar_practice(request, chunk_id, focus_id):
                 request,
                 "Please attempt at least one question."
             )
+
         elif any_correct:
             GrammarPracticeAttempt.objects.get_or_create(
                 student=request.user,
                 focus=focus,
             )
+
             messages.success(
                 request,
-                "Practice complete! The Final Test is now unlocked."
+                "Practice complete! Redirecting you to the Final Test."
             )
+
+            return redirect(
+                "content:grammar:test",
+                chunk_id=chunk.id,
+                focus_id=focus.id,
+            )
+
         else:
             messages.warning(
                 request,

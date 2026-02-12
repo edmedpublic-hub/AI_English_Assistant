@@ -1,65 +1,98 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <style>
-  .test-container { max-width: 800px; margin: 0 auto; padding: 20px; }
-  .test-header {
-    background: #2c3e50; color: white; padding: 30px;
-    border-radius: 12px; margin-bottom: 30px; text-align: center;
-  }
-  .test-header h2 { margin: 0; font-size: 1.8rem; }
-  .test-header p { margin-top: 8px; opacity: 0.85; }
+.test-container { max-width: 820px; margin: 40px auto; padding: 20px; }
 
-  .question-card {
-    background: #fff;
-    border: 1px solid #e1e8ed;
-    border-radius: 10px;
-    padding: 25px;
-    margin-bottom: 20px;
-  }
-  .question-text {
-    font-size: 1.15rem;
-    font-weight: 500;
-    margin-bottom: 15px;
-  }
+.breadcrumb {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.breadcrumb a {
+  text-decoration: none;
+  color: #3498db;
+  font-weight: 500;
+}
 
-  .option-label {
-    display: block;
-    padding: 12px 15px;
-    margin-bottom: 8px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  .option-label:hover {
-    background: #f8f9fa;
-    border-color: #3498db;
-  }
-  .option-label input { margin-right: 10px; }
+.test-header {
+  background: #2c3e50;
+  color: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+.test-header h2 { margin: 0; font-size: 1.8rem; }
+.test-header p { margin-top: 8px; opacity: 0.9; }
 
-  textarea, .text-input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-  }
-  textarea { height: 100px; resize: vertical; }
+.question-card {
+  background: #fff;
+  border: 1px solid #e1e8ed;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 22px;
+}
 
-  .btn-finish {
-    width: 100%;
-    margin-top: 20px;
-    padding: 18px;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 1.1rem;
-  }
+.question-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.option-label {
+  display: block;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid #e1e8ed;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.option-label:hover {
+  background: #f7f9fb;
+  border-color: #3498db;
+}
+.option-label input { margin-right: 10px; }
+
+textarea, .text-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccd6dd;
+  font-size: 1rem;
+}
+textarea { height: 110px; resize: vertical; }
+
+.btn-finish {
+  width: 100%;
+  margin-top: 22px;
+  padding: 18px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-finish:hover { background: #c0392b; }
 </style>
 
-<div class="test-container">
+<main class="test-container">
+
+  <!-- Breadcrumb -->
+
+  <div class="breadcrumb">
+    <a href="{% url 'content:chunk_grammar' chunk.id %}">Grammar Hub</a>
+    &nbsp;→&nbsp;
+    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}">Practice</a>
+    &nbsp;→&nbsp;
+    <strong>Final Test</strong>
+  </div>
+
+  <!-- Header -->
 
   <header class="test-header">
     <h2>Grammar Mastery Test</h2>
@@ -67,64 +100,52 @@
     <small>100% score required for mastery</small>
   </header>
 
-  <form method="post">
+  <form method="post" onsubmit="this.querySelector('button').disabled=true;">
     {% csrf_token %}
 
-    {% for q in questions %}
-      <div class="question-card">
-        <p class="question-text">
-          <strong>{{ forloop.counter }}.</strong> {{ q.question_text }}
-        </p>
+```
+{% for q in questions %}
+  <fieldset class="question-card">
+    <legend class="question-text">
+      <strong>{{ forloop.counter }}.</strong> {{ q.question_text }}
+    </legend>
 
-        {% if q.question_type == "mcq" %}
-          {% for option in q.parsed_options %}
-            <label class="option-label">
-              <input
-                type="radio"
-                name="q{{ q.id }}"
-                value="{{ option }}"
-                {% if forloop.first %}required{% endif %}
-              >
-              {{ option }}
-            </label>
-          {% endfor %}
-
-        {% elif q.question_type == "rewrite" %}
-          <textarea name="q{{ q.id }}" required></textarea>
-
-        {% else %}
+    {% if q.question_type == "mcq" %}
+      {% for option in q.parsed_options %}
+        <label class="option-label">
           <input
-            type="text"
+            type="radio"
             name="q{{ q.id }}"
-            class="text-input"
+            value="{{ option }}"
             required
           >
-        {% endif %}
-      </div>
-    {% empty %}
-      <p style="text-align:center;">No test questions available.</p>
-    {% endfor %}
+          {{ option }}
+        </label>
+      {% endfor %}
 
-    {% if questions %}
-      <button
-        type="submit"
-        class="btn-finish"
-        onclick="return confirm('Submit test? Mastery requires 100%.');"
-      >
-        Submit for Evaluation
-      </button>
+    {% elif q.question_type == "rewrite" %}
+      <textarea name="q{{ q.id }}" required></textarea>
+
+    {% else %}
+      <input type="text" name="q{{ q.id }}" class="text-input" required>
     {% endif %}
+  </fieldset>
+{% empty %}
+  <p style="text-align:center;">No test questions available.</p>
+{% endfor %}
+
+{% if questions %}
+  <button
+    type="submit"
+    class="btn-finish"
+    onclick="return confirm('Submit test? Mastery requires 100%.');"
+  >
+    Submit for Evaluation
+  </button>
+{% endif %}
+```
+
   </form>
 
-  <div style="margin-top:30px; text-align:center;">
-    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}">
-      ← Back to Practice
-    </a>
-    &nbsp;|&nbsp;
-    <a href="{% url 'content:chunk_grammar' chunk.id %}">
-      Back to Grammar Hub
-    </a>
-  </div>
-
-</div>
+</main>
 {% endblock %}

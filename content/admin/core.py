@@ -3,7 +3,8 @@ from content.models.core import Textbook, Unit, Lesson, LessonChunk
 
 # Import inlines from other domains
 from content.admin.inlines.grammar import ChunkGrammarFocusInline
-from content.admin.inlines.comprehension import ComprehensionQuestionInline, LessonChunkInline
+from content.admin.inlines.comprehension import ComprehensionQuestionInline
+from content.admin.inlines.core import LessonChunkInline
 # later:
 # from content.admin.inlines.vocabulary import ChunkVocabularyInline
 
@@ -41,7 +42,7 @@ class LessonAdmin(admin.ModelAdmin):
 
     inlines = [
         LessonChunkInline,
-        ComprehensionQuestionInline,
+        
     ]
 
 

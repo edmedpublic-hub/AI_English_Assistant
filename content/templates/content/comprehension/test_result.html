@@ -94,18 +94,12 @@
 
 <div class="result-container">
 
-{% comment %}
-  IMPORTANT PRODUCTION NOTE:
-  - "is_mastered" MUST be computed in the backend view.
-  - Do NOT rely on float equality inside templates.
-{% endcomment %}
-
-{% if is_mastered %}
+{% if score == 100 %}
   <!-- ================= PASS ================= -->
   <div class="result-card mastery-pass">
     <h2>Mastered</h2>
 
-    <div class="score-circle bg-pass" role="img" aria-label="Score {{ score }} percent">
+    <div class="score-circle bg-pass">
       {{ score }}%
     </div>
 
@@ -126,8 +120,8 @@
     </table>
 
     <div class="action-btns">
-      <a href="{% url 'content:chunk_grammar' chunk.id %}" class="btn-action btn-green">
-        Return to Grammar List
+      <a href="{% url 'content:chunk_comprehension' chunk.id %}" class="btn-action btn-green">
+        Return to Comprehension List
       </a>
     </div>
   </div>
@@ -137,7 +131,7 @@
   <div class="result-card mastery-fail">
     <h2>Not Yet Mastered</h2>
 
-    <div class="score-circle bg-fail" role="img" aria-label="Score {{ score }} percent">
+    <div class="score-circle bg-fail">
       {{ score }}%
     </div>
 
@@ -153,7 +147,7 @@
     </table>
 
     <div class="action-btns">
-      <a href="{% url 'content:grammar:practice' chunk.id focus.id %}"
+      <a href="{% url 'content:comprehension:practice' focus.id %}"
          class="btn-action btn-blue">
         Review Practice
       </a>
@@ -173,7 +167,6 @@
           </div>
         {% endif %}
       {% endfor %}
-
     </div>
   {% endif %}
 {% endif %}

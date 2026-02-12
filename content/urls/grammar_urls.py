@@ -1,9 +1,17 @@
 from django.urls import path
-from content.views.grammar import teach, practice, test
+from content.views.grammar import teach, practice, test, hub
 
 app_name = "grammar"
 
 urlpatterns = [
+    # Hub (focus list inside a chunk)
+    path(
+        "",
+        hub.chunk_grammar_view,
+        name="hub",
+    ),
+
+    # Focus-level routes
     path(
         "<int:focus_id>/teach/",
         teach.grammar_teach,

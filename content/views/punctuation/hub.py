@@ -1,13 +1,12 @@
-# content/punctuation/hub.py
+# content/views/punctuation/hub.py
 
 from django.shortcuts import render
-from .core import _chunk_context
+from .core import _chunk_context, get_punctuation_objects
 from content.models.punctuation import (
     ChunkPunctuationFocus,
-    PunctuationAttempt,
+    # PunctuationAttempt removed - we now track progress via TestAttempt
     PunctuationTestAttempt,
 )
-
 
 def chunk_punctuation_view(request, chunk_id):
     """
@@ -15,47 +14,47 @@ def chunk_punctuation_view(request, chunk_id):
     Lists all punctuation focuses for a specific chunk and
     computes progress state per focus efficiently.
     """
-    context = _chunk_context(chunk_id, focus=None)
-    chunk = context["chunk"]
+    # Use our audited core helper to get the chunk
+    chunk, _ = get_punctuation_objects(chunk_id)
+    context = _chunk_context(chunk)
 
-    # 1. Fetch all punctuation focuses (Query 1)
+    # 1. Fetch all punctuation focuses for this chunk
     focuses = list(
         ChunkPunctuationFocus.objects
         .filter(chunk=chunk)
         .select_related("mark")
-        .order_by("id")  # deterministic order
+        .order_by("sequence_order", "depth_level", "id")
     )
 
-    # Default: no progress (safe for anonymous users)
     mastered_focus_ids = set()
-    practiced_focus_ids = set()
+    attempted_focus_ids = set()
 
-    if request.user.is_authenticated:
-        # 2. Fetch Mastered IDs in bulk (Query 2)
-        mastered_focus_ids = set(
-            PunctuationTestAttempt.objects.filter(
-                student=request.user,
-                focus__in=focuses,
-                score_percent=100,
-            ).values_list("focus_id", flat=True).distinct()
-        )
+    if request.user.is_authenticated and focuses:
+        focus_ids = [f.id for f in focuses]
 
-        # 3. Fetch Practiced IDs in bulk (Query 3)
-        practiced_focus_ids = set(
-            PunctuationAttempt.objects.filter(
-                student=request.user,
-                question__focus__in=focuses,
-            ).values_list("question__focus_id", flat=True)
-        )
+        # 2. Fetch all test attempts for these focuses (Query 2)
+        # We pull both mastered and non-mastered attempts in one go
+        user_attempts = PunctuationTestAttempt.objects.filter(
+            student=request.user,
+            focus_id__in=focus_ids
+        ).values_list("focus_id", "is_mastered")
 
-    # Attach progress state (Python-side logic, no DB hits)
+        for f_id, is_mastered in user_attempts:
+            attempted_focus_ids.add(f_id)
+            if is_mastered:
+                mastered_focus_ids.add(f_id)
+
+    # 3. Attach progress state (Pure Python logic)
     for focus in focuses:
-        focus.is_mastered = focus.id in mastered_focus_ids
-        focus.practice_attempted = focus.id in practiced_focus_ids
+        is_mastered = focus.id in mastered_focus_ids
+        is_attempted = focus.id in attempted_focus_ids
 
-        if focus.is_mastered:
+        focus.is_mastered = is_mastered
+        focus.practice_attempted = is_attempted # Backward compatible naming for templates
+
+        if is_mastered:
             focus.progress_state = "mastered"
-        elif focus.practice_attempted:
+        elif is_attempted:
             focus.progress_state = "in_progress"
         else:
             focus.progress_state = "not_started"
@@ -64,11 +63,16 @@ def chunk_punctuation_view(request, chunk_id):
     total_focuses = len(focuses)
     mastered_count = len(mastered_focus_ids)
 
+    mastery_percent = (
+        int((mastered_count / total_focuses) * 100)
+        if total_focuses > 0 else 0
+    )
+
     context.update({
         "focuses": focuses,
         "total_focuses": total_focuses,
         "mastered_count": mastered_count,
-        "mastery_percent": int((mastered_count / total_focuses) * 100) if total_focuses > 0 else 0,
+        "mastery_percent": mastery_percent,
     })
 
     return render(

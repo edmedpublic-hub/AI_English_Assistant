@@ -1,70 +1,75 @@
+## chunk_grammar.html
+
+```html
 {% extends "base.html" %}
 
 {% block content %}
 <style>
-  .chunk-grammar-wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
-  .breadcrumb-nav { margin-bottom: 30px; background: #f8f9fa; padding: 12px; border-radius: 8px; }
-  .breadcrumb-nav a { text-decoration: none; color: #3498db; font-weight: 500; }
+.chunk-wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
+.breadcrumb-nav { margin-bottom: 30px; background: #f8f9fa; padding: 12px; border-radius: 8px; }
+.breadcrumb-nav a { text-decoration: none; color: #3498db; font-weight: 500; }
 
-  .chunk-header { border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 30px; }
-  .page-title { color: #2c3e50; margin-bottom: 5px; }
-  .meta-info { color: #7f8c8d; font-size: 0.95rem; }
+.chunk-header { border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 30px; }
+.page-title { color: #2c3e50; margin-bottom: 5px; }
+.meta-info { color: #7f8c8d; font-size: 0.95rem; }
 
-  .focus-card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  }
+.focus-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
 
-  .focus-title { margin-top: 0; color: #2c3e50; font-size: 1.4rem; }
-  .focus-desc { color: #636e72; line-height: 1.6; margin-bottom: 20px; }
+.focus-title { margin-top: 0; color: #2c3e50; font-size: 1.4rem; }
+.focus-desc { color: #636e72; line-height: 1.6; margin-bottom: 20px; }
 
-  .badge {
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-  }
+.focus-actions { display: flex; gap: 15px; }
 
-  .badge-mastered { background: #2ecc71; color: white; }
-  .badge-progress { background: #f1c40f; color: #2c3e50; }
-  .badge-locked { background: #bdc3c7; color: #2c3e50; }
+.btn-action {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  color: white;
+  transition: 0.2s;
+}
 
-  .focus-actions {
-    display: flex;
-    gap: 15px;
-  }
+.btn-learn { background: #3498db; }
+.btn-practice { background: #f39c12; }
+.btn-test { background: #e74c3c; }
 
-  .btn-action {
-    flex: 1;
-    text-align: center;
-    padding: 12px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    color: white;
-    transition: 0.2s;
-  }
+.btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
 
-  .btn-learn { background: #3498db; }
-  .btn-practice { background: #f39c12; }
-  .btn-test { background: #e74c3c; }
+.progress-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 10px;
+}
 
-  .btn-action:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }
+.progress-not_started { background: #dfe6e9; color: #2d3436; }
+.progress-in_progress { background: #ffeaa7; color: #2d3436; }
+.progress-mastered { background: #55efc4; color: #065f46; }
+
+.summary-box {
+  background: #f1f5f9;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  font-weight: 500;
+}
 </style>
 
-<div class="chunk-grammar-wrapper">
+<div class="chunk-wrapper">
 
   <nav class="breadcrumb-nav">
-    <a href="{% url 'content:chunk_hub' chunk.id %}">
-      &larr; Back to Lesson Hub
-    </a>
+    <a href="{% url 'content:chunk_hub' chunk.id %}">&larr; Back to Lesson Hub</a>
   </nav>
 
   <header class="chunk-header">
@@ -75,57 +80,45 @@
     </p>
   </header>
 
-  <section class="grammar-focus-list">
-    {% for focus in focuses %}
-      <div class="focus-card">
+  <div class="summary-box">
+    Mastered {{ mastered_count }} of {{ total_focuses }} focuses
+    ({{ mastery_percent }}% complete)
+  </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-          <h3 class="focus-title">{{ focus.focus_title }}</h3>
+  {% for focus in focuses %}
+    <div class="focus-card">
+      <h3 class="focus-title">
+        {{ focus.focus_title }}
+        <span class="progress-badge progress-{{ focus.progress_state }}">
+          {{ focus.progress_state|title|cut:"_" }}
+        </span>
+      </h3>
 
-          {% if focus.progress_state == "mastered" %}
-            <span class="badge badge-mastered">✓ MASTERED</span>
-          {% elif focus.progress_state == "in_progress" %}
-            <span class="badge badge-progress">⏳ IN PROGRESS</span>
-          {% else %}
-            <span class="badge badge-locked">🔒 NOT STARTED</span>
-          {% endif %}
-        </div>
+      <p class="focus-desc">{{ focus.focus_description }}</p>
 
-        <p class="focus-desc">{{ focus.focus_description }}</p>
+      <div class="focus-actions">
+        <a href="{% url 'content:grammar:teach' chunk.id focus.id %}" class="btn-action btn-learn">
+          Study Passage
+        </a>
 
-        <div class="focus-actions">
-  <a href="{% url 'content:grammar:teach' chunk.id focus.id %}"
-     class="btn-action btn-learn">
-    Study Theory
-  </a>
+        <a href="{% url 'content:grammar:practice' chunk.id focus.id %}" class="btn-action btn-practice">
+          Practice
+        </a>
 
-  <a href="{% url 'content:grammar:practice' chunk.id focus.id %}"
-     class="btn-action btn-practice">
-    Practice
-  </a>
-
-  {% if focus.practice_attempted %}
-    <a href="{% url 'content:grammar:test' chunk.id focus.id %}"
-       class="btn-action btn-test">
-      Final Test
-    </a>
-  {% else %}
-    <span class="btn-action btn-test"
-          style="opacity: 0.4; cursor: not-allowed;"
-          title="Complete practice to unlock the final test">
-      Final Test 🔒
-    </span>
-  {% endif %}
-</div>
+        {% if focus.practice_attempted %}
+          <a href="{% url 'content:grammar:test' chunk.id focus.id %}" class="btn-action btn-test">
+            Test
+          </a>
+        {% endif %}
       </div>
-    {% empty %}
-      <div style="text-align: center; padding: 60px; background: #fff; border-radius: 12px; border: 1px dashed #ccc;">
-        <p style="color: #95a5a6; font-size: 1.1rem;">
-          No English grammar modules assigned to this chunk yet.
-        </p>
-      </div>
-    {% endfor %}
-  </section>
+    </div>
+  {% empty %}
+    <p>No grammar focuses available for this chunk.</p>
+  {% endfor %}
 
 </div>
 {% endblock %}
+```
+
+
+

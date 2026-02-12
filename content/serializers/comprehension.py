@@ -1,6 +1,6 @@
 from rest_framework import serializers
-
 from content.models.comprehension import (
+    ChunkComprehensionFocus,
     ComprehensionQuestion,
     ComprehensionAttempt,
 )
@@ -11,13 +11,41 @@ from content.models.comprehension import (
 # ============================================================
 
 class ComprehensionQuestionSerializer(serializers.ModelSerializer):
+    parsed_options = serializers.ListField(
+        source="parsed_options", read_only=True
+    )
+
     class Meta:
         model = ComprehensionQuestion
         fields = [
             "id",
-            "question",
-            "answer",
+            "focus",
+            "question_text",
+            "question_type",
+            "difficulty",
+            "options",
+            "parsed_options",
+            "correct_answer",
+            "explanation",
         ]
+        depth = 1
+
+
+class ChunkComprehensionFocusSerializer(serializers.ModelSerializer):
+    questions = ComprehensionQuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ChunkComprehensionFocus
+        fields = [
+            "id",
+            "chunk",
+            "focus_title",
+            "focus_description",
+            "level",
+            "sequence_order",
+            "questions",
+        ]
+        depth = 1
 
 
 # ============================================================
@@ -29,11 +57,12 @@ class ComprehensionAttemptSerializer(serializers.ModelSerializer):
         model = ComprehensionAttempt
         fields = [
             "id",
-            "student_id",
+            "student",
             "question",
-            "answer",
+            "selected_answer",
+            "open_ended_answer",
             "is_correct",
-            "timestamp",
+            "attempted_at",
         ]
-        read_only_fields = ["timestamp"]
+        read_only_fields = ["attempted_at"]
         depth = 1

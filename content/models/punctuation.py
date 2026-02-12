@@ -1,66 +1,46 @@
-# content/models/punctuation.py
-
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 from .core import LessonChunk
-
-
-
 
 # ============================================================
 # KNOWLEDGE LAYER (Global Punctuation Curriculum)
 # ============================================================
 
 class PunctuationMark(models.Model):
-    """
-    A global punctuation symbol.
-    Examples: Period, Comma, Apostrophe, Semicolon, Quotation Marks.
-    """
+    """A global punctuation symbol (e.g., Period, Comma)."""
     name = models.CharField(max_length=100, unique=True)
-    symbol = models.CharField(max_length=10, unique=True)  # e.g. ".", ",", "?"
+    symbol = models.CharField(max_length=10, unique=True)
     description = models.TextField(blank=True)
-
     order_index = models.PositiveIntegerField(
-        help_text="Controls global learning progression"
+        help_text="Global learning sequence. Lower numbers appear first."
     )
+    last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["order_index", "name"]
-        indexes = [
-            models.Index(fields=["symbol"]),
-            models.Index(fields=["order_index"]),
-        ]
+        ordering = ["order_index"]
+        verbose_name = "1. Global Punctuation Mark"
+        indexes = [models.Index(fields=['order_index'])]
 
     def __str__(self):
         return f"{self.name} ({self.symbol})"
 
 
 class PunctuationRule(models.Model):
-    """
-    Rule describing correct use of a punctuation mark.
-    Example: 'Use a comma after introductory phrases.'
-    """
-    mark = models.ForeignKey(
-        PunctuationMark,
-        on_delete=models.CASCADE,
-        related_name="rules"
-    )
+    """Specific grammar rule for a punctuation mark (e.g., 'Use comma before FANBOYS')."""
+    mark = models.ForeignKey(PunctuationMark, on_delete=models.CASCADE, related_name="rules")
     rule_text = models.TextField()
+
+    class Meta:
+        verbose_name = "2. Global Punctuation Rule"
 
     def __str__(self):
         return f"{self.mark.symbol}: {self.rule_text[:60]}"
 
 
 class PunctuationExample(models.Model):
-    """
-    Example sentence illustrating punctuation usage.
-    """
-    rule = models.ForeignKey(
-        PunctuationRule,
-        on_delete=models.CASCADE,
-        related_name="examples"
-    )
+    """Sentence illustrating a rule for the 'Study Theory' section."""
+    rule = models.ForeignKey(PunctuationRule, on_delete=models.CASCADE, related_name="examples")
     sentence = models.TextField()
 
     def __str__(self):
@@ -72,191 +52,120 @@ class PunctuationExample(models.Model):
 # ============================================================
 
 class ChunkPunctuationFocus(models.Model):
-    """
-    How punctuation is taught inside a specific lesson chunk.
-    Enables spiral learning and controlled progression.
-    """
-
-    chunk = models.ForeignKey(
-        LessonChunk,
-        on_delete=models.CASCADE,
-        related_name="punctuation_focuses"
-    )
-    mark = models.ForeignKey(
-        PunctuationMark,
-        on_delete=models.CASCADE,
-        related_name="teaching_instances"
-    )
-
-    focus_title = models.CharField(
-        max_length=200,
-        help_text="e.g. 'Comma in Lists', 'Apostrophe for Possession'"
-    )
+    """Defines what punctuation is taught in a specific Lesson Chunk."""
+    chunk = models.ForeignKey(LessonChunk, on_delete=models.CASCADE, related_name="punctuation_focuses")
+    mark = models.ForeignKey(PunctuationMark, on_delete=models.PROTECT)
+    focus_title = models.CharField(max_length=200, help_text="e.g., Using Commas in a List")
     focus_description = models.TextField()
-
+    
     depth_level = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
-        help_text="1 = Introductory, 5 = Advanced"
+        default=1, validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Difficulty Level (1: Beginner, 5: Advanced)"
     )
     sequence_order = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(3)],
-        help_text="Max 3 punctuation focuses per chunk"
+        default=1, help_text="Order within the chunk (1, 2, or 3)."
     )
 
     class Meta:
-        ordering = ["chunk_id", "sequence_order"]
+        ordering = ["chunk", "sequence_order"]
+        verbose_name = "3. Chunk Punctuation Focus"
+        verbose_name_plural = "3. Chunk Punctuation Focuses"
         constraints = [
-            models.UniqueConstraint(
-                fields=["chunk", "sequence_order"],
-                name="unique_punctuation_order_per_chunk"
-            )
-        ]
-        indexes = [
-            models.Index(fields=["chunk"]),
-            models.Index(fields=["mark"]),
-            models.Index(fields=["depth_level"]),
+            models.UniqueConstraint(fields=["chunk", "mark"], name="unique_punc_mark_per_chunk")
         ]
 
     def __str__(self):
-        return f"{self.chunk} → {self.focus_title}"
+        return f"Chunk {self.chunk.id} - {self.focus_title}"
+
+
+class ChunkPunctuationFocusRule(models.Model):
+    """Links specific global rules to a lesson focus."""
+    focus = models.ForeignKey(ChunkPunctuationFocus, on_delete=models.CASCADE, related_name="focus_rules")
+    rule = models.ForeignKey(PunctuationRule, on_delete=models.PROTECT) # Prevents curriculum deletion errors
+    order = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        ordering = ["order"]
+        verbose_name = "4. Focus-Rule Mapping"
+        constraints = [
+            models.UniqueConstraint(fields=["focus", "rule"], name="unique_rule_per_focus_mapping")
+        ]
 
 
 # ============================================================
-# PRACTICE QUESTIONS
+# PRACTICE & ANALYTICS
 # ============================================================
 
 class PunctuationQuestion(models.Model):
-    """
-    Practice questions tied to a specific chunk-level focus.
-    """
-
-    TYPE_MCQ = "mcq"
-    TYPE_INSERT = "insert"
-    TYPE_FIX = "fix"
-    TYPE_IDENTIFY = "identify"
-
-    QUESTION_TYPES = [
-        (TYPE_MCQ, "Multiple Choice"),
-        (TYPE_INSERT, "Insert Correct Punctuation"),
-        (TYPE_FIX, "Correct the Sentence"),
-        (TYPE_IDENTIFY, "Identify Error"),
+    """Questions for practice/tests."""
+    TYPE_CHOICES = [
+        ('mcq', 'Multiple Choice'), 
+        ('insert', 'Insert Mark'), 
+        ('fix', 'Correct Sentence')
     ]
 
-    focus = models.ForeignKey(
-        ChunkPunctuationFocus,
-        on_delete=models.CASCADE,
-        related_name="questions"
-    )
-
+    focus = models.ForeignKey(ChunkPunctuationFocus, on_delete=models.CASCADE, related_name="questions")
     question_text = models.TextField()
-    options = models.TextField(null=True, blank=True)
+    
+    # Staff-friendly pipe separator '|'
+    options = models.TextField(
+        blank=True, 
+        help_text="For MCQ: Separate options with '|'. Example: Option A | Option B"
+    )
+    
     correct_answer = models.CharField(max_length=255)
-
-    question_type = models.CharField(
-        max_length=30,
-        choices=QUESTION_TYPES,
-        default=TYPE_MCQ
-    )
-    difficulty = models.PositiveSmallIntegerField(
-        default=1,
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )
-    explanation = models.TextField(blank=True)
+    question_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='mcq')
+    explanation = models.TextField(blank=True, help_text="Shown to help the student learn from mistakes.")
 
     class Meta:
-        ordering = ["focus_id", "id"]
-        indexes = [
-            models.Index(fields=["focus"]),
-            models.Index(fields=["question_type"]),
-            models.Index(fields=["difficulty"]),
-        ]
+        verbose_name = "5. Punctuation Question"
 
     def __str__(self):
-        return f"{self.focus.focus_title}: {self.question_text[:60]}"
+        return f"{self.question_type.upper()} - {self.question_text[:40]}"
 
     @property
-    def parsed_options(self):
-        """
-        Return the options field as a clean list.
-        Splits on semicolons and strips whitespace.
-        Safe for templates to iterate.
-        """
-        if not self.options:
-            return []
-        return [opt.strip() for opt in self.options.split(";") if opt.strip()]
-
-
-
-# ============================================================
-# ATTEMPTS & ANALYTICS
-# ============================================================
-
-class PunctuationAttempt(models.Model):
-    """
-    Logs individual student responses for diagnostics.
-    """
-
-    student = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="punctuation_attempts"
-    )
-    question = models.ForeignKey(
-        PunctuationQuestion,
-        on_delete=models.CASCADE,
-        related_name="attempts"
-    )
-
-    selected_answer = models.CharField(max_length=255, blank=True)
-    is_correct = models.BooleanField(default=False)
-    attempted_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-attempted_at"]
-        indexes = [
-            models.Index(fields=["student"]),
-            models.Index(fields=["question"]),
-            models.Index(fields=["is_correct"]),
-        ]
-
-    def __str__(self):
-        return f"{self.student} — Q{self.question_id}"
+    def options_list(self):
+        if self.options:
+        # This looks for the '|' and splits the text into a list
+            return [opt.strip() for opt in self.options.split('|') if opt.strip()]
+        return []
 
 
 class PunctuationTestAttempt(models.Model):
     """
-    Aggregate test result for a punctuation session.
+    Stores EVERY mastery test submission.
+    True LMS design: one row per attempt.
     """
 
-    student = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="punctuation_test_attempts"
-    )
-    focus = models.ForeignKey(
-        ChunkPunctuationFocus,
-        on_delete=models.CASCADE,
-        related_name="test_attempts"
-    )
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    focus = models.ForeignKey(ChunkPunctuationFocus, on_delete=models.CASCADE)
 
     score_percent = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(100)]
     )
-    correct_answers = models.PositiveSmallIntegerField()
-    total_questions = models.PositiveSmallIntegerField()
 
-    questions_snapshot = models.JSONField(
-        help_text="Stores the state of questions at test time for audit"
+    is_mastered = models.BooleanField(
+        default=False,
+        help_text="Automatically True when score_percent == 100."
     )
+
+    total_questions = models.PositiveSmallIntegerField()
+    correct_answers = models.PositiveSmallIntegerField()
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = "Punctuation Test Attempt"
+        verbose_name_plural = "Punctuation Test Attempts"
         indexes = [
-            models.Index(fields=["student"]),
-            models.Index(fields=["focus"]),
+            models.Index(fields=["student", "focus"]),
+            models.Index(fields=["student", "focus", "is_mastered"]),
         ]
 
-    def __str__(self):
-        return f"{self.student} — {self.focus.focus_title} ({self.score_percent}%)"
+    def save(self, *args, **kwargs):
+        """
+        Auto-calculate mastery.
+        """
+        self.is_mastered = (self.score_percent == 100)
+        super().save(*args, **kwargs)

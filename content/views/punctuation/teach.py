@@ -1,45 +1,45 @@
-# content/views/punctuation/teach.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
-from django.shortcuts import render, get_object_or_404
 from .core import _chunk_context, get_punctuation_objects
-from content.models.punctuation import (
-    ChunkPunctuationFocus,
-    PunctuationRule,
-    PunctuationExample,
-)
+from content.models.punctuation import ChunkPunctuationFocusRule, ChunkPunctuationFocus
 
 
+@login_required
 def teach_punctuation_view(request, chunk_id, focus_id):
-    """
-    Teach View:
-    Displays the teaching content for a specific punctuation focus.
-    Includes rules and examples tied to the focus's mark.
-    """
-
-    # Resolve chunk + focus safely
     chunk, focus = get_punctuation_objects(chunk_id, focus_id)
 
-    # Fetch rules for this mark (global curriculum layer)
-    rules = (
-        PunctuationRule.objects
-        .filter(mark=focus.mark)
-        .prefetch_related("examples")
-        .order_by("id")
+    # --- Sequential focus lock ---
+    previous_focus = (
+        ChunkPunctuationFocus.objects
+        .filter(chunk=chunk, sequence_order__lt=focus.sequence_order)
+        .order_by("-sequence_order")
+        .first()
     )
 
-    # Flatten examples for template convenience
-    examples = PunctuationExample.objects.filter(rule__mark=focus.mark).order_by("id")
+    if previous_focus and not previous_focus.is_mastered_by(request.user):
+        messages.warning(
+            request,
+            "Mastery Lock: Complete previous punctuation focus before continuing."
+        )
+        return redirect("content:chunk_punctuation", chunk_id=chunk.id)
 
-    # Build context
-    context = _chunk_context(chunk, focus=focus, mark=focus.mark)
+    # --- Load rules efficiently ---
+    focus_rules = (
+        ChunkPunctuationFocusRule.objects
+        .filter(focus=focus)
+        .select_related("rule")
+        .prefetch_related("rule__examples")
+        .order_by("order")
+    )
+
+    rules = [fr.rule for fr in focus_rules]
+
+    context = _chunk_context(chunk, focus=focus)
     context.update({
-        "focus": focus,
         "rules": rules,
-        "examples": examples,
+        "focus_rules": focus_rules,
     })
 
-    return render(
-        request,
-        "content/punctuation/teach.html",
-        context,
-    )
+    return render(request, "content/punctuation/teach.html", context)

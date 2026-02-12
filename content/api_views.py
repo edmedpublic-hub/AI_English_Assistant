@@ -1,4 +1,5 @@
 # content/api_views.py
+
 from rest_framework import viewsets
 from .models import (
     Textbook,
@@ -6,10 +7,12 @@ from .models import (
     Lesson,
     VocabularyItem,
     VocabularyAttempt,
-    SentenceAttempt,
     GrammarAttempt,
     ComprehensionAttempt,
     PronunciationAttempt,
+    WritingResponse,
+    WritingAttempt,
+    WritingTestAttempt,
 )
 from .serializers import (
     TextbookSerializer,
@@ -17,10 +20,12 @@ from .serializers import (
     LessonSerializer,
     VocabularyItemSerializer,
     VocabularyAttemptSerializer,
-    SentenceAttemptSerializer,
     GrammarAttemptSerializer,
     ComprehensionAttemptSerializer,
     PronunciationAttemptSerializer,
+    WritingResponseAdminSerializer,
+    WritingAttemptAdminSerializer,
+    WritingTestAttemptAdminSerializer,
 )
 
 # -------------------------------
@@ -49,10 +54,6 @@ class VocabularyAttemptViewSet(viewsets.ModelViewSet):
     queryset = VocabularyAttempt.objects.all()
     serializer_class = VocabularyAttemptSerializer
 
-class SentenceAttemptViewSet(viewsets.ModelViewSet):
-    queryset = SentenceAttempt.objects.all()
-    serializer_class = SentenceAttemptSerializer
-
 class GrammarAttemptViewSet(viewsets.ModelViewSet):
     queryset = GrammarAttempt.objects.all()
     serializer_class = GrammarAttemptSerializer
@@ -64,3 +65,18 @@ class ComprehensionAttemptViewSet(viewsets.ModelViewSet):
 class PronunciationAttemptViewSet(viewsets.ModelViewSet):
     queryset = PronunciationAttempt.objects.all()
     serializer_class = PronunciationAttemptSerializer
+
+# -------------------------------
+# Writing ViewSets
+# -------------------------------
+class WritingResponseViewSet(viewsets.ModelViewSet):
+    queryset = WritingResponse.objects.all()
+    serializer_class = WritingResponseAdminSerializer
+
+class WritingAttemptViewSet(viewsets.ModelViewSet):
+    queryset = WritingAttempt.objects.all()
+    serializer_class = WritingAttemptAdminSerializer
+
+class WritingTestAttemptViewSet(viewsets.ModelViewSet):
+    queryset = WritingTestAttempt.objects.all()
+    serializer_class = WritingTestAttemptAdminSerializer
