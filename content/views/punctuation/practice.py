@@ -4,7 +4,7 @@ from django.contrib import messages
 
 from content.models.punctuation import (
     PunctuationQuestion,
-    PunctuationTestAttempt,
+    PunctuationPracticeAttempt,
 )
 from .core import _chunk_context, get_punctuation_objects
 
@@ -35,10 +35,10 @@ def punctuation_practice(request, chunk_id, focus_id):
         return redirect("content:chunk_punctuation", chunk_id=chunk.id)
 
     # 3. Check if already cleared in DB
-    practice_cleared = PunctuationTestAttempt.objects.filter(
-        student=request.user,
+    practice_cleared = PunctuationPracticeAttempt.objects.filter(
+        user=request.user,
         focus=focus,
-        is_mastered=False,   # lightweight marker only
+        is_passed=True,   # lightweight marker only
     ).exists()
 
     # Runtime state for template
@@ -80,10 +80,14 @@ def punctuation_practice(request, chunk_id, focus_id):
 
         elif all_correct:
             # Create lightweight DB marker (ONLY if not exists)
-            PunctuationTestAttempt.objects.get_or_create(
-                student=request.user,
+            PunctuationPracticeAttempt.objects.get_or_create(
+                user=request.user,
                 focus=focus,
-                defaults={"is_mastered": False},
+                attempt_number=1,  # Not incrementing for practice
+                cycle_number=1,    # Not incrementing for practice
+                score_percent=100,  # Perfect score for practice
+                is_passed=True,   # Marker for practice cleared 
+                questions_data={},
             )
 
             messages.success(

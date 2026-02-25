@@ -3,6 +3,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from .core import LessonChunk
 
@@ -28,6 +29,10 @@ class GrammarConcept(models.Model):
     order_index = models.PositiveIntegerField(
         help_text="Controls global progression order across the curriculum"
     )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["order_index", "name"]
@@ -53,6 +58,10 @@ class GrammarRule(models.Model):
 
     rule_text = models.TextField()
     order = models.PositiveSmallIntegerField(default=1)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["order"]
@@ -61,6 +70,9 @@ class GrammarRule(models.Model):
                 fields=["concept", "order"],
                 name="unique_rule_order_per_concept"
             )
+        ]
+        indexes = [
+            models.Index(fields=["concept"]),
         ]
 
     def __str__(self):
@@ -79,6 +91,10 @@ class GrammarExample(models.Model):
 
     sentence = models.TextField()
     order = models.PositiveSmallIntegerField(default=1)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["order"]
@@ -87,6 +103,9 @@ class GrammarExample(models.Model):
                 fields=["rule", "order"],
                 name="unique_example_order_per_rule"
             )
+        ]
+        indexes = [
+            models.Index(fields=["rule"]),
         ]
 
     def __str__(self):
@@ -124,13 +143,17 @@ class ChunkGrammarFocus(models.Model):
     sequence_order = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(3)]
     )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["chunk_id", "sequence_order"]
         constraints = [
             models.UniqueConstraint(
                 fields=["chunk", "sequence_order"],
-                name="unique_focus_order_per_chunk"
+                name="unique_grammar_focus_order_per_chunk"
             )
         ]
         indexes = [
@@ -144,7 +167,7 @@ class ChunkGrammarFocus(models.Model):
 
 
 # ============================================================
-# PRACTICE & TEST QUESTIONS
+# QUESTIONS
 # ============================================================
 
 class GrammarQuestion(models.Model):
@@ -163,6 +186,8 @@ class GrammarQuestion(models.Model):
         (TYPE_REWRITE, "Rewrite Sentence"),
         (TYPE_IDENTIFY, "Identify Part / Function"),
     ]
+    
+    DIFFICULTY_CHOICES = [(i, str(i)) for i in range(1, 6)]
 
     focus = models.ForeignKey(
         ChunkGrammarFocus,
@@ -171,7 +196,11 @@ class GrammarQuestion(models.Model):
     )
 
     question_text = models.TextField()
-    options = models.TextField(blank=True, null=True)
+    options = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="For MCQ: One option per line"
+    )
     correct_answer = models.CharField(max_length=255)
 
     question_type = models.CharField(
@@ -181,11 +210,15 @@ class GrammarQuestion(models.Model):
     )
 
     difficulty = models.PositiveSmallIntegerField(
-        default=1,
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
+        choices=DIFFICULTY_CHOICES,
+        default=3
     )
 
     explanation = models.TextField(blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["focus_id", "id"]
@@ -229,99 +262,17 @@ class GrammarQuestion(models.Model):
 
 
 # ============================================================
-# ATTEMPTS & ANALYTICS
-# ============================================================
-
-class GrammarAttempt(models.Model):
-    """
-    Per-question logging for analytics and diagnostics.
-    """
-
-    student = models.ForeignKey(
-        "auth.User",
-        on_delete=models.CASCADE,
-        related_name="grammar_attempts"
-    )
-
-    question = models.ForeignKey(
-        GrammarQuestion,
-        on_delete=models.CASCADE,
-        related_name="attempts"
-    )
-
-    selected_answer = models.CharField(max_length=255, blank=True)
-    is_correct = models.BooleanField(default=False)
-    attempted_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-attempted_at"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["student", "question"],
-                name="unique_attempt_per_question"
-            )
-        ]
-        indexes = [
-            models.Index(fields=["student"]),
-            models.Index(fields=["question"]),
-            models.Index(fields=["is_correct"]),
-            models.Index(fields=["attempted_at"]),
-        ]
-
-    def __str__(self):
-        return f"{self.student.username} — Q{self.question_id}"
-
-
-class GrammarTestAttempt(models.Model):
-    """
-    Aggregate assessment result for a test session.
-    """
-
-    student = models.ForeignKey(
-        "auth.User",
-        on_delete=models.CASCADE,
-        related_name="grammar_test_attempts"
-    )
-
-    focus = models.ForeignKey(
-        ChunkGrammarFocus,
-        on_delete=models.CASCADE,
-        related_name="test_attempts"
-    )
-
-    score_percent = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(100)]
-    )
-
-    correct_answers = models.PositiveSmallIntegerField()
-    total_questions = models.PositiveSmallIntegerField()
-
-    questions_snapshot = models.JSONField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-        indexes = [
-            models.Index(fields=["student"]),
-            models.Index(fields=["focus"]),
-            models.Index(fields=["created_at"]),
-        ]
-
-    def __str__(self):
-        return f"{self.student.username} — {self.focus.focus_title} ({self.score_percent}%)"
-
-
-# ============================================================
-# PRACTICE TRACKING
+# PRACTICE LAYER (Formative Assessment)
 # ============================================================
 
 class GrammarPracticeAttempt(models.Model):
     """
-    Records whether a student has attempted practice for a grammar focus.
+    Tracks practice attempts for grammar.
+    3 attempts max per cycle, 100% required to pass.
     """
 
-    student = models.ForeignKey(
-        "auth.User",
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="grammar_practice_attempts"
     )
@@ -331,16 +282,193 @@ class GrammarPracticeAttempt(models.Model):
         on_delete=models.CASCADE,
         related_name="practice_attempts"
     )
-
+    
+    # Attempt tracking (3 attempts max per cycle)
+    attempt_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(3)],
+        help_text="1, 2, or 3"
+    )
+    cycle_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+        default=1,
+        help_text="Increments when restarting after 3 failures"
+    )
+    
+    # Performance
+    score_percent = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    is_passed = models.BooleanField(default=False)  # True if score = 100
+    
+    correct_answers = models.PositiveSmallIntegerField()
+    total_questions = models.PositiveSmallIntegerField()
+    
+    # Questions snapshot
+    questions_data = models.JSONField(
+        default=dict,
+        help_text="Stores questions and answers for this attempt"
+    )
+    
+    # Timestamps
     attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("student", "focus")
+        ordering = ["-attempted_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "focus", "cycle_number", "attempt_number"],
+                name="unique_grammar_practice_per_cycle"
+            )
+        ]
         indexes = [
-            models.Index(fields=["student"]),
-            models.Index(fields=["focus"]),
+            models.Index(fields=["user", "focus"]),
+            models.Index(fields=["user", "cycle_number"]),
+            models.Index(fields=["is_passed"]),
+            models.Index(fields=["attempted_at"]),
+        ]
+    
+    def save(self, *args, **kwargs):
+        """Auto-calculate pass status."""
+        self.is_passed = (self.score_percent == 100)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} — {self.focus} — Practice {self.attempt_number} ({self.score_percent}%)"
+
+
+# ============================================================
+# TEST LAYER (Summative Assessment)
+# ============================================================
+
+class GrammarTestAttempt(models.Model):
+    """
+    Aggregate assessment result for a test session.
+    3 attempts max per cycle, 100% required to pass.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="grammar_test_attempts"
+    )
+
+    focus = models.ForeignKey(
+        ChunkGrammarFocus,
+        on_delete=models.CASCADE,
+        related_name="test_attempts"
+    )
+    
+    # Attempt tracking (3 attempts max per cycle)
+    attempt_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(3)],
+        help_text="1, 2, or 3"
+    )
+    cycle_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+        default=1,
+        help_text="Increments when restarting after 3 failures"
+    )
+
+    score_percent = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    is_mastered = models.BooleanField(
+        default=False,
+        help_text="Automatically True when score_percent == 100."
+    )
+
+    correct_answers = models.PositiveSmallIntegerField()
+    total_questions = models.PositiveSmallIntegerField()
+
+    questions_snapshot = models.JSONField(
+        default=dict,
+        help_text="Stores questions and answers for this attempt"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "focus", "cycle_number", "attempt_number"],
+                name="unique_grammar_test_per_cycle"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "focus"]),
+            models.Index(fields=["user", "focus", "is_mastered"]),
+            models.Index(fields=["user", "cycle_number"]),
+            models.Index(fields=["created_at"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        """Auto-calculate mastery."""
+        self.is_mastered = (self.score_percent == 100)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        status = "✓" if self.is_mastered else "✗"
+        return f"{self.user.username} — {self.focus.focus_title} — Attempt {self.attempt_number} ({self.score_percent}%) {status}"
+
+
+# ============================================================
+# PER-QUESTION ATTEMPTS (Detailed Analytics)
+# ============================================================
+
+class GrammarQuestionAttempt(models.Model):
+    """
+    Per-question logging for analytics and diagnostics.
+    Tracks individual question responses within practice/test sessions.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="grammar_question_attempts"
+    )
+
+    question = models.ForeignKey(
+        GrammarQuestion,
+        on_delete=models.CASCADE,
+        related_name="question_attempts"
+    )
+    
+    # Link to practice or test attempt
+    practice_attempt = models.ForeignKey(
+        GrammarPracticeAttempt,
+        on_delete=models.CASCADE,
+        related_name="question_attempts",
+        null=True,
+        blank=True
+    )
+    
+    test_attempt = models.ForeignKey(
+        GrammarTestAttempt,
+        on_delete=models.CASCADE,
+        related_name="question_attempts",
+        null=True,
+        blank=True
+    )
+
+    selected_answer = models.CharField(max_length=255, blank=True)
+    is_correct = models.BooleanField(default=False)
+    
+    time_taken_seconds = models.PositiveIntegerField(null=True, blank=True)
+    
+    # Timestamps
+    attempted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-attempted_at"]
+        indexes = [
+            models.Index(fields=["user", "question"]),
+            models.Index(fields=["user", "is_correct"]),
+            models.Index(fields=["practice_attempt"]),
+            models.Index(fields=["test_attempt"]),
             models.Index(fields=["attempted_at"]),
         ]
 
     def __str__(self):
-        return f"{self.student.username} — Practice attempted ({self.focus.focus_title})"
+        return f"{self.user.username} — Q{self.question_id} — {'✓' if self.is_correct else '✗'}"

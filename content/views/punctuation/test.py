@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
@@ -6,6 +6,7 @@ from content.models.core import LessonChunk
 from content.models.punctuation import (
     PunctuationQuestion,
     PunctuationTestAttempt,
+    PunctuationPracticeAttempt,
     ChunkPunctuationFocus,
 )
 from .core import _chunk_context, get_punctuation_objects
@@ -41,7 +42,11 @@ def punctuation_test(request, chunk_id: int, focus_id: int):
         .first()
     )
 
-    if previous_focus and not previous_focus.is_mastered_by(request.user):
+    if previous_focus and not PunctuationTestAttempt.objects.filter(
+        user=request.user,
+        focus=previous_focus,
+        is_mastered=True
+    ).exists():
         messages.warning(
             request,
             "Mastery Lock: Complete previous punctuation focus first."
@@ -52,7 +57,7 @@ def punctuation_test(request, chunk_id: int, focus_id: int):
     # 3. PERMANENT MASTERY LOCK
     # ------------------------------------------------------------
     existing_mastery = PunctuationTestAttempt.objects.filter(
-        student=request.user,
+        user=request.user,
         focus=focus,
         is_mastered=True,
     ).first()
@@ -65,13 +70,12 @@ def punctuation_test(request, chunk_id: int, focus_id: int):
         )
 
     # ------------------------------------------------------------
-    # 4. PRACTICE CLEARANCE (REAL DB GATE)
+    # 4. PRACTICE CLEARANCE GATE
     # ------------------------------------------------------------
-    practice_cleared = PunctuationTestAttempt.objects.filter(
-        student=request.user,
+    practice_cleared = PunctuationPracticeAttempt.objects.filter(
+        user=request.user,
         focus=focus,
-        is_mastered=False,
-        correct_answers__gt=0,
+        is_passed=True,
     ).exists()
 
     if not practice_cleared:
@@ -79,7 +83,11 @@ def punctuation_test(request, chunk_id: int, focus_id: int):
             request,
             "Complete practice perfectly before attempting the test."
         )
-        return redirect("content:punctuation:practice", chunk_id=chunk.id, focus_id=focus.id)
+        return redirect(
+            "content:punctuation:practice",
+            chunk_id=chunk.id,
+            focus_id=focus.id
+        )
 
     # ------------------------------------------------------------
     # 5. LOAD QUESTIONS
@@ -119,9 +127,27 @@ def punctuation_test(request, chunk_id: int, focus_id: int):
 
         score_percent = int((correct_count / total_questions) * 100) if total_questions else 0
 
-        attempt = PunctuationTestAttempt.objects.create(
-            student=request.user,
+        # Calculate current cycle and attempt number
+        latest = PunctuationTestAttempt.objects.filter(
+            user=request.user,
             focus=focus,
+        ).order_by("-cycle_number", "-attempt_number").first()
+
+        if latest:
+            cycle_number = latest.cycle_number
+            attempt_number = latest.attempt_number + 1
+            if attempt_number > 3:
+                cycle_number += 1
+                attempt_number = 1
+        else:
+            cycle_number = 1
+            attempt_number = 1
+
+        attempt = PunctuationTestAttempt.objects.create(
+            user=request.user,
+            focus=focus,
+            attempt_number=attempt_number,
+            cycle_number=cycle_number,
             total_questions=total_questions,
             correct_answers=correct_count,
             score_percent=score_percent,

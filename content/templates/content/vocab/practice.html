@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vocabulary Practice — Chunk {{ chunk.order }}{% endblock %}
+
+{% block content %}
+
+<div class="practice-wrapper">
+  <!-- Breadcrumb Navigation - FIXED: Removed 'content:' prefix -->
+  <nav class="breadcrumb-nav">
+    <a href="{% url 'chunk_hub' chunk_id=chunk.id %}" class="back-link">
+      &larr; Back to Chunk
+    </a>
+    <span class="separator">|</span>
+    <a href="{% url 'vocabulary:hub' chunk.id %}" class="vocab-link">
+      Vocabulary Hub
+    </a>
+  </nav>
+
+  <!-- Page header -->
+  <h1 class="page-title">Vocabulary Practice — Chunk {{ chunk.order }}</h1>
+  {% if chunk.title %}
+  <p class="chunk-subtitle">{{ chunk.title }}</p>
+  {% endif %}
+
+  <!-- =========================
+       Mastery Stats Summary
+  ========================= -->
+  {% if mastery_stats %}
+  <div class="mastery-quick-stats">
+    <div class="stat-item mastered">
+      <span class="stat-label">Mastered</span>
+      <span class="stat-value">{{ mastery_stats.mastered }}</span>
+    </div>
+    <div class="stat-item learning">
+      <span class="stat-label">Learning</span>
+      <span class="stat-value">{{ mastery_stats.learning }}</span>
+    </div>
+    <div class="stat-item review">
+      <span class="stat-label">Review</span>
+      <span class="stat-value">{{ mastery_stats.review }}</span>
+    </div>
+    <div class="stat-item new">
+      <span class="stat-label">New</span>
+      <span class="stat-value">{{ mastery_stats.new }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Practice Intro with Progress -->
+  <div class="practice-header">
+    <p class="practice-intro">
+      Review the vocabulary using the flip cards below.  
+      <span class="card-count">{{ total_count }} words to practice</span>
+    </p>
+    
+    <!-- Card Navigation Info -->
+    <div class="card-controls">
+      <button class="nav-btn prev-card" disabled>← Previous</button>
+      <span class="card-position">1 / {{ total_count }}</span>
+      <button class="nav-btn next-card">Next →</button>
+    </div>
+  </div>
+
+  <!-- =========================
+       Flashcards
+  ========================= -->
+  <section class="flashcard-section">
+    <div class="flashcards-container">
+      {% for item in vocab_items %}
+        <div class="flashcard {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}" data-id="{{ item.id }}">
+          <!-- Front of Card (Word only) -->
+          <div class="card-face card-front">
+            <div class="word-display">
+              <h2 class="word">{{ item.word }}</h2>
+              <div class="word-meta">
+                <span class="pos">{{ item.get_part_of_speech_display|default:"?" }}</span>
+              </div>
+            </div>
+            <div class="flip-hint">Click to flip →</div>
+            
+            <!-- Mastery badge on front for quick reference -->
+            {% if item.mastery %}
+            <div class="mastery-badge mastery-{{ item.mastery.mastery_level|default:'new' }}">
+              {{ item.mastery.get_mastery_level_display|default:'New' }}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Back of Card (Meaning + Urdu) -->
+          <div class="card-face card-back">
+            <button class="flip-back-btn" aria-label="Flip back">←</button>
+            
+            <div class="card-content">
+              <h3 class="word-small">{{ item.word }}</h3>
+              
+              <div class="meaning-block">
+                <h4>Meaning</h4>
+                <p>{{ item.meaning|default:"No meaning yet." }}</p>
+              </div>
+
+              {% if item.urdu %}
+              <div class="urdu-block">
+                <h4>Urdu Translation</h4>
+                <p class="urdu">{{ item.urdu }}</p>
+              </div>
+              {% endif %}
+
+              {% if item.example_sentence %}
+              <div class="example-block">
+                <h4>Example</h4>
+                <p class="example">{{ item.example_sentence|truncatechars:80 }}</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-state">
+          <p>No vocabulary items yet for this chunk.</p>
+          <a href="{% url 'chunk_hub' chunk_id=chunk.id %}" class="btn-primary">Return to Chunk</a>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <button class="action-btn shuffle-btn" {% if not vocab_items %}disabled{% endif %}>
+      🔀 Shuffle Cards
+    </button>
+    <button class="action-btn reset-flips-btn" {% if not vocab_items %}disabled{% endif %}>
+      ↩️ Reset All Flips
+    </button>
+  </div>
+
+  <!-- =========================
+       Practice Mode Buttons - FIXED: Removed 'content:' prefix
+  ========================= -->
+  <section class="practice-actions">
+    <h3 class="section-title">Choose Practice Mode</h3>
+    <div class="practice-buttons">
+      <a href="{% url 'vocabulary:fill' chunk.id %}" class="practice-btn fill">
+        <span class="btn-icon">📝</span>
+        <span class="btn-text">Fill in the Blanks</span>
+      </a>
+
+      <a href="{% url 'vocabulary:synonyms' chunk.id %}" class="practice-btn synonyms">
+        <span class="btn-icon">🔄</span>
+        <span class="btn-text">Synonyms</span>
+      </a>
+
+      <a href="{% url 'vocabulary:antonyms' chunk.id %}" class="practice-btn antonyms">
+        <span class="btn-icon">↔</span>
+        <span class="btn-text">Antonyms</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- =========================
+       Secondary Actions - FIXED: Removed 'content:' prefix
+  ========================= -->
+  <section class="secondary-actions">
+    <a href="{% url 'vocabulary:test' chunk.id %}" class="btn btn-test">
+      <span class="btn-icon">📋</span>
+      Take Full Test
+    </a>
+    <a href="{% url 'vocabulary:history' chunk.id %}" class="btn btn-history">
+      <span class="btn-icon">📊</span>
+      View History
+    </a>
+  </section>
+
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/vocabulary/css/practice.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'content/vocabulary/js/practice.js' %}"></script>
+{% endblock %}

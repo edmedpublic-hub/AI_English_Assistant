@@ -3,94 +3,76 @@
 {% block content %}
 <div class="comprehension-teach-wrapper" style="max-width: 850px; margin: 0 auto; padding: 20px;">
 
-  <nav class="breadcrumb-nav" style="margin-bottom: 25px;">
+  <!-- Breadcrumb -->
+  <nav style="margin-bottom: 25px;">
     <a href="{% url 'content:chunk_comprehension' chunk.id %}"
        style="text-decoration: none; color: #3498db; font-weight: 500; font-size: 0.9rem;">
       &larr; Back to Comprehension List
     </a>
   </nav>
 
-  <header class="teach-header" style="margin-bottom: 30px; border-left: 5px solid #3498db; padding-left: 20px;">
-    <h1 class="page-title" style="margin: 0; color: #2c3e50;">
+  <!-- Header -->
+  <header style="margin-bottom: 30px; border-left: 5px solid #3498db; padding-left: 20px;">
+    <h1 style="margin: 0; color: #2c3e50;">
       {{ focus.focus_title }}
     </h1>
-    <p class="meta-info" style="color: #7f8c8d; margin-top: 5px;">
-      <strong>Lesson:</strong> {{ lesson.title|default:"N/A" }} |
+
+    <p style="color: #7f8c8d; margin-top: 5px;">
       <strong>Chunk:</strong> {{ chunk.title|default:"N/A" }} |
       <strong>Level:</strong> {{ focus.level|title }}
     </p>
   </header>
 
-  <section class="comprehension-passage card"
-           style="background: #fff; padding: 25px; border: 1px solid #e1e8ed; border-radius: 12px;
-                  box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;">
+  <!-- Reading Passage -->
+  <section style="
+        background: #fff;
+        padding: 25px;
+        border: 1px solid #e1e8ed;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 35px;
+    ">
+
     <h3 style="margin-top: 0; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 10px;">
       Reading Passage
     </h3>
-    <div style="line-height: 1.6; color: #444; font-size: 1.1rem;">
+
+    <div style="line-height: 1.7; color: #444; font-size: 1.08rem;">
       {{ focus.focus_description|linebreaks }}
     </div>
   </section>
 
-  <section class="comprehension-questions-flow">
-    <h3 style="color: #2c3e50; margin-bottom: 20px;">Guided Questions</h3>
-
-    {% for question in questions %}
-      <div class="question-block"
-           style="background: #fff; border: 1px solid #d1d8e0; border-radius: 12px;
-                  overflow: hidden; margin-bottom: 25px;">
-
-        <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #d1d8e0;">
-          <span style="color: #3498db; font-weight: bold; text-transform: uppercase;
-                       font-size: 0.8rem; display: block; margin-bottom: 5px;">
-            Question #{{ forloop.counter }} ({{ question.question_type|title }})
-          </span>
-          <p style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #2c3e50;">
-            {{ question.question_text }}
-          </p>
-        </div>
-
-        <div style="padding: 20px;">
-          {% if question.parsed_options %}
-            <ul style="list-style: none; padding: 0;">
-              {% for opt in question.parsed_options %}
-                <li style="background: #f1f8ff; border-left: 4px solid #3498db;
-                           padding: 12px 15px; margin-bottom: 10px;
-                           border-radius: 0 8px 8px 0;">
-                  {{ opt }}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p style="color: #7f8c8d; font-style: italic;">Open-ended response expected.</p>
-          {% endif %}
-        </div>
-      </div>
-    {% empty %}
-      <p style="text-align: center; color: #95a5a6; padding: 20px;">
-        No comprehension questions available for this focus yet.
-      </p>
-    {% endfor %}
-  </section>
-
-  <div class="action-footer"
-       style="margin-top: 40px; padding: 25px; background: #fdfdfd;
-              border-top: 1px solid #eee; border-radius: 12px;
-              display: flex; justify-content: space-between; align-items: center;">
+  <!-- CTA Footer -->
+  <div style="
+        margin-top: 40px;
+        padding: 25px;
+        background: #fdfdfd;
+        border-top: 1px solid #eee;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    ">
 
     <a href="{% url 'content:chunk_comprehension' chunk.id %}"
        style="color: #7f8c8d; text-decoration: none; font-weight: 500;">
       &larr; Review other focuses
     </a>
 
-    <a href="{% url 'content:comprehension:practice' focus.id %}"
-       class="btn-primary"
-       style="display: inline-block; padding: 15px 35px; background: #27ae60;
-              color: white; text-decoration: none; border-radius: 8px;
-              font-weight: bold; box-shadow: 0 4px 10px rgba(39,174,96,0.3);
-              transition: transform 0.2s;">
+    <a href="{% url 'content:comprehension:practice' chunk.id focus.id %}"
+       style="
+            display: inline-block;
+            padding: 15px 35px;
+            background: #27ae60;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(39,174,96,0.3);
+       ">
       Start Practice &rarr;
     </a>
+
   </div>
 
 </div>

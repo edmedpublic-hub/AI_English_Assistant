@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_GET
 from content.models.core import LessonChunk
+from django.contrib.auth.decorators import login_required
 
 def build_chunk_context(chunk_id):
     """
@@ -18,7 +19,7 @@ def build_chunk_context(chunk_id):
         'unit': unit,
         'textbook': textbook,
     }
-
+@login_required
 @require_GET
 def chunk_hub(request, chunk_id):
     """

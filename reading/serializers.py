@@ -32,7 +32,7 @@ class PronunciationAttemptSerializer(serializers.ModelSerializer):
             "id",
             "lesson",        # ForeignKey to ReadingLesson
             "user",          # If you track which user attempted
-            "spoken_text",   # The transcript captured
+            "spoken",   # The transcript captured
             "score",         # Numeric score
             "feedback",      # Textual feedback
             "created_at",

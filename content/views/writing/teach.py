@@ -4,8 +4,9 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 
 from .core import _chunk_context, get_writing_objects
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def writing_teach(request, chunk_id, focus_id):
     """
     Writing Teaching View:
@@ -24,7 +25,6 @@ def writing_teach(request, chunk_id, focus_id):
     prompts = (
         focus.prompts
         .all()
-        .prefetch_related("responses")
         .order_by("id")
     )
 
@@ -35,7 +35,7 @@ def writing_teach(request, chunk_id, focus_id):
         )
 
     # 3. Base context (FIXED: chunk object, not chunk_id)
-    context = _chunk_context(chunk, focus, task)
+    context = _chunk_context(chunk, focus=focus)
 
     # 4. Teaching-specific context
     context.update({

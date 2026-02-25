@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="writing-practice-wrapper" style="max-width: 850px; margin: 0 auto; padding: 20px;">
+
+  <nav class="breadcrumb-nav" style="margin-bottom: 25px;">
+    <a href="{% url 'content:chunk_writing' chunk.id %}"
+       style="text-decoration: none; color: #3498db; font-weight: 500; font-size: 0.9rem;">
+      &larr; Back to Writing List
+    </a>
+  </nav>
+
+  <header class="practice-header" style="margin-bottom: 30px; border-left: 5px solid #e67e22; padding-left: 20px;">
+    <h1 class="page-title" style="margin: 0; color: #2c3e50;">
+      Practice: {{ focus.focus_title }}
+    </h1>
+    <p class="meta-info" style="color: #7f8c8d; margin-top: 5px;">
+      <strong>Lesson:</strong> {{ lesson.title|default:"N/A" }} |
+      <strong>Chunk:</strong> {{ chunk.title|default:"N/A" }}
+    </p>
+  </header>
+
+  <form method="post" style="margin-bottom: 40px;">
+    {% csrf_token %}
+
+    {% for prompt in prompts %}
+      <div class="prompt-block"
+           style="background: #fff; border: 1px solid #d1d8e0; border-radius: 12px;
+                  overflow: hidden; margin-bottom: 25px;">
+
+        <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #d1d8e0;">
+          <span style="color: #e67e22; font-weight: bold; text-transform: uppercase;
+                       font-size: 0.8rem; display: block; margin-bottom: 5px;">
+            Prompt #{{ forloop.counter }}
+          </span>
+          <p style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #2c3e50;">
+            {{ prompt.prompt_text }}
+          </p>
+        </div>
+
+        <div style="padding: 20px;">
+          <textarea name="p{{ prompt.id }}" rows="4"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc;
+                           font-size: 1rem; line-height: 1.5;">{{ prompt.user_response|default_if_none:"" }}</textarea>
+
+          {% if submitted %}
+            {% if prompt.feedback_ready %}
+              {% if prompt.is_correct %}
+                <p style="color: #27ae60; font-weight: bold; margin-top: 10px;">✓ Correct</p>
+              {% else %}
+                <p style="color: #c0392b; font-weight: bold; margin-top: 10px;">✗ Needs improvement</p>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p style="text-align: center; color: #95a5a6; padding: 20px;">
+        No practice prompts available for this focus yet.
+      </p>
+    {% endfor %}
+
+    <div class="form-footer"
+         style="margin-top: 30px; display: flex; justify-content: flex-end;">
+      <button type="submit"
+              style="padding: 12px 30px; background: #27ae60; color: white;
+                     border: none; border-radius: 8px; font-weight: bold;
+                     box-shadow: 0 4px 10px rgba(39,174,96,0.3);
+                     cursor: pointer; transition: transform 0.2s;">
+        Submit Practice
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

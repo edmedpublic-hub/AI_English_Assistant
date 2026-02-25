@@ -3,7 +3,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from .core import LessonChunk, Unit
+
 
 # ============================================================
 # CHUNK-LEVEL FOCUS (Sentence / Short Writing Tasks)
@@ -29,6 +31,10 @@ class ChunkWritingFocus(models.Model):
     sequence_order = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(3)]
     )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["chunk_id", "sequence_order"]
@@ -77,6 +83,10 @@ class UnitWritingTask(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     order = models.PositiveSmallIntegerField(default=1)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["unit_id", "order"]
@@ -106,6 +116,13 @@ class WritingPrompt(models.Model):
     WritingPrompt represents a specific exercise.
     Must be tied to either a ChunkWritingFocus OR a UnitWritingTask.
     """
+    
+    PROMPT_TYPE_CHOICES = [
+        ('sentence', 'Sentence'),
+        ('paragraph', 'Paragraph'),
+        ('essay', 'Essay'),
+    ]
+
     focus = models.ForeignKey(
         ChunkWritingFocus,
         on_delete=models.CASCADE,
@@ -121,22 +138,37 @@ class WritingPrompt(models.Model):
         blank=True
     )
 
+    prompt_type = models.CharField(
+        max_length=20,
+        choices=PROMPT_TYPE_CHOICES,
+        default='sentence'
+    )
+    
     prompt_text = models.TextField()
+    
+    # For automated checking (optional)
     expected_keywords = models.TextField(
         help_text="Comma-separated keywords expected in student responses",
         blank=True
     )
+    
+    # Rubric for scoring
     rubric = models.JSONField(
-        help_text="Rubric criteria stored as JSON (criterion: max_score)",
-        blank=True,
-        null=True
+        help_text="Rubric criteria stored as JSON: {'criterion': {'max_score': 5, 'description': '...'}}",
+        default=dict,
+        blank=True
     )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["id"]
         indexes = [
             models.Index(fields=["focus"]),
             models.Index(fields=["task"]),
+            models.Index(fields=["prompt_type"]),
         ]
 
     def clean(self):
@@ -149,132 +181,223 @@ class WritingPrompt(models.Model):
 
 
 # ============================================================
-# STUDENT RESPONSES
+# PRACTICE LAYER (Formative Assessment)
 # ============================================================
 
-class WritingResponse(models.Model):
+class WritingPracticeAttempt(models.Model):
     """
-    Stores learner submissions for writing prompts.
+    Tracks practice attempts for writing.
+    3 attempts max per cycle.
+    For chunk-level focuses (sentence-level writing).
     """
-    prompt = models.ForeignKey(
-        WritingPrompt,
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="responses"
+        related_name="writing_practice_attempts"
     )
-    student = models.ForeignKey(
-        "auth.User",
+
+    focus = models.ForeignKey(
+        ChunkWritingFocus,
         on_delete=models.CASCADE,
-        related_name="writing_responses"
-    )
-    response_text = models.TextField()
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    score = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        related_name="practice_attempts",
         null=True,
         blank=True
     )
-    feedback = models.TextField(blank=True)
-
-    class Meta:
-        ordering = ["-submitted_at"]
-        indexes = [
-            models.Index(fields=["student"]),
-            models.Index(fields=["prompt"]),
-            models.Index(fields=["submitted_at"]),
-        ]
-
-    def __str__(self):
-        return f"{self.student.username} → Prompt {self.prompt_id}"
-
-
-# ============================================================
-# ATTEMPTS & ANALYTICS
-# ============================================================
-
-class WritingAttempt(models.Model):
-    """
-    Per-response logging for analytics and diagnostics.
-    """
-    response = models.ForeignKey(
-        WritingResponse,
-        on_delete=models.CASCADE,
-        related_name="attempts"
-    )
-    attempt_number = models.PositiveIntegerField(default=1)
-    time_spent = models.DurationField(null=True, blank=True)
-    hints_used = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ["attempt_number"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["response", "attempt_number"],
-                name="unique_attempt_per_response"
-            )
-        ]
-        indexes = [
-            models.Index(fields=["response"]),
-            models.Index(fields=["attempt_number"]),
-        ]
-
-    def __str__(self):
-        return f"Attempt {self.attempt_number} → Response {self.response_id}"
-
-
-class WritingTestAttempt(models.Model):
-    """
-    Aggregate assessment result for a writing session.
-    Mirrors GrammarTestAttempt.
-    """
-    student = models.ForeignKey(
-        "auth.User",
-        on_delete=models.CASCADE,
-        related_name="writing_test_attempts"
-    )
+    
     prompt = models.ForeignKey(
         WritingPrompt,
         on_delete=models.CASCADE,
-        related_name="test_attempts"
+        related_name="practice_attempts"
     )
-    rubric_scores = models.JSONField(
-        help_text="Stores rubric evaluation scores per criterion"
+    
+    # Attempt tracking (3 attempts max per cycle)
+    attempt_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(3)],
+        help_text="1, 2, or 3"
     )
-    overall_score = models.PositiveSmallIntegerField(
+    cycle_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+        default=1,
+        help_text="Increments when restarting after 3 failures"
+    )
+    
+    # Student's response
+    response_text = models.TextField()
+    
+    # Scoring (for automated/keyword-based scoring)
+    keyword_match_score = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(100)],
-        help_text="Aggregate score percentage for quick reporting"
+        null=True,
+        blank=True,
+        help_text="Automated score based on keyword matching"
     )
+    
+    is_passed = models.BooleanField(
+        default=False,
+        help_text="True if score meets passing threshold (typically 100% for practice)"
+    )
+    
+    # Metadata
+    time_spent_seconds = models.PositiveIntegerField(null=True, blank=True)
+    hints_used = models.PositiveIntegerField(default=0)
+    
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["student", "prompt"],
-                name="unique_test_attempt_per_prompt"
+                fields=["user", "prompt", "cycle_number", "attempt_number"],
+                name="unique_writing_practice_per_cycle"
             )
         ]
         indexes = [
-            models.Index(fields=["student"]),
-            models.Index(fields=["prompt"]),
-            models.Index(fields=["created_at"]),
+            models.Index(fields=["user", "focus"]),
+            models.Index(fields=["user", "prompt"]),
+            models.Index(fields=["user", "cycle_number"]),
+            models.Index(fields=["is_passed"]),
         ]
 
+    def save(self, *args, **kwargs):
+        """Auto-calculate pass status (100% for keyword-based)."""
+        if self.keyword_match_score is not None:
+            self.is_passed = (self.keyword_match_score == 100)
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.student.username} → Prompt {self.prompt_id} ({self.overall_score}%)"
-    
-    
-# content/models/writing.py
+        return f"{self.user.username} — {self.prompt} — Practice {self.attempt_number}"
 
-from django.db import models
-from django.conf import settings
 
-class WritingPracticeAttempt(models.Model):
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    focus = models.ForeignKey("ChunkWritingFocus", on_delete=models.CASCADE)
+# ============================================================
+# TEST LAYER (Summative Assessment)
+# ============================================================
+
+class WritingTestAttempt(models.Model):
+    """
+    Aggregate assessment result for a writing test session.
+    3 attempts max per cycle.
+    For both chunk-level and unit-level tasks.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="writing_test_attempts"
+    )
+
+    # Can be linked to either a focus (chunk-level) or a task (unit-level)
+    focus = models.ForeignKey(
+        ChunkWritingFocus,
+        on_delete=models.CASCADE,
+        related_name="test_attempts",
+        null=True,
+        blank=True
+    )
+    
+    task = models.ForeignKey(
+        UnitWritingTask,
+        on_delete=models.CASCADE,
+        related_name="test_attempts",
+        null=True,
+        blank=True
+    )
+    
+    prompt = models.ForeignKey(
+        WritingPrompt,
+        on_delete=models.CASCADE,
+        related_name="test_attempts"
+    )
+    
+    # Attempt tracking (3 attempts max per cycle)
+    attempt_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(3)],
+        help_text="1, 2, or 3"
+    )
+    cycle_number = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+        default=1,
+        help_text="Increments when restarting after 3 failures"
+    )
+    
+    # Student's response
+    response_text = models.TextField()
+    
+    # Scoring
+    rubric_scores = models.JSONField(
+        help_text="Stores rubric evaluation scores per criterion",
+        default=dict
+    )
+    
+    overall_score = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Aggregate score percentage"
+    )
+    
+    is_mastered = models.BooleanField(
+        default=False,
+        help_text="True if overall_score == 100 (for chunk-level) or >=70 (for unit-level)"
+    )
+    
+    feedback = models.TextField(
+        blank=True,
+        help_text="Teacher or AI feedback"
+    )
+    
+    # Metadata
+    time_spent_seconds = models.PositiveIntegerField(null=True, blank=True)
+    
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("student", "focus")
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "prompt", "cycle_number", "attempt_number"],
+                name="unique_writing_test_per_cycle"
+            ),
+            # Ensure linked to either focus or task, not both
+            models.CheckConstraint(
+                check=(
+                    models.Q(focus__isnull=False, task__isnull=True) |
+                    models.Q(focus__isnull=True, task__isnull=False)
+                ),
+                name="either_focus_or_task"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "focus"]),
+            models.Index(fields=["user", "task"]),
+            models.Index(fields=["user", "prompt"]),
+            models.Index(fields=["user", "cycle_number"]),
+            models.Index(fields=["is_mastered"]),
+            models.Index(fields=["created_at"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        """Auto-calculate mastery based on context."""
+        if self.focus is not None:
+            # Chunk-level: 100% required
+            self.is_mastered = (self.overall_score == 100)
+        else:
+            # Unit-level: 70% required
+            self.is_mastered = (self.overall_score >= 70)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.student.username} → {self.focus.focus_title}"
+        context = self.focus if self.focus else self.task
+        status = "✓" if self.is_mastered else "✗"
+        return f"{self.user.username} — {context} — Test {self.attempt_number} ({self.overall_score}%) {status}"
+
+
+# ============================================================
+# LEGACY MODELS (Consolidated)
+# ============================================================
+
+# The following models are replaced by the above:
+# - WritingResponse (now part of WritingPracticeAttempt/WritingTestAttempt)
+# - WritingAttempt (now integrated with attempt_number/cycle_number)
+# - WritingPracticeAttempt (enhanced version above)
+# - WritingTestAttempt (enhanced version above)

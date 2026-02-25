@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
+.header { margin-bottom: 25px; }
+.card { border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+.actions { margin-top: 15px; }
+.btn { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: bold; color: white; margin-right: 10px; }
+.btn-teach { background: #3498db; }
+.btn-practice { background: #e67e22; }
+.btn-test { background: #27ae60; }
+</style>
+
+<div class="wrapper">
+
+  <div class="header">
+    <h1>Writing: {{ chunk.title }}</h1>
+    <p><strong>Lesson:</strong> {{ lesson.title }} | <strong>Unit:</strong> {{ unit.title }}</p>
+  </div>
+
+  {% for focus in focuses %}
+  <div class="card">
+    <h3>{{ focus.focus_title }}</h3>
+    <p>{{ focus.focus_description }}</p>
+
+    <div class="actions">
+      <a href="{% url 'writing:teach' chunk.id focus.id %}" class="btn btn-teach">Teach</a>
+      <a href="{% url 'writing:practice' chunk.id focus.id %}" class="btn btn-practice">Practice</a>
+      <a href="{% url 'writing:test' chunk.id focus.id %}" class="btn btn-test">Test</a>
+    </div>
+  </div>
+  {% empty %}
+  <p>No writing focuses available.</p>
+  {% endfor %}
+
+</div>
+{% endblock %}

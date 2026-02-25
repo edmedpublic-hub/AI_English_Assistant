@@ -12,7 +12,7 @@ urlpatterns = [
     path("admin/", admin_site.urls),
 
     # API endpoints
-    path("api/content/", include("content.api_urls")),
+    path("api/content/", include("content.api_views.urls")),
     path("api/reading/", include("reading.api_urls")),
     path("api/translation/", include("translation.api_urls")),
     path("api-auth/", include("rest_framework.urls")),  # DRF browsable API login/logout

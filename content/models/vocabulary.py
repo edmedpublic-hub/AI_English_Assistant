@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from .core import Lesson, LessonChunk
 
 # ============================================================
@@ -43,6 +44,10 @@ class VocabularyItem(models.Model):
         default="noun"
     )
 
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         ordering = ["lesson_id", "word"]
         indexes = [
@@ -55,28 +60,57 @@ class VocabularyItem(models.Model):
 
 
 class VocabularyAttempt(models.Model):
-    student_id = models.CharField(max_length=50, db_index=True)
+    """Tracks individual vocabulary practice attempts."""
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="vocabulary_attempts"
+    )
     vocab_item = models.ForeignKey(
         VocabularyItem,
         on_delete=models.CASCADE,
         related_name="attempts"
     )
+    
+    # Context fields
+    session_id = models.CharField(
+        max_length=100,
+        db_index=True,
+        help_text="Groups attempts from same practice session"
+    )
+    cycle_number = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Retry cycle (1, 2, 3, ...)"
+    )
+    
+    # Attempt data
     is_correct = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    time_taken_seconds = models.PositiveIntegerField(null=True, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-timestamp"]
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "vocab_item"]),
+            models.Index(fields=["user", "session_id"]),
+            models.Index(fields=["user", "cycle_number"]),
+        ]
 
     def __str__(self):
-        return f"{self.student_id} — {self.vocab_item.word}"
+        return f"{self.user.username} — {self.vocab_item.word} — {'✓' if self.is_correct else '✗'}"
 
-
-# ============================================================
-# 5b. VOCABULARY MASTERY
-# ============================================================
 
 class StudentVocabMastery(models.Model):
-    student_id = models.CharField(max_length=50, db_index=True)
+    """Tracks current mastery state for vocabulary items."""
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="vocab_mastery_records"
+    )
     vocab_item = models.ForeignKey(
         VocabularyItem,
         on_delete=models.CASCADE,
@@ -95,15 +129,33 @@ class StudentVocabMastery(models.Model):
         choices=MASTERY_LEVELS,
         default="new"
     )
-    last_updated = models.DateTimeField(auto_now=True)
+    
+    # Track history
+    last_practiced = models.DateTimeField(null=True, blank=True)
+    total_attempts = models.PositiveIntegerField(default=0)
+    correct_attempts = models.PositiveIntegerField(default=0)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["student_id", "vocab_item"],
-                name="unique_student_vocab_mastery"
+                fields=["user", "vocab_item"],
+                name="unique_user_vocab_mastery"
             ),
         ]
+        indexes = [
+            models.Index(fields=["user", "mastery_level"]),
+        ]
+
+    @property
+    def accuracy_percentage(self):
+        """Calculate accuracy rate."""
+        if self.total_attempts == 0:
+            return 0
+        return (self.correct_attempts / self.total_attempts) * 100
 
     def __str__(self):
-        return f"{self.student_id} — {self.vocab_item.word} — {self.mastery_level}"
+        return f"{self.user.username} — {self.vocab_item.word} — {self.mastery_level}"

@@ -1,69 +1,193 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from content.models.core import Textbook, Unit, Lesson, LessonChunk
 
-# Import inlines from other domains
+# Import inlines from all domains
 from content.admin.inlines.grammar import ChunkGrammarFocusInline
-from content.admin.inlines.comprehension import ComprehensionQuestionInline
+from content.admin.inlines.punctuation import ChunkPunctuationFocusInline
+from content.admin.inlines.comprehension import ChunkComprehensionFocusInline
+from content.admin.inlines.vocabulary import ChunkVocabularyInline
+from content.admin.inlines.writing import ChunkWritingFocusInline
+from content.admin.inlines.pronunciation import ChunkPronunciationFocusInline
 from content.admin.inlines.core import LessonChunkInline
-# later:
-# from content.admin.inlines.vocabulary import ChunkVocabularyInline
 
 
 # -----------------------------
-# Textbook
+# Textbook Admin
 # -----------------------------
 @admin.register(Textbook)
 class TextbookAdmin(admin.ModelAdmin):
-    list_display = ("title", "class_level")
-    search_fields = ("title", "class_level")
+    list_display = ("title", "class_level", "unit_count", "created_at")
+    list_filter = ("class_level",)
+    search_fields = ("title", "description", "class_level")
     ordering = ("class_level", "title")
+    readonly_fields = ("created_at", "updated_at")
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("title", "class_level", "description")
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+    
+    def unit_count(self, obj):
+        count = obj.units.count()
+        return format_html('<b>{}</b> unit{}', count, 's' if count != 1 else '')
+    unit_count.short_description = "Units"
 
 
 # -----------------------------
-# Unit
+# Unit Admin
 # -----------------------------
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
-    list_display = ("title", "number", "textbook")
+    list_display = ("title", "number", "textbook", "lesson_count", "created_at")
     list_filter = ("textbook",)
-    search_fields = ("title", "textbook__title")
+    search_fields = ("title", "textbook__title", "description")
     ordering = ("textbook", "number")
+    readonly_fields = ("created_at", "updated_at")
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("textbook", "number", "title", "description")
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+    
+    def lesson_count(self, obj):
+        count = obj.lessons.count()
+        return format_html('<b>{}</b> lesson{}', count, 's' if count != 1 else '')
+    lesson_count.short_description = "Lessons"
 
 
 # -----------------------------
-# Lesson
+# Lesson Admin
 # -----------------------------
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ("title", "number", "unit")
-    list_filter = ("unit",)
-    search_fields = ("title", "unit__title", "unit__textbook__title")
+    list_display = ("title", "number", "unit", "chunk_count", "has_audio")
+    list_filter = ("unit__textbook", "unit")
+    search_fields = ("title", "english_text", "unit__title")
     ordering = ("unit", "number")
-
-    inlines = [
-        LessonChunkInline,
-        
-    ]
+    readonly_fields = ("created_at", "updated_at")
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("unit", "number", "title")
+        }),
+        ("Content", {
+            "fields": ("english_text", "translated_text", "audio_file"),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+    
+    inlines = [LessonChunkInline]
+    
+    def chunk_count(self, obj):
+        count = obj.chunks.count()
+        return format_html('<b>{}</b> chunk{}', count, 's' if count != 1 else '')
+    chunk_count.short_description = "Chunks"
+    
+    def has_audio(self, obj):
+        return bool(obj.audio_file)
+    has_audio.boolean = True
+    has_audio.short_description = "Audio"
 
 
 # -----------------------------
-# LessonChunk (your main editor)
+# LessonChunk Admin (Your Main Editor)
 # -----------------------------
 @admin.register(LessonChunk)
 class LessonChunkAdmin(admin.ModelAdmin):
-    list_display = ("lesson", "order", "short_text")
+    list_display = ("id", "lesson", "order", "text_preview", "focus_count", "audio_status")
+    list_filter = ("lesson__unit__textbook", "lesson__unit", "lesson")
     ordering = ("lesson", "order")
-
-    # ✅ Required for autocomplete_fields in ChunkGrammarFocusAdmin
-    search_fields = ("english_text", "lesson__title", "lesson__unit__title")
-
-    # This is the key: everything flows through the chunk
+    search_fields = ("english_text", "translated_text", "lesson__title")
+    readonly_fields = ("created_at", "updated_at", "focus_count_display")
+    
+    fieldsets = (
+        ("Lesson Context", {
+            "fields": ("lesson", "order")
+        }),
+        ("Content", {
+            "fields": (
+                "english_text", 
+                "translated_text", 
+                "audio_file", 
+                "translated_audio_file"
+            ),
+        }),
+        ("Metadata", {
+            "fields": ("estimated_time_minutes", "focus_count_display"),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+    
+    # ALL domain inlines - this is where the magic happens
     inlines = [
         ChunkGrammarFocusInline,
-        # ChunkVocabularyInline will go here next
+        ChunkPunctuationFocusInline,
+        ChunkComprehensionFocusInline,
+        ChunkVocabularyInline,
+        ChunkWritingFocusInline,
+        ChunkPronunciationFocusInline,
     ]
-
-    def short_text(self, obj):
-        return obj.english_text[:60]
-
-    short_text.short_description = "Chunk preview"
+    
+    def text_preview(self, obj):
+        return obj.english_text[:60] + "..." if len(obj.english_text) > 60 else obj.english_text
+    text_preview.short_description = "Preview"
+    
+    def focus_count(self, obj):
+        """Count total focuses across all domains"""
+        count = (
+            obj.grammar_focuses.count() +
+            obj.punctuation_focuses.count() +
+            obj.comprehension_focuses.count() +
+            obj.vocab_items.count() +
+            obj.writing_focuses.count() +
+            obj.pronunciation_focuses.count()
+        )
+        return count
+    focus_count.short_description = "Total Focuses"
+    
+    def focus_count_display(self, obj):
+        """Detailed breakdown of focuses by domain"""
+        counts = {
+            'Grammar': obj.grammar_focuses.count(),
+            'Punctuation': obj.punctuation_focuses.count(),
+            'Comprehension': obj.comprehension_focuses.count(),
+            'Vocabulary': obj.vocab_items.count(),
+            'Writing': obj.writing_focuses.count(),
+            'Pronunciation': obj.pronunciation_focuses.count(),
+        }
+        
+        html = "<table style='width:100%'>"
+        for domain, count in counts.items():
+            color = "green" if count > 0 else "gray"
+            html += f"<tr><td>{domain}:</td><td style='color:{color};font-weight:bold'>{count}</td></tr>"
+        html += "</table>"
+        return format_html(html)
+    focus_count_display.short_description = "Focuses by Domain"
+    
+    def audio_status(self, obj):
+        if obj.audio_file and obj.translated_audio_file:
+            return format_html('<span style="color:green;">✓ Both</span>')
+        elif obj.audio_file:
+            return format_html('<span style="color:orange;">English only</span>')
+        elif obj.translated_audio_file:
+            return format_html('<span style="color:orange;">Urdu only</span>')
+        else:
+            return format_html('<span style="color:red;">✗ No audio</span>')
+    audio_status.short_description = "Audio"

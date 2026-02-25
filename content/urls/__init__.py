@@ -1,20 +1,14 @@
 # content/urls/__init__.py
 
-import importlib
-import pkgutil
+from django.urls import include, path
 
 app_name = "content"
 
-urlpatterns = []
-
-package = __name__  # "content.urls"
-
-for _, module_name, is_pkg in pkgutil.iter_modules(__path__):
-    # Skip private files and __init__
-    if module_name.startswith("_"):
-        continue
-
-    module = importlib.import_module(f"{package}.{module_name}")
-
-    if hasattr(module, "urlpatterns"):
-        urlpatterns.extend(module.urlpatterns)
+urlpatterns = [
+    # --------------------------------------------------
+    # CORE (textbooks, units, lessons, chunks)
+    # All chunk-level domain URLs are nested inside core
+    # via chunk_urls.py
+    # --------------------------------------------------
+    path('', include('content.urls.core')),
+]

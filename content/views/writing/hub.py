@@ -7,8 +7,9 @@ from content.models.writing import (
     WritingPracticeAttempt,
     WritingTestAttempt,
 )
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def chunk_writing_view(request, chunk_id):
     """
     Writing Hub:
@@ -23,8 +24,7 @@ def chunk_writing_view(request, chunk_id):
     focuses = list(
         ChunkWritingFocus.objects
         .filter(chunk=chunk)
-        .select_related("concept")  # optional, if concept-like field exists
-        .order_by("id")  # deterministic order
+        .order_by("sequence_order")  # deterministic order
     )
 
     # Default: no progress (safe for anonymous users)
@@ -35,7 +35,7 @@ def chunk_writing_view(request, chunk_id):
         # 2. Fetch Mastered IDs in bulk (Query 2)
         mastered_focus_ids = set(
             WritingTestAttempt.objects.filter(
-                student=request.user,
+                user=request.user,
                 focus__in=focuses,
                 overall_score=100,
             ).values_list("focus_id", flat=True).distinct()
@@ -44,7 +44,7 @@ def chunk_writing_view(request, chunk_id):
         # 3. Fetch Practiced IDs in bulk (Query 3)
         practiced_focus_ids = set(
             WritingPracticeAttempt.objects.filter(
-                student=request.user,
+                user=request.user,
                 focus__in=focuses,
             ).values_list("focus_id", flat=True)
         )

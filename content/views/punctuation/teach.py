@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from content.models.punctuation import ChunkPunctuationFocusRule, ChunkPunctuationFocus, PunctuationTestAttempt
 
 from .core import _chunk_context, get_punctuation_objects
-from content.models.punctuation import ChunkPunctuationFocusRule, ChunkPunctuationFocus
+from content.models.punctuation import ChunkPunctuationFocusRule, ChunkPunctuationFocus, PunctuationTestAttempt
 
 
 @login_required
@@ -18,7 +19,11 @@ def teach_punctuation_view(request, chunk_id, focus_id):
         .first()
     )
 
-    if previous_focus and not previous_focus.is_mastered_by(request.user):
+    if previous_focus and not PunctuationTestAttempt.objects.filter(
+        user=request.user,
+        focus=previous_focus,
+        is_mastery=True
+    ).exists():
         messages.warning(
             request,
             "Mastery Lock: Complete previous punctuation focus before continuing."

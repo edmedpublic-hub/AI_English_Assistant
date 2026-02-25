@@ -23,10 +23,9 @@ def grammar_test(request, chunk_id, focus_id):
     Guarantees:
     - Practice must be completed before test access
     - Cooldown enforced after failed attempt
-    - Unlimited retries allowed
+    - 3 attempts max per cycle with auto cycle increment
     - Mastery defined as 100%
     - Safe against empty question sets
-    - No template arithmetic required (future-proof)
     """
 
     # ---------------------------------------------------------
@@ -39,7 +38,7 @@ def grammar_test(request, chunk_id, focus_id):
     # 2. HARD PRACTICE GATE
     # ---------------------------------------------------------
     if not GrammarPracticeAttempt.objects.filter(
-        student=request.user,
+        user=request.user,
         focus=focus,
     ).exists():
         messages.warning(
@@ -53,20 +52,51 @@ def grammar_test(request, chunk_id, focus_id):
         )
 
     # ---------------------------------------------------------
-    # 3. COOLDOWN AFTER FAILED ATTEMPT
+    # 3. PERMANENT MASTERY LOCK
     # ---------------------------------------------------------
-    last_attempt = (
+    if GrammarTestAttempt.objects.filter(
+        user=request.user,
+        focus=focus,
+        is_mastered=True,
+    ).exists():
+        messages.success(request, "You have already mastered this grammar focus.")
+        return redirect("content:chunk_grammar", chunk_id=chunk.id)
+
+    # ---------------------------------------------------------
+    # 4. CYCLE & ATTEMPT TRACKING
+    # ---------------------------------------------------------
+    latest = (
         GrammarTestAttempt.objects.filter(
-            student=request.user,
+            user=request.user,
             focus=focus,
         )
-        .order_by("-created_at")
+        .order_by("-cycle_number", "-attempt_number")
         .first()
     )
 
-    if last_attempt and last_attempt.score_percent < 100:
+    if latest:
+        attempts_in_cycle = GrammarTestAttempt.objects.filter(
+            user=request.user,
+            focus=focus,
+            cycle_number=latest.cycle_number,
+        ).count()
+
+        if attempts_in_cycle >= 3:
+            cycle_number = latest.cycle_number + 1
+            attempt_number = 1
+        else:
+            cycle_number = latest.cycle_number
+            attempt_number = attempts_in_cycle + 1
+    else:
+        cycle_number = 1
+        attempt_number = 1
+
+    # ---------------------------------------------------------
+    # 5. COOLDOWN AFTER FAILED ATTEMPT
+    # ---------------------------------------------------------
+    if latest and not latest.is_mastered:
         cooldown = timedelta(minutes=10)
-        elapsed = timezone.now() - last_attempt.created_at
+        elapsed = timezone.now() - latest.created_at
 
         if elapsed < cooldown:
             remaining_seconds = int((cooldown - elapsed).total_seconds())
@@ -76,43 +106,34 @@ def grammar_test(request, chunk_id, focus_id):
                 request,
                 f"Cooldown active. You can retry in {minutes_left} minute(s).",
             )
-            return redirect(
-                "content:chunk_grammar",
-                chunk_id=chunk.id,
-            )
+            return redirect("content:chunk_grammar", chunk_id=chunk.id)
 
     # ---------------------------------------------------------
-    # 4. LOAD QUESTIONS (content safety)
+    # 6. LOAD QUESTIONS
     # ---------------------------------------------------------
-    questions = GrammarQuestion.objects.filter(
-        focus=focus
-    ).order_by("id")
-
+    questions = GrammarQuestion.objects.filter(focus=focus).order_by("id")
     total_questions = questions.count()
 
     if total_questions == 0:
         messages.error(request, "This test is not yet available.")
-        return redirect(
-            "content:chunk_grammar",
-            chunk_id=chunk.id,
-        )
+        return redirect("content:chunk_grammar", chunk_id=chunk.id)
 
     # ---------------------------------------------------------
-    # 5. GET → Render test form
+    # 7. GET → Render test form
     # ---------------------------------------------------------
     if request.method == "GET":
         context = _chunk_context(chunk, focus, concept)
         context.update({
             "questions": questions,
+            "attempt_number": attempt_number,
+            "cycle_number": cycle_number,
+            "attempts_remaining": 3 - (attempt_number - 1),
+            "last_attempt_score": latest.score_percent if latest else None,
         })
-        return render(
-            request,
-            "content/grammar/test.html",
-            context,
-        )
+        return render(request, "content/grammar/test.html", context)
 
     # ---------------------------------------------------------
-    # 6. POST → Grade submission
+    # 8. POST → Grade submission
     # ---------------------------------------------------------
     correct_count = 0
     results = []
@@ -139,15 +160,16 @@ def grammar_test(request, chunk_id, focus_id):
             "is_correct": is_correct,
         }
 
-    # Guarded percentage calculation
     score_percent = int((correct_count / total_questions) * 100) if total_questions else 0
 
     # ---------------------------------------------------------
-    # 7. Persist attempt (append-only for analytics)
+    # 9. Persist attempt
     # ---------------------------------------------------------
-    GrammarTestAttempt.objects.create(
-        student=request.user,
+    attempt = GrammarTestAttempt.objects.create(
+        user=request.user,
         focus=focus,
+        attempt_number=attempt_number,
+        cycle_number=cycle_number,
         score_percent=score_percent,
         correct_answers=correct_count,
         total_questions=total_questions,
@@ -155,45 +177,47 @@ def grammar_test(request, chunk_id, focus_id):
     )
 
     # ---------------------------------------------------------
-    # 8. User feedback messaging
+    # 10. User feedback messaging
     # ---------------------------------------------------------
-    if score_percent == 100:
+    if attempt.is_mastered:
         messages.success(
             request,
-            "Perfect! You have mastered this grammar topic.",
-        )
-    elif score_percent >= 80:
-        messages.info(
-            request,
-            f"Very close ({score_percent}%). Review and try again.",
-        )
-    elif score_percent >= 50:
-        messages.warning(
-            request,
-            f"You scored {score_percent}%. More practice is recommended.",
+            f"🎉 Perfect! You have mastered this grammar topic! "
+            f"(Attempt {attempt_number}/3, Cycle {cycle_number})",
         )
     else:
-        messages.error(
-            request,
-            f"Score: {score_percent}%. Please revisit the Teach section.",
-        )
+        attempts_remaining = 3 - attempt_number
+        if attempts_remaining > 0:
+            messages.warning(
+                request,
+                f"You scored {score_percent}%. Need 100% to master. "
+                f"Attempts remaining in cycle {cycle_number}: {attempts_remaining}",
+            )
+        else:
+            messages.warning(
+                request,
+                f"You scored {score_percent}%. All 3 attempts used in cycle {cycle_number}. "
+                f"A new cycle will start on your next attempt.",
+            )
 
     # ---------------------------------------------------------
-    # 9. Render result page (NO template math required)
+    # 11. Render result page
     # ---------------------------------------------------------
     mistakes = total_questions - correct_count
 
     context = _chunk_context(chunk, focus, concept)
     context.update({
+        "attempt": attempt,
         "score": score_percent,
         "correct": correct_count,
         "total": total_questions,
-        "mistakes": mistakes,   # ← prevents template crash forever
+        "mistakes": mistakes,
         "results": results,
+        "attempt_number": attempt_number,
+        "cycle_number": cycle_number,
+        "is_mastered": attempt.is_mastered,
+        "attempts_remaining": 3 - attempt_number,
+        "next_attempt_cycle": cycle_number + (1 if attempt_number >= 3 else 0),
     })
 
-    return render(
-        request,
-        "content/grammar/test_result.html",
-        context,
-    )
+    return render(request, "content/grammar/test_result.html", context)

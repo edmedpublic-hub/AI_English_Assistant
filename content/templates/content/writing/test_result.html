@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .result-container {
+    max-width: 750px;
+    margin: 40px auto;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .result-card {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    border-top: 8px solid;
+  }
+
+  .mastery-pass { border-color: #27ae60; }
+  .mastery-pass h2 { color: #27ae60; }
+
+  .mastery-fail { border-color: #e74c3c; }
+  .mastery-fail h2 { color: #e74c3c; }
+
+  .score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #ffffff;
+  }
+
+  .bg-pass { background: #27ae60; }
+  .bg-fail { background: #e74c3c; }
+
+  .stats-table {
+    width: 100%;
+    margin: 25px 0;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .stats-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 1.05rem;
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 14px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .btn-green { background: #27ae60; color: #fff; }
+  .btn-blue { background: #3498db; color: #fff; }
+
+  .review-section {
+    margin-top: 40px;
+    text-align: left;
+  }
+
+  .error-item {
+    background: #fff;
+    border-left: 5px solid #e74c3c;
+    padding: 15px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 15px;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 40px;
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+  }
+</style>
+
+<div class="result-container">
+
+{% if score == 100 %}
+  <!-- ================= PASS ================= -->
+  <div class="result-card mastery-pass">
+    <h2>Mastered</h2>
+
+    <div class="score-circle bg-pass">
+      {{ score }}%
+    </div>
+
+    <p>
+      You have fully mastered
+      <strong>{{ focus.focus_title }}</strong>.
+    </p>
+
+    <table class="stats-table">
+      <tr>
+        <td>Correct Responses</td>
+        <td><strong>{{ correct }}</strong></td>
+      </tr>
+      <tr>
+        <td>Total Prompts</td>
+        <td><strong>{{ total }}</strong></td>
+      </tr>
+    </table>
+
+    <div class="action-btns">
+      <a href="{% url 'content:chunk_writing' chunk.id %}" class="btn-action btn-green">
+        Return to Writing List
+      </a>
+    </div>
+  </div>
+
+{% else %}
+  <!-- ================= FAIL ================= -->
+  <div class="result-card mastery-fail">
+    <h2>Not Yet Mastered</h2>
+
+    <div class="score-circle bg-fail">
+      {{ score }}%
+    </div>
+
+    <table class="stats-table">
+      <tr>
+        <td>Correct</td>
+        <td><strong>{{ correct }} / {{ total }}</strong></td>
+      </tr>
+      <tr>
+        <td>Mistakes</td>
+        <td><strong>{{ mistakes }}</strong></td>
+      </tr>
+    </table>
+
+    <div class="action-btns">
+      <a href="{% url 'writing:practice' chunk.id focus.id %}"
+         class="btn-action btn-blue">
+        Review Practice
+      </a>
+    </div>
+  </div>
+
+  {% if results %}
+    <div class="review-section">
+      <h3>Review Your Mistakes</h3>
+
+      {% for res in results %}
+        {% if not res.is_correct %}
+          <div class="error-item">
+            <p><strong>Prompt:</strong> {{ res.prompt.prompt_text }}</p>
+            <p><strong>Your Response:</strong> {{ res.user_response|default:"—" }}</p>
+            {% if res.prompt.expected_keywords %}
+              <p><strong>Expected Keywords:</strong> {{ res.prompt.expected_keywords }}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endif %}
+
+<a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
+  ← Back to Lesson Hub
+</a>
+
+</div>
+{% endblock %}

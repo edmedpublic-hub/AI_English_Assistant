@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vocabulary — Chunk {{ chunk.order }}{% endblock %}
+
+{% block content %}
+<div class="vocabulary-hub" data-chunk-id="{{ chunk.id }}" data-total-items="{{ vocab_items|length }}">
+
+  <!-- Back Navigation - FIXED: Removed content: prefix -->
+  <div class="hub-nav">
+    <a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
+      Back to Chunk
+    </a>
+  </div>
+
+  <!-- Header -->
+  <header class="hub-header">
+    <h1>Vocabulary for Chunk {{ chunk.order }}</h1>
+    {% if chunk.title %}
+    <p class="chunk-title">{{ chunk.title }}</p>
+    {% endif %}
+  </header>
+
+  <!-- Progress Section -->
+  <div class="progress-section">
+    <div class="progress-stats">
+      <span class="progress-text"><span class="current-count">1</span> of <span class="total-count">{{ vocab_items|length }}</span> items</span>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Mastery Stats -->
+  {% if mastery_stats %}
+  <div class="mastery-stats">
+    <div class="stat-item stat-new">New: <span>{{ mastery_stats.new }}</span></div>
+    <div class="stat-item stat-learning">Learning: <span>{{ mastery_stats.learning }}</span></div>
+    <div class="stat-item stat-review">Review: <span>{{ mastery_stats.review }}</span></div>
+    <div class="stat-item stat-mastered">Mastered: <span>{{ mastery_stats.mastered }}</span></div>
+  </div>
+  {% endif %}
+
+  <!-- Slideshow Container -->
+  <div class="slideshow-container">
+    {% for vocab in vocab_items %}
+    <div class="slideshow-card {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+      
+      <div class="card-content">
+        <!-- Word Header -->
+        <div class="word-header">
+          <h2 class="word">{{ vocab.word }}</h2>
+          <div class="word-meta">
+            <span class="urdu">{{ vocab.urdu|default:"(translation pending)" }}</span>
+            <span class="pos">{{ vocab.get_part_of_speech_display|default:"?" }}</span>
+          </div>
+        </div>
+
+        <!-- MEANING - Full width -->
+        <div class="meaning-block">
+          <h3>Meaning</h3>
+          <p>{{ vocab.meaning|default:"No meaning yet." }}</p>
+        </div>
+
+        <!-- SYNONYMS | ANTONYMS - Side by side -->
+        <div class="synonyms-antonyms-row">
+          {% if vocab.synonyms %}
+          <div class="synonyms-block">
+            <h3>Synonyms</h3>
+            <p>{{ vocab.synonyms }}</p>
+          </div>
+          {% endif %}
+          
+          {% if vocab.antonyms %}
+          <div class="antonyms-block">
+            <h3>Antonyms</h3>
+            <p>{{ vocab.antonyms }}</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- EXAMPLES - Full width -->
+        {% if vocab.example_sentence %}
+        <div class="examples-block">
+          <h3>Examples</h3>
+          <ul>
+            {% for line in vocab.example_sentence.splitlines %}
+              {% if line.strip %}
+                <li>{{ line }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if vocab.mastery_level %}
+        <div class="mastery-badge" data-level="{{ vocab.mastery_level }}">
+          {{ vocab.get_mastery_level_display }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <p>No vocabulary items yet for this chunk.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Navigation Controls -->
+  <div class="slideshow-nav">
+    <button class="nav-btn prev-btn" {% if vocab_items|length <= 1 %}disabled{% endif %}>← Previous</button>
+    <div class="nav-progress">
+      <span class="current-card">1</span>/<span class="total-cards">{{ vocab_items|length }}</span>
+    </div>
+    <button class="nav-btn next-btn" {% if vocab_items|length <= 1 %}disabled{% endif %}>Next →</button>
+  </div>
+
+  <!-- Practice Link - FIXED: Removed content: prefix -->
+  <div class="practice-link">
+    <a href="{% url 'content:practice' chunk.id %}" class="btn-practice">
+      Practice These Words
+    </a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/vocabulary/css/hub.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'content/vocabulary/js/hub.js' %}"></script>
+{% endblock %}

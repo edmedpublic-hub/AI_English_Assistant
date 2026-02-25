@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .test-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .test-header {
+    background: #2c3e50; color: white; padding: 30px;
+    border-radius: 12px; margin-bottom: 30px; text-align: center;
+  }
+  .test-header h2 { margin: 0; font-size: 1.8rem; }
+  .test-header p { margin-top: 8px; opacity: 0.85; }
+
+  .prompt-card {
+    background: #fff;
+    border: 1px solid #e1e8ed;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+  }
+  .prompt-text {
+    font-size: 1.15rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+  }
+
+  textarea, .text-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  textarea { height: 120px; resize: vertical; }
+
+  .btn-finish {
+    width: 100%;
+    margin-top: 20px;
+    padding: 18px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+</style>
+
+<div class="test-container">
+
+  <header class="test-header">
+    <h2>Writing Mastery Test</h2>
+    <p>{{ focus.focus_title }}</p>
+    <small>100% score required for mastery</small>
+  </header>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% for prompt in prompts %}
+      <div class="prompt-card">
+        <p class="prompt-text">
+          <strong>{{ forloop.counter }}.</strong> {{ prompt.prompt_text }}
+        </p>
+
+        {% if prompt.expected_keywords %}
+          <p style="color:#7f8c8d; font-style: italic;">
+            Expected keywords: {{ prompt.expected_keywords }}
+          </p>
+        {% endif %}
+
+        <textarea name="p{{ prompt.id }}" required></textarea>
+      </div>
+    {% empty %}
+      <p style="text-align:center;">No test prompts available.</p>
+    {% endfor %}
+
+    {% if prompts %}
+      <button
+        type="submit"
+        class="btn-finish"
+        onclick="return confirm('Submit test? Mastery requires 100%.');"
+      >
+        Submit for Evaluation
+      </button>
+    {% endif %}
+  </form>
+
+  <div style="margin-top:30px; text-align:center;">
+    <a href="{% url 'writing:practice' chunk.id focus.id %}">
+      ← Back to Practice
+    </a>
+    &nbsp;|&nbsp;
+    <a href="{% url 'content:chunk_writing' chunk.id %}">
+      Back to Writing Hub
+    </a>
+  </div>
+
+</div>
+{% endblock %}

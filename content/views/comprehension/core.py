@@ -1,28 +1,22 @@
-# views/comprehension/core.py
-from rest_framework import generics
-from content.models.comprehension import ChunkComprehensionFocus, ComprehensionQuestion
-from content.serializers.comprehension import (
-    ChunkComprehensionFocusSerializer,
-    ComprehensionQuestionSerializer,
+# content/views/comprehension/core.py
+
+"""
+Temporary compatibility layer.
+
+This file now delegates comprehension resolution and context
+building to the service layer while preserving existing imports
+across the codebase.
+
+This allows safe, reversible architectural migration toward a
+proper service-driven production structure.
+"""
+
+from content.services.comprehension.comprehension_resolution import (
+    get_comprehension_objects,
+    build_chunk_context,
 )
 
-class ComprehensionFocusListView(generics.ListAPIView):
-    """
-    List comprehension focuses for a given chunk.
-    """
-    serializer_class = ChunkComprehensionFocusSerializer
-
-    def get_queryset(self):
-        chunk_id = self.kwargs.get("chunk_id")
-        return ChunkComprehensionFocus.objects.filter(chunk_id=chunk_id)
-
-
-class ComprehensionQuestionListView(generics.ListAPIView):
-    """
-    List comprehension questions for a given focus.
-    """
-    serializer_class = ComprehensionQuestionSerializer
-
-    def get_queryset(self):
-        focus_id = self.kwargs.get("focus_id")
-        return ComprehensionQuestion.objects.filter(focus_id=focus_id)
+__all__ = [
+    "get_comprehension_objects",
+    "build_chunk_context",
+]

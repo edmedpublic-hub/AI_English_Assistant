@@ -94,13 +94,13 @@
 
 <div class="result-container">
 
-{% if score == 100 %}
+{% if score_percent >= 100 %}
   <!-- ================= PASS ================= -->
   <div class="result-card mastery-pass">
     <h2>Mastered</h2>
 
     <div class="score-circle bg-pass">
-      {{ score }}%
+      {{ score_percent }}%
     </div>
 
     <p>
@@ -111,16 +111,24 @@
     <table class="stats-table">
       <tr>
         <td>Correct Answers</td>
-        <td><strong>{{ correct }}</strong></td>
+        <td><strong>{{ correct_answers }}</strong></td>
       </tr>
       <tr>
         <td>Total Questions</td>
-        <td><strong>{{ total }}</strong></td>
+        <td><strong>{{ total_questions }}</strong></td>
       </tr>
     </table>
 
     <div class="action-btns">
-      <a href="{% url 'content:chunk_comprehension' chunk.id %}" class="btn-action btn-green">
+      {% if next_focus %}
+        <a href="{% url 'content:comprehension:teach' chunk.id next_focus.id %}"
+           class="btn-action btn-green">
+          Continue to Next Focus →
+        </a>
+      {% endif %}
+
+      <a href="{% url 'content:chunk_comprehension' chunk.id %}"
+         class="btn-action btn-blue">
         Return to Comprehension List
       </a>
     </div>
@@ -132,13 +140,13 @@
     <h2>Not Yet Mastered</h2>
 
     <div class="score-circle bg-fail">
-      {{ score }}%
+      {{ score_percent }}%
     </div>
 
     <table class="stats-table">
       <tr>
         <td>Correct</td>
-        <td><strong>{{ correct }} / {{ total }}</strong></td>
+        <td><strong>{{ correct_answers }} / {{ total_questions }}</strong></td>
       </tr>
       <tr>
         <td>Mistakes</td>
@@ -147,9 +155,14 @@
     </table>
 
     <div class="action-btns">
-      <a href="{% url 'content:comprehension:practice' focus.id %}"
+      <a href="{% url 'content:comprehension:practice' chunk.id focus.id %}"
          class="btn-action btn-blue">
         Review Practice
+      </a>
+
+      <a href="{% url 'content:comprehension:test' chunk.id focus.id %}"
+         class="btn-action btn-green">
+        Retry Test
       </a>
     </div>
   </div>
@@ -162,7 +175,7 @@
         {% if not res.is_correct %}
           <div class="error-item">
             <p><strong>Q:</strong> {{ res.question.question_text }}</p>
-            <p><strong>Your Answer:</strong> {{ res.user_answer|default:"—" }}</p>
+            <p><strong>Your Answer:</strong> {{ res.selected_answer|default:"—" }}</p>
             <p><strong>Correct Answer:</strong> {{ res.question.correct_answer }}</p>
           </div>
         {% endif %}
@@ -171,8 +184,8 @@
   {% endif %}
 {% endif %}
 
-<a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
-  ← Back to Lesson Hub
+<a href="{% url 'content:chunk_comprehension' chunk.id %}" class="back-link">
+  ← Back to Comprehension Hub
 </a>
 
 </div>

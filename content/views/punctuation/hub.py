@@ -7,7 +7,8 @@ from content.models.punctuation import (
     # PunctuationAttempt removed - we now track progress via TestAttempt
     PunctuationTestAttempt,
 )
-
+from django.contrib.auth.decorators import login_required
+@login_required
 def chunk_punctuation_view(request, chunk_id):
     """
     Punctuation Hub:
@@ -35,7 +36,7 @@ def chunk_punctuation_view(request, chunk_id):
         # 2. Fetch all test attempts for these focuses (Query 2)
         # We pull both mastered and non-mastered attempts in one go
         user_attempts = PunctuationTestAttempt.objects.filter(
-            student=request.user,
+            user=request.user,
             focus_id__in=focus_ids
         ).values_list("focus_id", "is_mastered")
 

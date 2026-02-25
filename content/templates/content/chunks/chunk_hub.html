@@ -1,3 +1,5 @@
+# content/templates/content/chunks/chunk_hub.html - UPDATED
+
 {% extends "base.html" %}
 {% load static %}
 
@@ -55,10 +57,11 @@ Chunk {{ chunk.order }}
   <section class="study-section">
     <h2>Study this chunk</h2>
     <div class="study-nav">
-      <a class="btn" href="{% url 'content:chunk_vocabulary' chunk.pk %}">Vocabulary</a>
+      <!-- FIXED: Use direct URL pattern instead of namespace -->
+      <a class="btn" href="{% url 'content:chunk_vocabulary_hub' chunk.pk %}">Vocabulary</a>
       
       <a class="btn {% if chunk_mastered %}btn-mastered{% else %}btn-pending{% endif %}" 
-         href="{% url 'content:chunk_grammar' chunk.pk %}">
+         href="{% url 'content:chunk_grammar' chunk.id %}">
          Grammar
          {% if chunk_mastered %}
            <span class="status-badge status-pass">✅ Mastered</span>
@@ -67,10 +70,10 @@ Chunk {{ chunk.order }}
          {% endif %}
       </a>
 
-      <a class="btn" href="{% url 'content:chunk_punctuation' chunk.pk %}">Punctuation</a>
-      <a class="btn" href="{% url 'content:chunk_comprehension' chunk.pk %}">Comprehension</a>
-      <a class="btn" href="{% url 'content:chunk_writing' chunk.pk %}">Writing</a>
-      <a class="btn" href="{% url 'content:chunk_progress' chunk.pk %}">Progress</a>
+      <a class="btn" href="{% url 'content:chunk_punctuation' chunk.id %}">Punctuation</a>
+      <a class="btn" href="{% url 'content:chunk_comprehension' chunk.id %}">Comprehension</a>
+      <a class="btn" href="{% url 'content:chunk_writing' chunk.id %}">Writing</a>
+      <a class="btn" href="{% url 'content:chunk_progress' chunk.id %}">Progress</a>
     </div>
   </section>
 
