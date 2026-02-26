@@ -304,7 +304,7 @@ class ChunkPunctuationFocusAdmin(admin.ModelAdmin):
         total_students = attempts.values('user').distinct().count()
         mastered_students = attempts.filter(is_mastered=True).values('user').distinct().count()
         
-        avg_score = attempts.aggregate(models.Avg('score_percent'))['score_percent__avg']
+        avg_score = attempts.aggregate(models.Avg('score_percent'))['score_percent__avg'] or 0
         
         # Attempt distribution
         attempt_counts = {}
@@ -378,7 +378,7 @@ class PunctuationQuestionAdmin(admin.ModelAdmin):
     def options_preview(self, obj):
         if not obj.options:
             return "No options"
-        options = obj.options_list
+        options = obj.get_options_list()
         html = "<ul style='margin:0;padding-left:15px;'>"
         for opt in options:
             if opt == obj.correct_answer:

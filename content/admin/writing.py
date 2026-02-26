@@ -106,7 +106,7 @@ class ChunkWritingFocusAdmin(admin.ModelAdmin):
         total_students = attempts.values('user').distinct().count()
         mastered_students = attempts.filter(is_mastered=True).values('user').distinct().count()
         
-        avg_score = attempts.aggregate(models.Avg('overall_score'))['overall_score__avg']
+        avg_score = attempts.aggregate(models.Avg('overall_score'))['overall_score__avg'] or 0
         
         # Attempt distribution
         attempt_counts = {}

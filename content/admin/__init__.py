@@ -45,10 +45,10 @@ from .pronunciation import (
 )
 
 # Testing admin (Unit Tests) - Commented out until vocabulary testing models are implemented
-# from .testing import (
-#     UnitTestSessionAdmin, UnitTestQuestionAdmin, UnitTestAnswerAdmin,
-#     VocabularyUnitTestAttemptAdmin
-# )
+from .testing import (
+    UnitTestSessionAdmin, UnitTestQuestionAdmin, UnitTestAnswerAdmin,
+     VocabularyUnitTestAttemptAdmin
+ )
 
 
 __all__ = [
@@ -83,6 +83,6 @@ __all__ = [
     'PronunciationFocusAdmin', 'PronunciationAttemptAdmin', 'PronunciationMasteryAdmin',
     
     # Testing - Commented out until models exist
-    # 'UnitTestSessionAdmin', 'UnitTestQuestionAdmin', 'UnitTestAnswerAdmin',
-    # 'VocabularyUnitTestAttemptAdmin',
+     'UnitTestSessionAdmin', 'UnitTestQuestionAdmin', 'UnitTestAnswerAdmin',
+     'VocabularyUnitTestAttemptAdmin',
 ]

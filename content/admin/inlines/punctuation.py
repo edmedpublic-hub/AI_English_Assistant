@@ -205,7 +205,7 @@ class PunctuationQuestionInline(admin.StackedInline):
         """
         
         if obj.question_type == 'mcq' and obj.options:
-            options = obj.options_list
+            options = obj.get_options_list()
             html += '<div style="margin-left: 20px;">'
             for i, opt in enumerate(options, 1):
                 if opt == obj.correct_answer:

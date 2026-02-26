@@ -3,6 +3,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
+from django.utils import timezone
 from content.models.pronunciation import (
     PronunciationFocus,
     PronunciationAttempt,
@@ -98,8 +99,8 @@ class PronunciationFocusAdmin(admin.ModelAdmin):
         if avg_best:
             html += f'<tr><td>Average Best Score:</td><td><b>{avg_best:.1f}%</b></td></tr>'
 
-        if mastered > 0:
-            percentage = (mastered / total_students) * 100 if total_students > 0 else 0
+        if mastered > 0 and total_students > 0:
+            percentage = (mastered / total_students) * 100
             color = 'green' if percentage >= 80 else 'orange' if percentage >= 50 else 'red'
             html += f'<tr><td>Mastery Rate:</td><td><b style="color:{color};">{percentage:.1f}%</b></td></tr>'
 
@@ -109,13 +110,21 @@ class PronunciationFocusAdmin(admin.ModelAdmin):
 
 
 # ============================================================
-# PRONUNCIATION ATTEMPTS (Read-only Analytics)
+# PRONUNCIATION ATTEMPTS
+# Teachers can score attempts manually here until AI is ready.
+# When AI scoring is live, this becomes read-only analytics.
 # ============================================================
 
 @admin.register(PronunciationAttempt)
 class PronunciationAttemptAdmin(admin.ModelAdmin):
     """
-    Read-only diagnostic view for pronunciation attempts.
+    Scoring interface for pronunciation attempts.
+
+    Teachers use this to:
+    1. Download student recordings
+    2. Enter a score (0-100) — 90+ = passed
+    3. Enter written feedback
+    4. Save — mastery is updated automatically via save_model()
     """
     list_display = (
         "user_link",
@@ -125,33 +134,32 @@ class PronunciationAttemptAdmin(admin.ModelAdmin):
         "ai_score",
         "is_passed_display",
         "attempt_type",
+        "pending_review",
         "created_at",
     )
 
     list_filter = (
-        "ai_score",
+        "attempt_type",
         "attempt_number",
         "cycle_number",
-        "attempt_type",
-        "created_at"
+        "created_at",
     )
     search_fields = ("user__username", "focus__focus_title", "ai_feedback")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
 
-    readonly_fields = [
+    # Structural fields are read-only — only score/feedback are editable
+    readonly_fields = (
         "user",
         "focus",
         "attempt_number",
         "cycle_number",
-        "recording",
-        "ai_feedback",
-        "ai_score",
         "attempt_type",
         "created_at",
         "recording_link",
-        "feedback_preview",
-    ]
+        "is_passed_display",
+        "pending_review",
+    )
 
     fieldsets = (
         ("Student", {
@@ -161,14 +169,15 @@ class PronunciationAttemptAdmin(admin.ModelAdmin):
             "fields": ("attempt_number", "cycle_number", "attempt_type", "created_at")
         }),
         ("Recording", {
-            "fields": ("recording_link",),
+            "fields": ("recording_link", "recording"),
         }),
-        ("AI Assessment", {
-            "fields": ("ai_score", "is_passed_display", "feedback_preview"),
-        }),
-        ("Raw Data", {
-            "fields": ("ai_feedback",),
-            "classes": ("collapse",),
+        ("Scoring — Enter score and feedback here", {
+            "fields": ("ai_score", "is_passed_display", "ai_feedback"),
+            "description": (
+                "Enter a score from 0 to 100. "
+                "90 or above = passed. "
+                "Mastery is updated automatically when you save."
+            ),
         }),
     )
 
@@ -184,27 +193,60 @@ class PronunciationAttemptAdmin(admin.ModelAdmin):
 
     def is_passed_display(self, obj):
         if obj.ai_score is None:
-            return format_html('<span style="color:gray;">Pending</span>')
+            return format_html('<span style="color:gray;">⏳ Pending</span>')
         if obj.is_passed:
             return format_html('<span style="color:green;font-weight:bold;">✓ Passed</span>')
-        else:
-            return format_html('<span style="color:red;">✗ Failed</span>')
+        return format_html('<span style="color:red;">✗ Failed ({}/100)</span>', obj.ai_score)
     is_passed_display.short_description = "Result"
+
+    def pending_review(self, obj):
+        if obj.ai_score is None:
+            return format_html('<span style="color:orange;font-weight:bold;">⚠ Needs Scoring</span>')
+        return format_html('<span style="color:green;">✓ Scored</span>')
+    pending_review.short_description = "Review Status"
 
     def recording_link(self, obj):
         if obj.recording:
             return format_html(
-                '<a href="{}" target="_blank">Download Recording</a>',
+                '<a href="{}" target="_blank" style="font-weight:bold;">▶ Download & Listen</a>',
                 obj.recording.url
             )
-        return "No recording"
+        return format_html('<span style="color:gray;">No recording</span>')
     recording_link.short_description = "Recording"
 
-    def feedback_preview(self, obj):
-        if not obj.ai_feedback:
-            return "No feedback"
-        return format_html('<pre style="max-height:200px;overflow:auto;">{}</pre>', obj.ai_feedback)
-    feedback_preview.short_description = "Feedback"
+    def save_model(self, request, obj, form, change):
+        """
+        After saving a score, automatically update PronunciationMastery.
+        This is the bridge between manual scoring and the mastery system.
+        """
+        super().save_model(request, obj, form, change)
+
+        if obj.ai_score is not None:
+            mastery, _ = PronunciationMastery.objects.get_or_create(
+                user=obj.user,
+                focus=obj.focus,
+            )
+
+            # Update statistics
+            mastery.last_score = obj.ai_score
+            mastery.last_attempted = obj.created_at
+
+            if mastery.best_score is None or obj.ai_score > mastery.best_score:
+                mastery.best_score = obj.ai_score
+
+            # Recalculate total attempts
+            mastery.total_attempts = PronunciationAttempt.objects.filter(
+                user=obj.user,
+                focus=obj.focus,
+                ai_score__isnull=False,
+            ).count()
+
+            # Check mastery
+            if obj.is_passed and not mastery.is_mastered:
+                mastery.is_mastered = True
+                mastery.mastered_at = timezone.now()
+
+            mastery.save()
 
     def has_add_permission(self, request):
         return False
@@ -221,6 +263,7 @@ class PronunciationAttemptAdmin(admin.ModelAdmin):
 class PronunciationMasteryAdmin(admin.ModelAdmin):
     """
     Read-only view of pronunciation mastery status.
+    Updated automatically when teacher scores an attempt.
     """
     list_display = (
         "user_link",
