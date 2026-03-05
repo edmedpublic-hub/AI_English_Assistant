@@ -3,92 +3,91 @@
 
 {% block title %}Fill in the Blanks — Chunk {{ chunk.order }}{% endblock %}
 
-{% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/vocabulary/css/practice-modes/fill.css' %}">
+{% endblock %}
 
+{% block content %}
 <section class="quiz-page" aria-labelledby="quiz-title">
 
   <!-- Header -->
-  <header class="quiz-header">
-    <nav class="breadcrumb-nav">
-      <a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
-        &larr; Back to Chunk
-      </a>
-    </nav>
+  <nav class="mb-4">
+    <a href="{% url 'content:chunk_hub' chunk.id %}" class="btn btn-sm btn-outline-secondary">
+      &larr; Back to Chunk
+    </a>
+  </nav>
 
-    <h1 id="quiz-title" class="page-title">Fill in the Blanks</h1>
-
-    <p class="practice-intro">
-      Choose the correct option to complete the sentence.
-    </p>
-  </header>
-
+  <h1 id="quiz-title" class="h3 fw-bold mb-1">Fill in the Blanks</h1>
+  <p class="text-muted mb-4">Choose the correct option to complete the sentence.</p>
 
   <!-- Quiz Wrapper -->
   <div class="quiz-wrapper"
        data-total="{{ questions|length }}"
-       data-synonyms-url="{% url 'content:chunk_vocab_synonyms' chunk.id %}">
+       data-synonyms-url="{% url 'content:synonyms' chunk.id %}">
 
     <!-- Progress + Score -->
-    <div class="quiz-meta">
-      <div id="progressBar" class="progress-bar" aria-hidden="true">
-        <div id="progressFill" class="progress-fill"></div>
+    <div class="mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <small class="text-muted">Progress</small>
+        <small id="scoreDisplay" class="text-muted" aria-live="polite">Score: 0 / {{ questions|length }}</small>
       </div>
-
-      <p id="scoreDisplay" class="score-display" aria-live="polite">
-        Score: 0 / {{ questions|length }}
-      </p>
+      <div id="progressBar" class="progress" style="height: 6px;" aria-hidden="true">
+        <div id="progressFill" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
     </div>
-
 
     <!-- Questions -->
     <div class="questions-container" role="list">
       {% for q in questions %}
-      <article
-        class="question {% if not forloop.first %}hidden{% endif %}"
-        data-index="{{ forloop.counter0 }}"
-        data-answer="{{ q.answer|lower }}"
-        role="group"
-        aria-labelledby="question-{{ forloop.counter0 }}">
+      <article class="question {% if not forloop.first %}d-none{% endif %}"
+               data-index="{{ forloop.counter0 }}"
+               data-answer="{{ q.answer|lower }}"
+               role="group"
+               aria-labelledby="question-{{ forloop.counter0 }}">
 
-        <p id="question-{{ forloop.counter0 }}" class="sentence">
-          {{ q.sentence }}
-        </p>
+        <div class="card shadow-sm mb-3">
+          <div class="card-body">
 
-        <form class="options" autocomplete="off" role="radiogroup" aria-label="Options">
-          {% for opt in q.options %}
-          <label class="option">
-            <input
-              type="radio"
-              name="q{{ forloop.parentloop.counter }}"
-              value="{{ opt|lower }}">
-            <span class="option-text">{{ opt }}</span>
-          </label>
-          {% endfor %}
-        </form>
+            <p id="question-{{ forloop.counter0 }}" class="fs-5 mb-4">{{ q.sentence }}</p>
 
-        <p class="feedback" aria-live="polite"></p>
+            <div class="d-flex flex-column gap-2 options" role="radiogroup" aria-label="Options">
+              {% for opt in q.options %}
+              <label class="d-flex align-items-center gap-3 p-3 border rounded option-label" style="cursor: pointer;">
+                <input type="radio"
+                       name="q{{ forloop.parentloop.counter }}"
+                       value="{{ opt|lower }}"
+                       class="form-check-input mt-0 flex-shrink-0">
+                <span class="option-text">{{ opt }}</span>
+              </label>
+              {% endfor %}
+            </div>
+
+            <p class="feedback mt-3 mb-0" aria-live="polite"></p>
+
+          </div>
+        </div>
+
       </article>
       {% endfor %}
     </div>
 
-
     <!-- Navigation -->
-    <nav class="nav-buttons" aria-label="Quiz navigation">
-      <button id="prevBtn" type="button">Back</button>
-      <button id="nextBtn" type="button">Next</button>
+    <nav class="d-flex gap-2 mt-3 nav-buttons" aria-label="Quiz navigation">
+      <button id="prevBtn" type="button" class="btn btn-outline-secondary d-none">&larr; Back</button>
+      <button id="nextBtn" type="button" class="btn btn-primary d-none">Next &rarr;</button>
     </nav>
 
-
     <!-- Completion -->
-    <div id="completion" class="hidden completion-message" role="status" aria-live="polite">
-      <p>🎉 Well done! You’ve completed Fill in the Blanks.</p>
+    <div id="completion" class="d-none text-center py-5 completion-message" role="status" aria-live="polite">
+      <div class="display-1 mb-3">🎉</div>
+      <h2 class="h4 fw-bold mb-2">Well done!</h2>
+      <p class="text-muted mb-4">You've completed Fill in the Blanks.</p>
 
-      <div class="completion-actions">
-        <a href="{% url 'content:chunk_vocab_synonyms' chunk.id %}" class="go-synonyms-btn">
-          Go to Synonyms Practice →
+      <div class="d-flex flex-wrap gap-3 justify-content-center completion-actions">
+        <a href="{% url 'content:synonyms' chunk.id %}" class="btn btn-success px-4">
+          Go to Synonyms Practice &rarr;
         </a>
-
-        <a href="{% url 'content:chunk_hub' chunk.id %}" class="finish-btn">
+        <a href="{% url 'content:chunk_hub' chunk.id %}" class="btn btn-outline-secondary px-4">
           Done (Back to Chunk)
         </a>
       </div>
@@ -96,13 +95,8 @@
 
   </div>
 </section>
-
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'content/chunk_vocab_fill.css' %}">
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'content/chunk_vocab_fill.js' %}"></script>
+<script src="{% static 'content/vocabulary/js/practice-modes/fill.js' %}"></script>
 {% endblock %}

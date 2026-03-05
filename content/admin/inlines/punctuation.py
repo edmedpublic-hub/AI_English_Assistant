@@ -1,15 +1,9 @@
 # content/admin/inlines/punctuation.py
 
-"""
-Admin inline classes for the Punctuation domain.
-Provides nested editing interfaces for punctuation marks, rules, focuses, and questions.
-"""
-
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from content.models.punctuation import (
-    PunctuationMark,
     PunctuationRule,
     PunctuationExample,
     ChunkPunctuationFocus,
@@ -20,162 +14,100 @@ from content.models.punctuation import (
 )
 
 
-# ============================================================
-# RULES under a MARK
-# ============================================================
-
 class PunctuationRuleInline(admin.TabularInline):
-    """
-    Inline for PunctuationRule within PunctuationMark admin.
-    """
     model = PunctuationRule
     extra = 1
     fields = ("rule_text", "rule_preview")
     readonly_fields = ("rule_preview",)
     ordering = ("id",)
     show_change_link = True
-    
+
     def rule_preview(self, obj):
         if not obj.pk:
             return ""
-        return format_html('<span style="color: #666;">{}</span>', obj.rule_text[:100])
+        return format_html('<span style="color:#666;">{}</span>', obj.rule_text[:100])
     rule_preview.short_description = "Preview"
 
 
-# ============================================================
-# EXAMPLES under a RULE
-# ============================================================
-
 class PunctuationExampleInline(admin.TabularInline):
-    """
-    Inline for PunctuationExample within PunctuationRule admin.
-    """
     model = PunctuationExample
     extra = 1
     fields = ("sentence", "example_preview")
     readonly_fields = ("example_preview",)
     ordering = ("id",)
     show_change_link = True
-    
+
     def example_preview(self, obj):
         if not obj.pk:
             return ""
-        return format_html('<span style="color: #666;">{}</span>', obj.sentence[:80])
+        return format_html('<span style="color:#666;">{}</span>', obj.sentence[:80])
     example_preview.short_description = "Preview"
 
 
-# ============================================================
-# CHUNK PUNCTUATION FOCUS (Main teaching layer)
-# ============================================================
-
 class ChunkPunctuationFocusInline(admin.StackedInline):
-    """
-    Appears inside LessonChunk.
-    Primary punctuation authoring surface.
-    Shows punctuation focuses with their questions and rules.
-    """
     model = ChunkPunctuationFocus
     extra = 0
     min_num = 0
-    max_num = 3  # Maximum 3 focuses per chunk
+    max_num = 3
     show_change_link = True
-    
+
     fieldsets = (
         ('Punctuation Focus', {
             'fields': (
-                'mark',
-                'focus_title',
-                'focus_description',
-                'depth_level',
-                'sequence_order',
-                'focus_preview',
+                'mark', 'focus_title', 'focus_description',
+                'depth_level', 'sequence_order', 'focus_preview',
             )
         }),
     )
-    
+
     readonly_fields = ('focus_preview',)
     ordering = ('sequence_order',)
     autocomplete_fields = ('mark',)
-    
+
     def focus_preview(self, obj):
-        """Show quick stats about this focus"""
         if not obj.pk:
             return "Not saved yet"
-        
-        # Count questions
         question_count = obj.questions.count()
-        
-        # Count rules
         rule_count = obj.focus_rules.count()
-        
-        # Get mark info
         mark_name = obj.mark.name if obj.mark else "No mark selected"
         mark_symbol = obj.mark.symbol if obj.mark else ""
-        
-        # Format the preview
         html = f"""
-        <div style="background-color: #f8f9fa; padding: 8px; border-radius: 4px;">
+        <div style="background:#f8f9fa;padding:8px;border-radius:4px;">
             <strong>Mark:</strong> {mark_name} ({mark_symbol})<br>
             <strong>Questions:</strong> {question_count}<br>
             <strong>Rules:</strong> {rule_count}
         </div>
         """
-        
-        if question_count > 0:
-            html += f'<div style="margin-top: 5px;">✓ Has {question_count} question(s)</div>'
-        else:
-            html += '<div style="color: #856404; background-color: #fff3cd; padding: 4px; margin-top: 5px; border-radius: 4px;">⚠️ No questions yet</div>'
-        
+        if question_count == 0:
+            html += '<div style="color:#856404;background:#fff3cd;padding:4px;margin-top:5px;border-radius:4px;">⚠️ No questions yet</div>'
         if rule_count == 0:
-            html += '<div style="color: #856404; background-color: #fff3cd; padding: 4px; margin-top: 5px; border-radius: 4px;">⚠️ No rules linked</div>'
-        
+            html += '<div style="color:#856404;background:#fff3cd;padding:4px;margin-top:5px;border-radius:4px;">⚠️ No rules linked</div>'
         return format_html(html)
     focus_preview.short_description = "Focus Overview"
 
 
-# ============================================================
-# RULES linked to a CHUNK FOCUS
-# ============================================================
-
 class FocusRuleInline(admin.TabularInline):
-    """
-    Inline for ChunkPunctuationFocusRule within ChunkPunctuationFocus admin.
-    Allows teachers to select which global rules apply to this lesson.
-    """
     model = ChunkPunctuationFocusRule
     extra = 1
     autocomplete_fields = ("rule",)
     ordering = ("order",)
     fields = ("rule", "order", "rule_preview")
     readonly_fields = ("rule_preview",)
-    
+
     def rule_preview(self, obj):
         if not obj.pk or not obj.rule_id:
             return ""
         url = reverse('admin:content_punctuationrule_change', args=[obj.rule.id])
-        return format_html(
-            '<a href="{}" target="_blank">{}</a>',
-            url,
-            obj.rule.rule_text[:60]
-        )
+        return format_html('<a href="{}" target="_blank">{}</a>', url, obj.rule.rule_text[:60])
     rule_preview.short_description = "Rule Preview"
 
 
-# ============================================================
-# QUESTIONS under a CHUNK FOCUS
-# ============================================================
-
 class PunctuationQuestionInline(admin.StackedInline):
-    """
-    Inline for PunctuationQuestion within ChunkPunctuationFocus admin.
-    Main authoring surface for punctuation questions.
-    Enforces pipe-separated options and correct answer matching.
-    """
     model = PunctuationQuestion
     extra = 1
     min_num = 0
     max_num = 10
-    
+
     fieldsets = (
         ('Question', {
             'fields': ('question_text', 'question_type', 'difficulty')
@@ -189,79 +121,61 @@ class PunctuationQuestionInline(admin.StackedInline):
             'classes': ('collapse',),
         }),
     )
-    
+
     readonly_fields = ('question_preview',)
     ordering = ('difficulty', 'id')
     show_change_link = True
-    
+
     def question_preview(self, obj):
-        """Show a preview of how the question will appear to students"""
         if not obj.pk:
             return "Preview available after saving"
-        
         html = f"""
-        <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
-            <p style="font-weight: bold; margin-bottom: 8px;">📝 {obj.question_text}</p>
+        <div style="background:#f8f9fa;padding:12px;border-radius:6px;border-left:4px solid #007bff;">
+            <p style="font-weight:bold;margin-bottom:8px;">📝 {obj.question_text}</p>
         """
-        
         if obj.question_type == 'mcq' and obj.options:
-            options = obj.get_options_list()
-            html += '<div style="margin-left: 20px;">'
+            # FIXED: use options_list property not get_options_list()
+            options = obj.options_list
+            html += '<div style="margin-left:20px;">'
             for i, opt in enumerate(options, 1):
                 if opt == obj.correct_answer:
-                    html += f'<p style="color: #28a745;">✓ {i}. {opt} <span style="color: #28a745;">(correct)</span></p>'
+                    html += f'<p style="color:#28a745;">✓ {i}. {opt} <span>(correct)</span></p>'
                 else:
-                    html += f'<p style="color: #666;">{i}. {opt}</p>'
+                    html += f'<p style="color:#666;">{i}. {opt}</p>'
             html += '</div>'
         else:
-            html += f'<p><strong>Correct Answer:</strong> <span style="color: #28a745;">{obj.correct_answer}</span></p>'
-        
+            html += f'<p><strong>Correct Answer:</strong> <span style="color:#28a745;">{obj.correct_answer}</span></p>'
         if obj.explanation:
-            html += f'<p style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ccc;"><em>💡 {obj.explanation}</em></p>'
-        
+            html += f'<p style="margin-top:8px;border-top:1px dashed #ccc;"><em>💡 {obj.explanation}</em></p>'
         html += '</div>'
-        
         return format_html(html)
     question_preview.short_description = "Student View"
 
 
-# ============================================================
-# ANALYTICS INLINES (Read-only)
-# ============================================================
-
 class PunctuationPracticeAttemptInline(admin.TabularInline):
-    """
-    Read-only inline for practice attempts within ChunkPunctuationFocus admin.
-    """
     model = PunctuationPracticeAttempt
     extra = 0
+    # FIXED: only fields that exist on the model
     readonly_fields = ['user', 'attempt_number', 'cycle_number', 'score_percent', 'is_passed', 'created_at']
     fields = ['user', 'attempt_number', 'cycle_number', 'score_percent', 'is_passed', 'created_at']
     ordering = ['-created_at']
     can_delete = False
-    
+
     def has_add_permission(self, request, obj=None):
         return False
 
 
 class PunctuationTestAttemptInline(admin.TabularInline):
-    """
-    Read-only inline for test attempts within ChunkPunctuationFocus admin.
-    """
     model = PunctuationTestAttempt
     extra = 0
     readonly_fields = ['user', 'attempt_number', 'cycle_number', 'score_percent', 'is_mastered', 'created_at']
     fields = ['user', 'attempt_number', 'cycle_number', 'score_percent', 'is_mastered', 'created_at']
     ordering = ['-created_at']
     can_delete = False
-    
+
     def has_add_permission(self, request, obj=None):
         return False
 
-
-# ============================================================
-# EXPORTS
-# ============================================================
 
 __all__ = [
     'PunctuationRuleInline',

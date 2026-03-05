@@ -1,160 +1,98 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Punctuation — {{ chunk.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/punctuation/css/chunk_punctuation.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-  .chunk-punctuation-wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
-  .breadcrumb-nav { margin-bottom: 30px; background: #f8f9fa; padding: 12px; border-radius: 8px; }
-  .breadcrumb-nav a { text-decoration: none; color: #3498db; font-weight: 500; }
+<div class="mx-auto" style="max-width: 900px;">
 
-  .chunk-header { border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 30px; }
-  .page-title { color: #2c3e50; margin-bottom: 5px; }
-  .meta-info { color: #7f8c8d; font-size: 0.95rem; }
-
-  /* Progress Bar Styles */
-  .mastery-progress-container { background: #eee; border-radius: 10px; height: 10px; margin: 15px 0; overflow: hidden; }
-  .mastery-progress-bar { 
-    background: #2ecc71; 
-    height: 100%; 
-    width: 0%; /* Initial state for JS to animate */
-    transition: width 0.8s ease-out; 
-  }
-
-  .focus-card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  }
-
-  .focus-title { margin-top: 0; color: #2c3e50; font-size: 1.4rem; }
-  .focus-desc { color: #636e72; line-height: 1.6; margin-bottom: 20px; }
-
-  .badge {
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-  }
-
-  .badge-mastered { background: #2ecc71; color: white; }
-  .badge-progress { background: #f1c40f; color: #2c3e50; }
-  .badge-locked { background: #bdc3c7; color: #2c3e50; }
-
-  .focus-actions { display: flex; gap: 15px; }
-
-  .btn-action {
-    flex: 1;
-    text-align: center;
-    padding: 12px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    color: white;
-    transition: 0.2s;
-  }
-
-  .btn-learn { background: #3498db; }
-  .btn-practice { background: #f39c12; }
-  .btn-test { background: #e74c3c; }
-
-  .btn-action:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }
-</style>
-
-<div class="chunk-punctuation-wrapper">
-
-  <nav class="breadcrumb-nav">
-    <a href="{% url 'content:chunk_hub' chunk.id %}">
+  <nav class="mb-4">
+    <a href="{% url 'content:chunk_hub' chunk.id %}" class="btn btn-sm btn-outline-secondary">
       &larr; Back to Lesson Hub
     </a>
   </nav>
 
-  <header class="chunk-header">
-    <h1 class="page-title">Punctuation Curriculum: {{ chunk.title }}</h1>
-    <p class="meta-info">
-      <strong>Lesson:</strong> {{ lesson.title }} |
+  <header class="border-bottom pb-3 mb-4">
+    <h1 class="h3 fw-bold mb-1">Punctuation: {{ chunk.title }}</h1>
+    <p class="text-muted mb-0">
+      <strong>Lesson:</strong> {{ lesson.title }} &nbsp;|&nbsp;
       <strong>Unit:</strong> {{ unit.title }}
     </p>
-
-    {% if total_focuses > 0 %}
-    <div style="margin-top: 20px;">
-        <small style="font-weight: bold; color: #2c3e50;">
-            Global Mastery: {{ mastery_percent|default:0 }}%
-        </small>
-        <div class="mastery-progress-container">
-            <div id="masteryBar" class="mastery-progress-bar"></div>
-        </div>
-    </div>
-    {% endif %}
   </header>
 
-  <section class="punctuation-focus-list">
-    {% for focus in focuses %}
-      <div class="focus-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-          <h3 class="focus-title">{{ focus.focus_title }}</h3>
+  {% if total_focuses > 0 %}
+  <div class="alert alert-light border mb-4 fw-medium">
+    Global Mastery: <strong>{{ mastery_percent|default:0 }}%</strong>
+    <div class="progress mt-2" style="height: 6px;">
+      <div class="progress-bar bg-success" role="progressbar"
+           id="masteryBar"
+           data-value="{{ mastery_percent|default:0 }}"
+           aria-valuenow="{{ mastery_percent|default:0 }}"
+           aria-valuemin="0" aria-valuemax="100">
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
-          {% if focus.progress_state == "mastered" %}
-            <span class="badge badge-mastered">✓ MASTERED</span>
-          {% elif focus.progress_state == "in_progress" %}
-            <span class="badge badge-progress">⏳ IN PROGRESS</span>
-          {% else %}
-            <span class="badge badge-locked">🔒 NOT STARTED</span>
-          {% endif %}
-        </div>
+  {% for focus in focuses %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
 
-        <p class="focus-desc">{{ focus.focus_description }}</p>
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h3 class="h5 fw-bold mb-0">{{ focus.focus_title }}</h3>
+        {% if focus.progress_state == "mastered" %}
+          <span class="badge bg-success">✓ Mastered</span>
+        {% elif focus.progress_state == "in_progress" %}
+          <span class="badge bg-warning text-dark">⏳ In Progress</span>
+        {% else %}
+          <span class="badge bg-secondary">🔒 Not Started</span>
+        {% endif %}
+      </div>
 
-        <div class="focus-actions">
+      <p class="text-muted mb-4">{{ focus.focus_description }}</p>
+
+      <div class="row g-2">
+        <div class="col">
           <a href="{% url 'content:punctuation:teach' chunk.id focus.id %}"
-             class="btn-action btn-learn">
-            Study Theory
-          </a>
-
+             class="btn btn-primary w-100">📖 Study Theory</a>
+        </div>
+        <div class="col">
           <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}"
-             class="btn-action btn-practice">
-            Practice
-          </a>
-
+             class="btn btn-warning w-100">✏️ Practice</a>
+        </div>
+        <div class="col">
           {% if focus.practice_attempted %}
-            <a href="{% url 'content:punctuation:test' chunk.id focus.id %}"
-               class="btn-action btn-test">
-              Final Test
-            </a>
+          <a href="{% url 'content:punctuation:test' chunk.id focus.id %}"
+             class="btn btn-danger w-100">📋 Final Test</a>
           {% else %}
-            <span class="btn-action btn-test"
-                  style="opacity: 0.4; cursor: not-allowed;"
-                  title="Complete practice to unlock the final test">
-              Final Test 🔒
-            </span>
+          <button class="btn btn-danger w-100 disabled" disabled
+                  title="Complete practice to unlock">
+            📋 Final Test 🔒
+          </button>
           {% endif %}
         </div>
       </div>
-    {% empty %}
-      <div style="text-align: center; padding: 60px; background: #fff; border-radius: 12px; border: 1px dashed #ccc;">
-        <p style="color: #95a5a6; font-size: 1.1rem;">
-          No punctuation modules assigned to this chunk yet.
-        </p>
-      </div>
-    {% endfor %}
-  </section>
-</div>
 
+    </div>
+  </div>
+  {% empty %}
+  <div class="text-center py-5 text-muted bg-light rounded">
+    <p class="mb-0">No punctuation modules assigned to this chunk yet.</p>
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    /**
-     * Audit Fix: We set the width via JS to prevent the VS Code 
-     * CSS validator from throwing syntax errors on Django tags.
-     */
-    document.addEventListener("DOMContentLoaded", function() {
-        const bar = document.getElementById('masteryBar');
-        if (bar) {
-            // Safely injecting the percentage into the JS logic
-            bar.style.width = "{{ mastery_percent|default:0 }}%";
-        }
-    });
+(function () {
+  const bar = document.getElementById("masteryBar");
+  if (bar) bar.style.width = bar.dataset.value + "%";
+})();
 </script>
-{% endblock content %}
+{% endblock %}

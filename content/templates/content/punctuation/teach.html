@@ -1,105 +1,77 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ focus.focus_title }} — Punctuation Study{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/punctuation/css/teach.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-  .btn-practice-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(39,174,96,0.4) !important;
-  }
-</style>
+<div class="mx-auto" style="max-width: 850px;">
 
-<div class="punctuation-teach-wrapper" style="max-width: 850px; margin: 0 auto; padding: 20px;">
-
-  <nav class="breadcrumb-nav" style="margin-bottom: 25px;">
-    <a href="{% url 'content:chunk_punctuation' chunk.id %}"
-       style="text-decoration: none; color: #3498db; font-weight: 500; font-size: 0.9rem;">
+  <nav class="mb-4">
+    <a href="{% url 'content:chunk_punctuation' chunk.id %}" class="btn btn-sm btn-outline-secondary">
       &larr; Back to Punctuation List
     </a>
   </nav>
 
-  <header class="teach-header" style="margin-bottom: 30px; border-left: 5px solid #3498db; padding-left: 20px;">
-    <h1 class="page-title" style="margin: 0; color: #2c3e50;">
-      {{ focus.focus_title }}
-    </h1>
-    <p class="meta-info" style="color: #7f8c8d; margin-top: 5px;">
-      <strong>Lesson:</strong> {{ lesson.title|default:"N/A" }} |
+  <header class="border-start border-primary border-4 ps-3 mb-4">
+    <h1 class="h3 fw-bold mb-1">{{ focus.focus_title }}</h1>
+    <p class="text-muted mb-0">
+      <strong>Lesson:</strong> {{ lesson.title|default:"N/A" }} &nbsp;|&nbsp;
       <strong>Chunk:</strong> {{ chunk.title|default:"N/A" }}
     </p>
   </header>
 
-  <section class="punctuation-explanation card"
-           style="background: #fff; padding: 25px; border: 1px solid #e1e8ed; border-radius: 12px;
-                  box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;">
-    <h3 style="margin-top: 0; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-      The Mark: {{ focus.mark.name }}
-    </h3>
-    <div style="line-height: 1.6; color: #444; font-size: 1.1rem;">
-      {{ focus.mark.description|linebreaks }}
+  <!-- Mark description -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h3 class="h5 fw-semibold border-bottom pb-2 mb-3">
+        The Mark: {{ focus.mark.name }}
+      </h3>
+      <div class="lh-lg text-secondary fs-6">
+        {{ focus.mark.description|linebreaks }}
+      </div>
     </div>
-  </section>
+  </div>
 
-  <section class="punctuation-rules-flow">
-    <h3 style="color: #2c3e50; margin-bottom: 20px;">Rules & Usage</h3>
+  <!-- Rules & Usage -->
+  <h3 class="h5 fw-semibold mb-3">Rules &amp; Usage</h3>
 
-    {% for rule in rules %}
-      <div class="rule-block"
-           style="background: #fff; border: 1px solid #d1d8e0; border-radius: 12px;
-                  overflow: hidden; margin-bottom: 25px;">
-
-        <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #d1d8e0;">
-          <span style="color: #3498db; font-weight: bold; text-transform: uppercase;
-                       font-size: 0.8rem; display: block; margin-bottom: 5px;">
-            Rule #{{ forloop.counter }}
-          </span>
-          <p style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #2c3e50;">
-            {{ rule.rule_text }}
-          </p>
-        </div>
-
-        <div style="padding: 20px;">
-          <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 10px; font-style: italic;">
-            Observe these examples:
-          </p>
-
-          {% for ex in rule.examples.all %}
-            <div class="example-box"
-                 style="background: #f1f8ff; border-left: 4px solid #3498db;
-                        padding: 12px 15px; margin-bottom: 10px;
-                        border-radius: 0 8px 8px 0;
-                        font-family: 'Courier New', Courier, monospace;">
-              {{ ex.sentence }}
-            </div>
-          {% empty %}
-            <p style="color: #bdc3c7;">No examples provided for this specific rule.</p>
-          {% endfor %}
-        </div>
+  {% for rule in rules %}
+  <div class="card shadow-sm mb-4 overflow-hidden">
+    <div class="card-header bg-light">
+      <span class="text-primary fw-bold text-uppercase small d-block mb-1">
+        Rule #{{ forloop.counter }}
+      </span>
+      <p class="mb-0 fw-semibold">{{ rule.rule_text }}</p>
+    </div>
+    <div class="card-body">
+      <p class="text-muted fst-italic small mb-3">Observe these examples:</p>
+      {% for ex in rule.examples.all %}
+      <div class="bg-light border-start border-primary border-3 px-3 py-2 mb-2 rounded-end font-monospace">
+        {{ ex.sentence }}
       </div>
-    {% empty %}
-      <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 12px;">
-         <p style="color: #95a5a6; font-style: italic;">No specific rules available for this focus yet.</p>
-      </div>
-    {% endfor %}
-  </section>
+      {% empty %}
+      <p class="text-muted small">No examples provided for this rule.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="text-center py-4 text-muted bg-light rounded">
+    <p class="mb-0">No specific rules available for this focus yet.</p>
+  </div>
+  {% endfor %}
 
-  <div class="action-footer"
-       style="margin-top: 40px; padding: 25px; background: #fdfdfd;
-              border-top: 1px solid #eee; border-radius: 12px;
-              display: flex; justify-content: space-between; align-items: center;">
-
-    <a href="{% url 'content:chunk_punctuation' chunk.id %}"
-       style="color: #7f8c8d; text-decoration: none; font-weight: 500;">
+  <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+    <a href="{% url 'content:chunk_punctuation' chunk.id %}" class="btn btn-outline-secondary">
       &larr; Review other topics
     </a>
-
-    <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}"
-       class="btn-practice-hover"
-       style="display: inline-block; padding: 15px 35px; background: #27ae60;
-              color: white; text-decoration: none; border-radius: 8px;
-              font-weight: bold; box-shadow: 0 4px 10px rgba(39,174,96,0.3);
-              transition: all 0.2s ease;">
+    <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}" class="btn btn-success px-5">
       Start Practice &rarr;
     </a>
   </div>
 
 </div>
-{% endblock content %}
+{% endblock %}

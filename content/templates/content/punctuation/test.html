@@ -1,179 +1,95 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}
-Test: {{ focus.focus_title }}
-{% endblock title %}
+{% block title %}Test: {{ focus.focus_title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/punctuation/css/test.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-  .test-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+<div class="mx-auto" style="max-width: 800px;">
 
-  .test-header {
-    background-color: #2c3e50;
-    color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    text-align: center;
-  }
+  <div class="bg-dark text-white text-center rounded p-4 mb-4">
+    <h2 class="h4 fw-bold mb-1">Punctuation Mastery Test</h2>
+    <p class="mb-1 opacity-75">{{ focus.focus_title }}</p>
+    <small class="opacity-50">100% score required for mastery</small>
+  </div>
 
-  .question-card {
-    background-color: #ffffff;
-    border: 1px solid #e1e8ed;
-    border-radius: 10px;
-    padding: 25px;
-    margin-bottom: 20px;
-  }
-
-  .question-text {
-    font-size: 1.15rem;
-    font-weight: 500;
-    margin-bottom: 15px;
-  }
-
-  /* Fieldset reset to satisfy editor and layout */
-  fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .option-label {
-    display: block;
-    padding: 12px 15px;
-    margin-bottom: 8px;
-    border: 1px solid #eeeeee;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .option-label:hover {
-    background-color: #f8f9fa;
-    border-color: #3498db;
-  }
-
-  textarea, .text-input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #cccccc;
-    font-size: 1rem;
-    box-sizing: border-box; /* Ensures padding doesn't break width */
-  }
-
-  textarea { height: 100px; resize: vertical; }
-
-  .feedback-correct { color: #27ae60; margin-top: 10px; font-weight: bold; }
-  .feedback-wrong { color: #e74c3c; margin-top: 10px; font-weight: bold; }
-
-  .btn-finish {
-    width: 100%;
-    margin-top: 20px;
-    padding: 18px;
-    background-color: #e74c3c;
-    color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  .btn-finish:hover { opacity: 0.9; }
-</style>
-
-<div class="test-container">
-
-  <header class="test-header">
-    <h2 style="margin: 0;">Punctuation Mastery Test</h2>
-    <p style="margin: 10px 0 0 0;">{{ focus.focus_title }}</p>
-    <small style="display: block; margin-top: 10px; color: #ecf0f1;">
-      <strong>Goal:</strong> 100% score required for mastery
-    </small>
-  </header>
-
-  <form method="post" action="." novalidate>
+  <form method="post" action="." novalidate id="test-form">
     {% csrf_token %}
 
     {% for q in questions %}
-      <div class="question-card">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
 
-        <p class="question-text">
+        <p class="fw-semibold mb-3">
           <strong>{{ forloop.counter }}.</strong> {{ q.question_text }}
         </p>
 
-        {# ================= MCQ (Using Audited options_list) ================= #}
         {% if q.question_type == "mcq" %}
-          <fieldset>
-            {% for option in q.options_list %}
-              <label class="option-label">
-                <input
-                  type="radio"
-                  name="q{{ q.id }}"
-                  value="{{ option }}"
-                  {% if q.user_answer == option %}checked{% endif %}
-                  required
-                >
-                <span style="margin-left: 8px;">{{ option }}</span>
-              </label>
-            {% endfor %}
-          </fieldset>
+        <div class="d-flex flex-column gap-2">
+          {% for option in q.options_list %}
+          <label class="d-flex align-items-center gap-3 p-3 border rounded option-label" style="cursor: pointer;">
+            <input type="radio" name="q{{ q.id }}" value="{{ option }}"
+                   class="form-check-input mt-0 flex-shrink-0"
+                   {% if q.user_answer == option %}checked{% endif %}
+                   required>
+            <span>{{ option }}</span>
+          </label>
+          {% endfor %}
+        </div>
 
-        {# ============== REWRITE ============== #}
         {% elif q.question_type == "rewrite" %}
-          <textarea
-            name="q{{ q.id }}"
-            placeholder="Rewrite the sentence with correct punctuation..."
-            required
-          >{{ q.user_answer|default_if_none:"" }}</textarea>
+        <textarea name="q{{ q.id }}" class="form-control" rows="4"
+                  placeholder="Rewrite the sentence with correct punctuation..."
+                  required>{{ q.user_answer|default_if_none:"" }}</textarea>
 
-        {# ============== SHORT TEXT ============== #}
         {% else %}
-          <input
-            type="text"
-            name="q{{ q.id }}"
-            class="text-input"
-            placeholder="Your answer..."
-            value="{{ q.user_answer|default_if_none:'' }}"
-            required
-          >
-        {% endif %}
-
-        {# Note: Test view usually redirects to a Result page, but feedback logic kept for safety #}
-        {% if submitted and q.feedback_ready %}
-          <div class="{% if q.is_correct %}feedback-correct{% else %}feedback-wrong{% endif %}">
-            {% if q.is_correct %}✔ Correct{% else %}✘ Incorrect{% endif %}
-          </div>
+        <input type="text" name="q{{ q.id }}" class="form-control"
+               placeholder="Your answer..."
+               value="{{ q.user_answer|default_if_none:'' }}"
+               required>
         {% endif %}
 
       </div>
+    </div>
     {% empty %}
-      <div style="text-align:center; padding: 40px; background-color: #f9f9f9; border-radius: 10px;">
-        <p>No test questions available for this topic yet.</p>
-      </div>
+    <div class="text-center py-4 text-muted bg-light rounded mb-4">
+      <p class="mb-0">No test questions available for this topic yet.</p>
+    </div>
     {% endfor %}
 
     {% if questions %}
-      <button
-        type="submit"
-        class="btn-finish"
-        onclick="return confirm('Submit test? Mastery requires 100%.');"
-      >
+    <div class="d-grid mb-4">
+      <button type="submit" class="btn btn-danger btn-lg" id="submit-btn"
+              onclick="return confirm('Submit test? Mastery requires 100%.');">
         Submit for Evaluation
       </button>
+    </div>
     {% endif %}
+
   </form>
 
-  <div style="margin-top:30px; text-align:center; padding-bottom: 40px;">
-    <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}" style="color: #3498db; text-decoration: none;">
-      ← Back to Practice
+  <div class="d-flex justify-content-center gap-4 pb-4">
+    <a href="{% url 'content:punctuation:practice' chunk.id focus.id %}"
+       class="text-decoration-none text-muted">
+      &larr; Back to Practice
     </a>
-    <span style="color: #cccccc; margin: 0 10px;">|</span>
-    <a href="{% url 'content:chunk_punctuation' chunk.id %}" style="color: #3498db; text-decoration: none;">
+    <span class="text-muted">|</span>
+    <a href="{% url 'content:chunk_punctuation' chunk.id %}"
+       class="text-decoration-none text-muted">
       Back to Punctuation Hub
     </a>
   </div>
 
 </div>
-{% endblock content %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById("test-form").addEventListener("submit", function () {
+  document.getElementById("submit-btn").disabled = true;
+});
+</script>
+{% endblock %}

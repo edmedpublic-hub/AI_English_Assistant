@@ -1,0 +1,39 @@
+{# content/templates/content/content_base.html #}
+{# All content app templates extend this, not base.html directly #}
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block nav_links %}
+<li class="nav-item">
+  <a class="nav-link" href="{% url 'content:content_index' %}">Content</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="{% url 'content:textbook_list' %}">Textbooks</a>
+</li>
+{% endblock %}
+
+{% block content %}
+
+  {# Breadcrumb — override breadcrumbs block in child templates #}
+  {% block breadcrumbs %}{% endblock %}
+
+  {# Flash messages #}
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {# Page header — override in child templates #}
+  {% block page_header %}{% endblock %}
+
+  {# Main page content #}
+  {% block page_content %}{% endblock %}
+
+{% endblock %}

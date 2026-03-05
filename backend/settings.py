@@ -137,3 +137,6 @@ LOGGING = {
         "level": "INFO",
     },
 }
+# Auth
+LOGIN_REDIRECT_URL = '/content/'
+LOGIN_URL = '/accounts/login/'

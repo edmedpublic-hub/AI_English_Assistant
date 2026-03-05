@@ -1,66 +1,92 @@
+// antonyms.js — Antonyms Practice
+
 document.addEventListener("DOMContentLoaded", () => {
-  const questions = document.querySelectorAll(".question");
-  let current = 0;
-  let score = 0;
-
-  const prevBtn = document.getElementById("prevBtn");
+  const container = document.querySelector(".questions-container");
+  const questions = Array.from(document.querySelectorAll(".question"));
   const nextBtn = document.getElementById("nextBtn");
+  const prevBtn = document.getElementById("prevBtn");
+  const completion = document.getElementById("completion");
 
-  const scoreDisplay = document.querySelector(".score-display");
+  if (!container || questions.length === 0) return;
 
-  function updateScore() {
-    scoreDisplay.textContent = `Score: ${score}/${questions.length}`;
+  let current = 0;
+
+  const normalize = (val) => val.toString().toLowerCase().trim();
+
+  function updateUI() {
+    const isMastered = questions[current].getAttribute("data-answered") === "true";
+    const isLast = current === questions.length - 1;
+
+    if (prevBtn) prevBtn.classList.toggle("d-none", current === 0);
+    if (nextBtn) nextBtn.classList.toggle("d-none", !isMastered || isLast);
+
+    const solved = questions.filter(q => q.getAttribute("data-answered") === "true").length;
+
+    const scoreDisp = document.getElementById("scoreDisplay");
+    if (scoreDisp) scoreDisp.textContent = `Mastered: ${solved} / ${questions.length}`;
+
+    const progBar = document.getElementById("progressFill");
+    if (progBar) {
+      progBar.style.width = `${(solved / questions.length) * 100}%`;
+      progBar.setAttribute("aria-valuenow", Math.round((solved / questions.length) * 100));
+    }
   }
 
   function showQuestion(index) {
-    questions.forEach(q => q.classList.add("hidden"));
-    questions[index].classList.remove("hidden");
-
-    prevBtn.disabled = index === 0;
-    nextBtn.disabled = index === questions.length - 1;
-
-    updateScore();
+    questions.forEach((q, i) => q.classList.toggle("d-none", i !== index));
+    current = index;
+    updateUI();
   }
 
-  showQuestion(current);
+  container.addEventListener("change", (e) => {
+    if (e.target.type !== "radio") return;
 
-  nextBtn.addEventListener("click", () => {
-    if (current < questions.length - 1) {
-      current++;
-      showQuestion(current);
-    }
-  });
+    const qCard = e.target.closest(".question");
+    const feedback = qCard.querySelector(".feedback");
+    const radios = qCard.querySelectorAll('input[type="radio"]');
+    const correct = normalize(qCard.getAttribute("data-answer"));
+    const selected = normalize(e.target.value);
 
-  prevBtn.addEventListener("click", () => {
-    if (current > 0) {
-      current--;
-      showQuestion(current);
-    }
-  });
+    radios.forEach(r => r.disabled = true);
 
-  document.querySelectorAll(".options input[type=radio]").forEach(input => {
-    input.addEventListener("change", e => {
-      const question = e.target.closest(".question");
-      const correct = question.dataset.answer.trim().toLowerCase();
-      const feedback = question.querySelector(".feedback");
+    if (selected === correct) {
+      feedback.textContent = "✓ Correct!";
+      feedback.className = "feedback text-success fw-semibold";
+      qCard.setAttribute("data-answered", "true");
+      updateUI();
 
-      const chosen = e.target.value.trim().toLowerCase();
-
-      if (chosen === correct) {
-        feedback.textContent = "Correct";
-        feedback.className = "feedback correct";
-
-        if (!question.dataset.answered) {
-          score++;
-          question.dataset.answered = "true";
+      setTimeout(() => {
+        if (current < questions.length - 1) {
+          showQuestion(current + 1);
+        } else {
+          const allDone = questions.every(q => q.getAttribute("data-answered") === "true");
+          if (allDone) {
+            container.classList.add("d-none");
+            document.querySelector(".nav-buttons")?.classList.add("d-none");
+            if (completion) completion.classList.remove("d-none");
+          }
         }
+      }, 1000);
+    } else {
+      feedback.textContent = "✗ Try again!";
+      feedback.className = "feedback text-danger fw-semibold";
 
-        updateScore();
-
-      } else {
-        feedback.textContent = "Wrong";
-        feedback.className = "feedback wrong";
+      if (!qCard.querySelector(".retry-action")) {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-sm btn-outline-secondary mt-2 retry-action";
+        btn.textContent = "Retry";
+        btn.onclick = () => {
+          radios.forEach(r => { r.disabled = false; r.checked = false; });
+          feedback.textContent = "";
+          btn.remove();
+        };
+        qCard.appendChild(btn);
       }
-    });
+    }
   });
+
+  if (nextBtn) nextBtn.onclick = () => current < questions.length - 1 && showQuestion(current + 1);
+  if (prevBtn) prevBtn.onclick = () => current > 0 && showQuestion(current - 1);
+
+  showQuestion(0);
 });

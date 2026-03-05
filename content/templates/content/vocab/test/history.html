@@ -3,112 +3,89 @@
 
 {% block title %}Mastery Record — Test History{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/vocabulary/css/test.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="history-container">
-    <nav class="breadcrumb-nav">
-        <a href="{% url 'content:content_index' %}" class="back-link">&larr; Back to Lessons Index</a>
-    </nav>
+<div class="mx-auto" style="max-width: 1000px;">
 
-    <header class="page-header">
-        <h1>My Mastery Record</h1>
-        <p class="subtitle">Review your progress and retake tests to achieve 100% mastery.</p>
-    </header>
+  <!-- Breadcrumb -->
+  <nav class="mb-4">
+    <a href="{% url 'content:content_index' %}" class="btn btn-sm btn-outline-secondary">
+      &larr; Back to Lessons Index
+    </a>
+  </nav>
 
-    {% if attempts %}
-    <div class="table-responsive">
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>Topic / Lesson</th>
-                    <th>Chunk</th>
-                    <th>Score</th>
-                    <th>Result</th>
-                    <th>Date Completed</th>
-                    <th class="text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for a in attempts %}
-                <tr class="{% if a.score_percent == 100 %}row-mastered{% endif %}">
-                    <td>
-                        <span class="lesson-title">{{ a.lesson.title }}</span>
-                    </td>
-                    <td>
-                        <a href="{% url 'content:chunk_hub' a.chunk.id %}" class="chunk-link">
-                            Chunk {{ a.chunk.order }}
-                        </a>
-                    </td>
-                    <td>
-                        <div class="score-pill">
-                            {{ a.score_percent }}%
-                            <small>{{ a.correct_answers }}/{{ a.total_questions }}</small>
-                        </div>
-                    </td>
-                    <td>
-                        {% if a.score_percent == 100 %}
-                            <span class="badge badge-success">Mastered</span>
-                        {% elif a.score_percent >= 80 %}
-                            <span class="badge badge-warning">Passed</span>
-                        {% else %}
-                            <span class="badge badge-danger">Needs Review</span>
-                        {% endif %}
-                    </td>
-                    <td class="date-col">{{ a.created_at|date:"M d, Y" }} <small>{{ a.created_at|date:"h:i A" }}</small></td>
-                    <td class="text-right">
-                        <a href="{% url 'content:attempt_detail' a.id %}" class="btn-detail">View Breakdown</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="icon">📊</div>
-        <p>No test attempts recorded yet. Start practicing to see your history!</p>
-        <a href="{% url 'content:index' %}" class="btn-primary">Go to Lessons</a>
-    </div>
-    {% endif %}
+  <!-- Header -->
+  <header class="mb-4">
+    <h1 class="h3 fw-bold mb-1">My Mastery Record</h1>
+    <p class="text-muted mb-0">Review your progress and retake tests to achieve 100% mastery.</p>
+  </header>
+
+  {% if attempts %}
+  <div class="table-responsive rounded shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Topic / Lesson</th>
+          <th>Chunk</th>
+          <th>Score</th>
+          <th>Result</th>
+          <th>Date Completed</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in attempts %}
+        <tr class="{% if a.score_percent == 100 %}table-success{% endif %}
+                   {% if a.score_percent == 100 %}border-start border-success border-3{% endif %}">
+          <td>
+            <span class="fw-medium">{{ a.lesson.title }}</span>
+          </td>
+          <td>
+            <a href="{% url 'content:chunk_hub' a.chunk.id %}" class="fw-bold text-decoration-none">
+              Chunk {{ a.chunk.order }}
+            </a>
+          </td>
+          <td>
+            <span class="fw-bold">{{ a.score_percent }}%</span>
+            <br>
+            <small class="text-muted">{{ a.correct_answers }}/{{ a.total_questions }}</small>
+          </td>
+          <td>
+            {% if a.score_percent == 100 %}
+              <span class="badge bg-success">Mastered</span>
+            {% elif a.score_percent >= 80 %}
+              <span class="badge bg-warning text-dark">Passed</span>
+            {% else %}
+              <span class="badge bg-danger">Needs Review</span>
+            {% endif %}
+          </td>
+          <td>
+            {{ a.created_at|date:"M d, Y" }}
+            <br>
+            <small class="text-muted">{{ a.created_at|date:"h:i A" }}</small>
+          </td>
+          <td class="text-end">
+            {# URL: content:attempt-detail #}
+            <a href="{% url 'content:attempt-detail' a.chunk.id a.id %}" class="btn btn-sm btn-outline-primary">
+              View Breakdown
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="text-center py-5 bg-light rounded">
+    <div class="display-4 mb-3">📊</div>
+    <p class="text-muted mb-3">No test attempts recorded yet. Start practicing to see your history!</p>
+    <a href="{% url 'content:index' %}" class="btn btn-primary px-4">Go to Lessons</a>
+  </div>
+  {% endif %}
+
 </div>
-
-<style>
-    /* Layout */
-    .history-container { max-width: 1000px; margin: 0 auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .page-header { margin-bottom: 30px; }
-    .subtitle { color: #666; font-size: 1.1rem; }
-
-    /* Breadcrumbs */
-    .breadcrumb-nav { margin-bottom: 15px; }
-    .back-link { text-decoration: none; color: #3498db; font-weight: 500; }
-
-    /* Table Styling */
-    .table-responsive { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
-    .history-table { width: 100%; border-collapse: collapse; }
-    .history-table th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #eee; color: #2c3e50; }
-    .history-table td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
-    
-    /* Hover and Row Effects */
-    .history-table tr:hover { background-color: #fcfcfc; }
-    .row-mastered { border-left: 4px solid #2ecc71; }
-
-    /* Links and Typography */
-    .chunk-link { font-weight: bold; color: #3498db; text-decoration: none; }
-    .lesson-title { display: block; font-weight: 500; color: #333; }
-    .score-pill { font-weight: bold; }
-    .score-pill small { display: block; color: #888; font-weight: normal; }
-    .date-col small { display: block; color: #aaa; }
-
-    /* Badges */
-    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-    .badge-success { background: #e6ffed; color: #2ecc71; }
-    .badge-warning { background: #fff9db; color: #f08c00; }
-    .badge-danger { background: #fff5f5; color: #fa5252; }
-
-    /* Buttons */
-    .btn-detail { font-size: 0.9rem; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 5px 12px; border-radius: 4px; transition: all 0.2s; }
-    .btn-detail:hover { background: #3498db; color: white; }
-    
-    .empty-state { text-align: center; padding: 50px; background: #f9f9f9; border-radius: 8px; }
-    .text-right { text-align: right; }
-</style>
 {% endblock %}

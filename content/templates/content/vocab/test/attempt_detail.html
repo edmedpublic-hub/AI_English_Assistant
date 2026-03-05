@@ -3,158 +3,97 @@
 
 {% block title %}Review — {{ attempt.lesson.title }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/vocabulary/css/test.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="review-container">
-    <nav class="breadcrumb-nav">
-        <a href="{% url 'content:test_history' %}" class="back-link">&larr; Back to Mastery Record</a>
-    </nav>
+<div class="mx-auto" style="max-width: 800px;">
 
-    <header class="review-header">
-        <h1>Test Review</h1>
-        <div class="meta-card">
-            <div class="meta-item">
-                <span class="label">Lesson:</span>
-                <span class="value">{{ attempt.lesson.title }}</span>
-            </div>
-            <div class="meta-item">
-                <span class="label">Chunk:</span>
-                <span class="value">Chunk {{ attempt.chunk.order }}</span>
-            </div>
-            <div class="meta-item">
-                <span class="label">Score:</span>
-                <span class="value score-text {% if attempt.score_percent == 100 %}mastered{% endif %}">
-                    {{ attempt.score_percent }}%
-                </span>
-            </div>
-            <div class="meta-item">
-                <span class="label">Date:</span>
-                <span class="value">{{ attempt.created_at|date:"M d, Y | h:i A" }}</span>
-            </div>
+  <!-- Breadcrumb -->
+  <nav class="mb-4">
+    {# URL: content:history — requires chunk_id #}
+    <a href="{% url 'content:history' attempt.chunk.id %}" class="btn btn-sm btn-outline-secondary">
+      &larr; Back to Mastery Record
+    </a>
+  </nav>
+
+  <!-- Header -->
+  <h1 class="h3 fw-bold mb-4">Test Review</h1>
+
+  <!-- Meta Card -->
+  <div class="row g-3 bg-light border rounded p-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="text-uppercase text-muted small mb-1">Lesson</div>
+      <div class="fw-semibold">{{ attempt.lesson.title }}</div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-uppercase text-muted small mb-1">Chunk</div>
+      <div class="fw-semibold">Chunk {{ attempt.chunk.order }}</div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-uppercase text-muted small mb-1">Score</div>
+      <div class="fw-semibold {% if attempt.score_percent == 100 %}text-success{% endif %}">
+        {{ attempt.score_percent }}%
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-uppercase text-muted small mb-1">Date</div>
+      <div class="fw-semibold">{{ attempt.created_at|date:"M d, Y" }}</div>
+      <small class="text-muted">{{ attempt.created_at|date:"h:i A" }}</small>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <!-- Questions List -->
+  <section>
+    {% for q in questions %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+
+        <!-- Question Title -->
+        <div class="d-flex gap-3 align-items-start mb-3">
+          <span class="badge bg-primary flex-shrink-0">Q{{ forloop.counter }}</span>
+          <p class="fs-6 fw-semibold mb-0">{{ q.question }}</p>
         </div>
-    </header>
 
-    <hr class="separator">
+        <!-- Options -->
+        <ul class="list-unstyled mb-3">
+          {% for opt in q.options %}
+          <li class="d-flex align-items-center gap-2 px-3 py-2 rounded mb-2 border
+                     {% if opt == q.answer %}bg-success bg-opacity-10 border-success text-success fw-semibold{% endif %}">
+            <span class="flex-shrink-0">
+              {% if opt == q.answer %}✔{% else %}○{% endif %}
+            </span>
+            {{ opt }}
+          </li>
+          {% endfor %}
+        </ul>
 
-    <section class="questions-list">
-        {% for q in questions %}
-            <div class="question-card">
-                <div class="question-title">
-                    <span class="q-number">Q{{ forloop.counter }}</span>
-                    <p>{{ q.question }}</p>
-                </div>
+        <!-- Answer Explanation -->
+        <div class="text-muted small border-top pt-2">
+          The correct answer is: <strong class="text-dark">{{ q.answer }}</strong>
+        </div>
 
-                <ul class="options-list">
-                    {% for opt in q.options %}
-                        <li class="option-item {% if opt == q.answer %}correct-option{% endif %}">
-                            <span class="indicator">
-                                {% if opt == q.answer %}✔{% else %}○{% endif %}
-                            </span>
-                            {{ opt }}
-                        </li>
-                    {% endfor %}
-                </ul>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-4 text-muted bg-light rounded">
+      <p class="mb-0">Detailed question data is not available for this attempt.</p>
+    </div>
+    {% endfor %}
+  </section>
 
-                <div class="answer-explanation">
-                    <p>The correct answer is: <strong>{{ q.answer }}</strong></p>
-                </div>
-            </div>
-        {% empty %}
-            <div class="empty-state">
-                <p>Detailed question data is not available for this attempt.</p>
-            </div>
-        {% endfor %}
-    </section>
+  <!-- Footer Navigation -->
+  <div class="d-flex flex-wrap gap-3 justify-content-center mt-5 pt-4 border-top">
+    <a href="{% url 'content:history' attempt.chunk.id %}" class="btn btn-outline-secondary px-4">
+      Return to History
+    </a>
+    <a href="{% url 'content:chunk_hub' attempt.chunk.id %}" class="btn btn-primary px-4">
+      Back to Chunk Hub
+    </a>
+  </div>
 
-    <footer class="review-footer">
-        <a href="{% url 'content:test_history' %}" class="btn-secondary">Return to History</a>
-        <a href="{% url 'content:chunk_hub' attempt.chunk.id %}" class="btn-primary">Back to Chunk Hub</a>
-    </footer>
 </div>
-
-<style>
-    .review-container { max-width: 800px; margin: 0 auto; padding: 20px; font-family: 'Inter', sans-serif; }
-    
-    /* Breadcrumb */
-    .breadcrumb-nav { margin-bottom: 20px; }
-    .back-link { color: #3498db; text-decoration: none; font-weight: 500; }
-
-    /* Header & Meta Card */
-    .review-header h1 { color: #2c3e50; margin-bottom: 20px; }
-    .meta-card { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-        gap: 15px; 
-        background: #f8f9fa; 
-        padding: 20px; 
-        border-radius: 10px;
-        border: 1px solid #e9ecef;
-    }
-    .meta-item .label { display: block; font-size: 0.85rem; color: #6c757d; text-transform: uppercase; }
-    .meta-item .value { font-weight: 600; color: #333; }
-    .score-text.mastered { color: #2ecc71; }
-
-    .separator { margin: 40px 0; border: 0; border-top: 1px solid #eee; }
-
-    /* Question Cards */
-    .question-card { 
-        background: #fff; 
-        border: 1px solid #edf2f7; 
-        border-radius: 8px; 
-        padding: 20px; 
-        margin-bottom: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .question-title { display: flex; gap: 15px; margin-bottom: 15px; }
-    .q-number { 
-        background: #3498db; 
-        color: white; 
-        padding: 2px 8px; 
-        border-radius: 4px; 
-        font-size: 0.8rem; 
-        height: fit-content;
-    }
-    .question-title p { font-size: 1.1rem; font-weight: 600; margin: 0; color: #2d3748; }
-
-    /* Options Styling */
-    .options-list { list-style: none; padding: 0; margin-bottom: 15px; }
-    .option-item { 
-        padding: 10px 15px; 
-        border-radius: 6px; 
-        margin-bottom: 8px; 
-        border: 1px solid #f1f3f5;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .correct-option { 
-        background-color: #e6ffed; 
-        border-color: #b1dfbb; 
-        color: #1e7e34; 
-        font-weight: 600; 
-    }
-    .indicator { font-size: 0.9rem; }
-
-    .answer-explanation { font-size: 0.9rem; color: #718096; border-top: 1px solid #f1f3f5; padding-top: 10px; }
-
-    /* Footer Navigation */
-    .review-footer { 
-        margin-top: 50px; 
-        padding-top: 20px; 
-        border-top: 2px solid #f8f9fa; 
-        display: flex; 
-        gap: 20px; 
-        justify-content: center; 
-    }
-    .btn-primary, .btn-secondary { 
-        padding: 12px 24px; 
-        border-radius: 6px; 
-        text-decoration: none; 
-        font-weight: 600; 
-        transition: 0.2s; 
-    }
-    .btn-primary { background: #3498db; color: white; }
-    .btn-secondary { background: #edf2f7; color: #4a5568; }
-    .btn-primary:hover { background: #2980b9; }
-    .btn-secondary:hover { background: #e2e8f0; }
-</style>
 {% endblock %}

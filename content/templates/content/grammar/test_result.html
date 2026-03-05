@@ -1,186 +1,92 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Grammar Result — {{ focus.focus_title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/grammar/css/test_result.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-  .result-container {
-    max-width: 750px;
-    margin: 40px auto;
-    padding: 20px;
-    text-align: center;
-  }
+<div class="mx-auto text-center" style="max-width: 750px;">
 
-  .result-card {
-    background: #ffffff;
-    border-radius: 15px;
-    padding: 40px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    border-top: 8px solid;
-  }
+  {% if is_mastered %}
+  <!-- PASS -->
+  <div class="card shadow-sm border-success border-top border-4 p-4 mb-4">
+    <h2 class="h4 fw-bold text-success mb-3">Mastered ✓</h2>
 
-  .mastery-pass { border-color: #27ae60; }
-  .mastery-pass h2 { color: #27ae60; }
-
-  .mastery-fail { border-color: #e74c3c; }
-  .mastery-fail h2 { color: #e74c3c; }
-
-  .score-circle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    margin: 20px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.2rem;
-    font-weight: bold;
-    color: #ffffff;
-  }
-
-  .bg-pass { background: #27ae60; }
-  .bg-fail { background: #e74c3c; }
-
-  .stats-table {
-    width: 100%;
-    margin: 25px 0;
-    border-collapse: collapse;
-    text-align: left;
-  }
-
-  .stats-table td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    font-size: 1.05rem;
-  }
-
-  .action-btns {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 30px;
-    flex-wrap: wrap;
-  }
-
-  .btn-action {
-    padding: 14px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-  }
-
-  .btn-green { background: #27ae60; color: #fff; }
-  .btn-blue { background: #3498db; color: #fff; }
-
-  .review-section {
-    margin-top: 40px;
-    text-align: left;
-  }
-
-  .error-item {
-    background: #fff;
-    border-left: 5px solid #e74c3c;
-    padding: 15px;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 15px;
-  }
-
-  .back-link {
-    display: inline-block;
-    margin-top: 40px;
-    text-decoration: none;
-    color: #555;
-    font-weight: 500;
-  }
-</style>
-
-<div class="result-container">
-
-{% comment %}
-  IMPORTANT PRODUCTION NOTE:
-  - "is_mastered" MUST be computed in the backend view.
-  - Do NOT rely on float equality inside templates.
-{% endcomment %}
-
-{% if is_mastered %}
-  <!-- ================= PASS ================= -->
-  <div class="result-card mastery-pass">
-    <h2>Mastered</h2>
-
-    <div class="score-circle bg-pass" role="img" aria-label="Score {{ score }} percent">
+    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+         style="width: 110px; height: 110px; font-size: 2rem; font-weight: 800;"
+         role="img" aria-label="Score {{ score }} percent">
       {{ score }}%
     </div>
 
-    <p>
-      You have fully mastered
-      <strong>{{ focus.focus_title }}</strong>.
-    </p>
+    <p class="mb-3">You have fully mastered <strong>{{ focus.focus_title }}</strong>.</p>
 
-    <table class="stats-table">
+    <table class="table table-borderless text-start mx-auto w-auto">
       <tr>
-        <td>Correct Answers</td>
+        <td class="text-muted">Correct Answers</td>
         <td><strong>{{ correct }}</strong></td>
       </tr>
       <tr>
-        <td>Total Questions</td>
+        <td class="text-muted">Total Questions</td>
         <td><strong>{{ total }}</strong></td>
       </tr>
     </table>
 
-    <div class="action-btns">
-      <a href="{% url 'content:chunk_grammar' chunk.id %}" class="btn-action btn-green">
-        Return to Grammar List
-      </a>
-    </div>
+    <a href="{% url 'content:chunk_grammar' chunk.id %}" class="btn btn-success px-5 mt-2">
+      Return to Grammar List
+    </a>
   </div>
 
-{% else %}
-  <!-- ================= FAIL ================= -->
-  <div class="result-card mastery-fail">
-    <h2>Not Yet Mastered</h2>
+  {% else %}
+  <!-- FAIL -->
+  <div class="card shadow-sm border-danger border-top border-4 p-4 mb-4">
+    <h2 class="h4 fw-bold text-danger mb-3">Not Yet Mastered</h2>
 
-    <div class="score-circle bg-fail" role="img" aria-label="Score {{ score }} percent">
+    <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+         style="width: 110px; height: 110px; font-size: 2rem; font-weight: 800;"
+         role="img" aria-label="Score {{ score }} percent">
       {{ score }}%
     </div>
 
-    <table class="stats-table">
+    <table class="table table-borderless text-start mx-auto w-auto">
       <tr>
-        <td>Correct</td>
+        <td class="text-muted">Correct</td>
         <td><strong>{{ correct }} / {{ total }}</strong></td>
       </tr>
       <tr>
-        <td>Mistakes</td>
+        <td class="text-muted">Mistakes</td>
         <td><strong>{{ mistakes }}</strong></td>
       </tr>
     </table>
 
-    <div class="action-btns">
-      <a href="{% url 'content:grammar:practice' chunk.id focus.id %}"
-         class="btn-action btn-blue">
-        Review Practice
-      </a>
-    </div>
+    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}" class="btn btn-primary px-5 mt-2">
+      Review Practice
+    </a>
   </div>
 
+  <!-- Mistake Review -->
   {% if results %}
-    <div class="review-section">
-      <h3>Review Your Mistakes</h3>
-
-      {% for res in results %}
-        {% if not res.is_correct %}
-          <div class="error-item">
-            <p><strong>Q:</strong> {{ res.question.question_text }}</p>
-            <p><strong>Your Answer:</strong> {{ res.user_answer|default:"—" }}</p>
-            <p><strong>Correct Answer:</strong> {{ res.question.correct_answer }}</p>
-          </div>
-        {% endif %}
-      {% endfor %}
-
-    </div>
+  <div class="text-start mt-4">
+    <h3 class="h5 fw-semibold mb-3">Review Your Mistakes</h3>
+    {% for res in results %}
+      {% if not res.is_correct %}
+      <div class="border-start border-danger border-4 ps-3 py-2 mb-3 bg-light rounded-end">
+        <p class="mb-1"><strong>Q:</strong> {{ res.question.question_text }}</p>
+        <p class="mb-1 text-danger"><strong>Your Answer:</strong> {{ res.user_answer|default:"—" }}</p>
+        <p class="mb-0 text-success"><strong>Correct Answer:</strong> {{ res.question.correct_answer }}</p>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
   {% endif %}
-{% endif %}
 
-<a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
-  ← Back to Lesson Hub
-</a>
+  {% endif %}
+
+  <a href="{% url 'content:chunk_hub' chunk.id %}" class="btn btn-outline-secondary mt-4">
+    &larr; Back to Chunk Hub
+  </a>
 
 </div>
 {% endblock %}

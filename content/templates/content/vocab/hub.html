@@ -3,131 +3,140 @@
 
 {% block title %}Vocabulary — Chunk {{ chunk.order }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/vocabulary/css/hub.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="vocabulary-hub" data-chunk-id="{{ chunk.id }}" data-total-items="{{ vocab_items|length }}">
 
-  <!-- Back Navigation - FIXED: Removed content: prefix -->
-  <div class="hub-nav">
-    <a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
-      Back to Chunk
+  <!-- Back Navigation -->
+  <div class="mb-3">
+    <a href="{% url 'content:chunk_hub' chunk.id %}" class="btn btn-sm btn-outline-secondary">
+      &larr; Back to Chunk
     </a>
   </div>
 
   <!-- Header -->
-  <header class="hub-header">
-    <h1>Vocabulary for Chunk {{ chunk.order }}</h1>
+  <header class="mb-4">
+    <h1 class="h3 fw-bold mb-1">Vocabulary — Chunk {{ chunk.order }}</h1>
     {% if chunk.title %}
-    <p class="chunk-title">{{ chunk.title }}</p>
+    <p class="text-muted mb-0">{{ chunk.title }}</p>
     {% endif %}
   </header>
 
   <!-- Progress Section -->
-  <div class="progress-section">
-    <div class="progress-stats">
-      <span class="progress-text"><span class="current-count">1</span> of <span class="total-count">{{ vocab_items|length }}</span> items</span>
+  <div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <small class="text-muted">
+        <span class="current-count">1</span> of <span class="total-count">{{ vocab_items|length }}</span> items
+      </small>
     </div>
-    <div class="progress-bar-container">
-      <div class="progress-bar" style="width: 0%"></div>
+    <div class="progress" style="height: 6px;">
+      <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
   </div>
 
   <!-- Mastery Stats -->
   {% if mastery_stats %}
-  <div class="mastery-stats">
-    <div class="stat-item stat-new">New: <span>{{ mastery_stats.new }}</span></div>
-    <div class="stat-item stat-learning">Learning: <span>{{ mastery_stats.learning }}</span></div>
-    <div class="stat-item stat-review">Review: <span>{{ mastery_stats.review }}</span></div>
-    <div class="stat-item stat-mastered">Mastered: <span>{{ mastery_stats.mastered }}</span></div>
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <span class="badge bg-secondary">New: {{ mastery_stats.new }}</span>
+    <span class="badge bg-warning text-dark">Learning: {{ mastery_stats.learning }}</span>
+    <span class="badge bg-info text-dark">Review: {{ mastery_stats.review }}</span>
+    <span class="badge bg-success">Mastered: {{ mastery_stats.mastered }}</span>
   </div>
   {% endif %}
 
   <!-- Slideshow Container -->
-  <div class="slideshow-container">
+  <div class="slideshow-container mb-4">
     {% for vocab in vocab_items %}
-    <div class="slideshow-card {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
-      
-      <div class="card-content">
+    <div class="slideshow-card card shadow-sm {% if not forloop.first %}d-none{% endif %}" data-index="{{ forloop.counter0 }}">
+      <div class="card-body">
+
         <!-- Word Header -->
-        <div class="word-header">
-          <h2 class="word">{{ vocab.word }}</h2>
-          <div class="word-meta">
-            <span class="urdu">{{ vocab.urdu|default:"(translation pending)" }}</span>
-            <span class="pos">{{ vocab.get_part_of_speech_display|default:"?" }}</span>
-          </div>
+        <div class="d-flex align-items-baseline gap-3 mb-3">
+          <h2 class="h4 fw-bold mb-0">{{ vocab.word }}</h2>
+          <span class="text-muted fst-italic">{{ vocab.urdu|default:"(translation pending)" }}</span>
+          <span class="badge bg-light text-dark border ms-auto">{{ vocab.get_part_of_speech_display|default:"?" }}</span>
         </div>
 
-        <!-- MEANING - Full width -->
-        <div class="meaning-block">
-          <h3>Meaning</h3>
-          <p>{{ vocab.meaning|default:"No meaning yet." }}</p>
+        <!-- Meaning -->
+        <div class="mb-3">
+          <h3 class="h6 text-uppercase text-muted fw-semibold mb-1">Meaning</h3>
+          <p class="mb-0">{{ vocab.meaning|default:"No meaning yet." }}</p>
         </div>
 
-        <!-- SYNONYMS | ANTONYMS - Side by side -->
-        <div class="synonyms-antonyms-row">
+        <!-- Synonyms | Antonyms -->
+        {% if vocab.synonyms or vocab.antonyms %}
+        <div class="row g-3 mb-3">
           {% if vocab.synonyms %}
-          <div class="synonyms-block">
-            <h3>Synonyms</h3>
-            <p>{{ vocab.synonyms }}</p>
+          <div class="col-sm-6">
+            <h3 class="h6 text-uppercase text-muted fw-semibold mb-1">Synonyms</h3>
+            <p class="mb-0">{{ vocab.synonyms }}</p>
           </div>
           {% endif %}
-          
           {% if vocab.antonyms %}
-          <div class="antonyms-block">
-            <h3>Antonyms</h3>
-            <p>{{ vocab.antonyms }}</p>
+          <div class="col-sm-6">
+            <h3 class="h6 text-uppercase text-muted fw-semibold mb-1">Antonyms</h3>
+            <p class="mb-0">{{ vocab.antonyms }}</p>
           </div>
           {% endif %}
         </div>
+        {% endif %}
 
-        <!-- EXAMPLES - Full width -->
+        <!-- Examples -->
         {% if vocab.example_sentence %}
-        <div class="examples-block">
-          <h3>Examples</h3>
-          <ul>
+        <div class="mb-3">
+          <h3 class="h6 text-uppercase text-muted fw-semibold mb-1">Examples</h3>
+          <ul class="mb-0 ps-3">
             {% for line in vocab.example_sentence.splitlines %}
               {% if line.strip %}
-                <li>{{ line }}</li>
+              <li>{{ line }}</li>
               {% endif %}
             {% endfor %}
           </ul>
         </div>
         {% endif %}
 
+        <!-- Mastery Badge -->
         {% if vocab.mastery_level %}
-        <div class="mastery-badge" data-level="{{ vocab.mastery_level }}">
-          {{ vocab.get_mastery_level_display }}
+        <div class="mt-2">
+          <span class="mastery-badge badge" data-level="{{ vocab.mastery_level }}">
+            {{ vocab.get_mastery_level_display }}
+          </span>
         </div>
         {% endif %}
+
       </div>
     </div>
     {% empty %}
-    <div class="empty-state">
-      <p>No vocabulary items yet for this chunk.</p>
+    <div class="text-center py-5 text-muted">
+      <p class="mb-0">No vocabulary items yet for this chunk.</p>
     </div>
     {% endfor %}
   </div>
 
-  <!-- Navigation Controls -->
-  <div class="slideshow-nav">
-    <button class="nav-btn prev-btn" {% if vocab_items|length <= 1 %}disabled{% endif %}>← Previous</button>
-    <div class="nav-progress">
-      <span class="current-card">1</span>/<span class="total-cards">{{ vocab_items|length }}</span>
-    </div>
-    <button class="nav-btn next-btn" {% if vocab_items|length <= 1 %}disabled{% endif %}>Next →</button>
+  <!-- Slideshow Navigation -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <button class="btn btn-outline-primary nav-btn prev-btn" {% if vocab_items|length <= 1 %}disabled{% endif %}>
+      &larr; Previous
+    </button>
+    <span class="text-muted">
+      <span class="current-card">1</span> / <span class="total-cards">{{ vocab_items|length }}</span>
+    </span>
+    <button class="btn btn-outline-primary nav-btn next-btn" {% if vocab_items|length <= 1 %}disabled{% endif %}>
+      Next &rarr;
+    </button>
   </div>
 
-  <!-- Practice Link - FIXED: Removed content: prefix -->
-  <div class="practice-link">
-    <a href="{% url 'content:practice' chunk.id %}" class="btn-practice">
+  <!-- Practice Link -->
+  <div class="text-center">
+    <a href="{% url 'content:practice' chunk.id %}" class="btn btn-success btn-lg px-5">
       Practice These Words
     </a>
   </div>
 
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'content/vocabulary/css/hub.css' %}">
 {% endblock %}
 
 {% block extra_js %}

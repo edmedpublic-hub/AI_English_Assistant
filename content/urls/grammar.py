@@ -1,9 +1,8 @@
 # content/urls/grammar.py
-
 from django.urls import path
 from content.views.grammar import teach, practice, test
 
-
+app_name = "grammar"
 
 urlpatterns = [
     path("<int:focus_id>/teach/", teach.grammar_teach, name="teach"),

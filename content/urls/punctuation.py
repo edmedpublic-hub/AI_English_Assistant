@@ -1,5 +1,4 @@
 # content/urls/punctuation.py
-
 from django.urls import path
 from content.views.punctuation import (
     chunk_punctuation_view,
@@ -10,58 +9,13 @@ from content.views.punctuation import (
     punctuation_attempt_detail,
 )
 
+app_name = "punctuation"
+
 urlpatterns = [
-    # --------------------------------------------------
-    # HUB
-    # --------------------------------------------------
-    path(
-        "hub/",
-        chunk_punctuation_view,
-        name="hub",
-    ),
-
-    # --------------------------------------------------
-    # TEACH
-    # --------------------------------------------------
-    path(
-        "<int:focus_id>/teach/",
-        teach_punctuation_view,
-        name="teach",
-    ),
-
-    # --------------------------------------------------
-    # PRACTICE
-    # --------------------------------------------------
-    path(
-        "<int:focus_id>/practice/",
-        punctuation_practice,
-        name="practice",
-    ),
-
-    # --------------------------------------------------
-    # TEST
-    # --------------------------------------------------
-    path(
-        "<int:focus_id>/test/",
-        punctuation_test,
-        name="test",
-    ),
-
-    # --------------------------------------------------
-    # TEST RESULT
-    # --------------------------------------------------
-    path(
-        "<int:focus_id>/result/",
-        punctuation_test_result,
-        name="test_result",
-    ),
-
-    # --------------------------------------------------
-    # ATTEMPT DETAIL
-    # --------------------------------------------------
-    path(
-        "<int:focus_id>/attempt/<int:attempt_id>/",
-        punctuation_attempt_detail,
-        name="attempt-detail",
-    ),
+    path("hub/", chunk_punctuation_view, name="hub"),
+    path("<int:focus_id>/teach/", teach_punctuation_view, name="teach"),
+    path("<int:focus_id>/practice/", punctuation_practice, name="practice"),
+    path("<int:focus_id>/test/", punctuation_test, name="test"),
+    path("<int:focus_id>/result/", punctuation_test_result, name="test_result"),
+    path("<int:focus_id>/attempt/<int:attempt_id>/", punctuation_attempt_detail, name="attempt-detail"),
 ]

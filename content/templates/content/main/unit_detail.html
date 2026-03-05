@@ -1,55 +1,52 @@
-{% extends "base.html" %}
-{% load static %}
+{# content/templates/content/main/unit_detail.html #}
+
+{% extends "content/base.html" %}
 
 {% block title %}Unit {{ unit.number }} — {{ unit.title }}{% endblock %}
 
-{% block content %}
-<section class="unit-detail-page">
-
-  <header class="page-header">
-    <h1>Unit {{ unit.number }}: {{ unit.title }}</h1>
-    <p class="unit-textbook">
-      From <strong>{{ unit.textbook.title }}</strong>
-    </p>
-  </header>
-
-  <nav class="page-navigation">
-    <a href="{% url 'content:textbook_detail' unit.textbook.pk %}">
-      ← Back to {{ unit.textbook.title }}
-    </a>
-    <span class="nav-separator">|</span>
-    <a href="{% url 'content:textbook_list' %}">Textbooks</a>
-    <span class="nav-separator">|</span>
-    <a href="{% url 'content:content_index' %}">Content Index</a>
-    <span class="nav-separator">|</span>
-    <a href="{% url 'index' %}">Global Home</a>
-  </nav>
-
-  <section class="lessons-section">
-    <h2>Lessons</h2>
-
-    {% if lessons %}
-      <ul class="lesson-list">
-        {% for lesson in lessons %}
-          <li class="lesson-item">
-            <article class="lesson-card">
-              <a href="{% url 'content:lesson_detail' lesson.pk %}" class="lesson-link">
-                Lesson {{ lesson.number }}: {{ lesson.title }}
-              </a>
-            </article>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="empty-message">
-        No lessons found for this unit.
-      </p>
-    {% endif %}
-  </section>
-
-</section>
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'content:content_index' %}">Content</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'content:textbook_list' %}">Textbooks</a></li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'content:textbook_detail' unit.textbook.pk %}">{{ unit.textbook.title }}</a>
+    </li>
+    <li class="breadcrumb-item active">Unit {{ unit.number }}</li>
+  </ol>
+</nav>
 {% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'content/unit_detail.css' %}">
+{% block page_header %}
+<div class="mb-4">
+  <h1 class="h3 fw-bold mb-1">Unit {{ unit.number }}: {{ unit.title }}</h1>
+  <p class="text-muted mb-0">{{ unit.textbook.title }}</p>
+  {% if unit.description %}
+    <p class="text-muted mt-2">{{ unit.description }}</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block page_content %}
+<h2 class="h5 fw-semibold mb-3">Lessons</h2>
+
+{% if lessons %}
+  <div class="list-group shadow-sm">
+    {% for lesson in lessons %}
+      <a href="{% url 'content:lesson_detail' lesson.pk %}"
+         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        <div>
+          <span class="fw-semibold">Lesson {{ lesson.number }}:</span>
+          {{ lesson.title }}
+        </div>
+        <span class="badge bg-primary rounded-pill">
+          {{ lesson.chunks.count }} chunk{{ lesson.chunks.count|pluralize }}
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">No lessons found for this unit.</div>
+{% endif %}
 {% endblock %}

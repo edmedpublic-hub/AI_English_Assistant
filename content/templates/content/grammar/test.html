@@ -1,151 +1,89 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Grammar Mastery Test — {{ focus.focus_title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/grammar/css/test.css' %}">
+{% endblock %}
 
 {% block content %}
-
-<style>
-.test-container { max-width: 820px; margin: 40px auto; padding: 20px; }
-
-.breadcrumb {
-  text-align: center;
-  margin-bottom: 18px;
-}
-.breadcrumb a {
-  text-decoration: none;
-  color: #3498db;
-  font-weight: 500;
-}
-
-.test-header {
-  background: #2c3e50;
-  color: white;
-  padding: 30px;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  text-align: center;
-}
-.test-header h2 { margin: 0; font-size: 1.8rem; }
-.test-header p { margin-top: 8px; opacity: 0.9; }
-
-.question-card {
-  background: #fff;
-  border: 1px solid #e1e8ed;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 22px;
-}
-
-.question-text {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 15px;
-}
-
-.option-label {
-  display: block;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid #e1e8ed;
-  cursor: pointer;
-  transition: 0.15s ease;
-}
-.option-label:hover {
-  background: #f7f9fb;
-  border-color: #3498db;
-}
-.option-label input { margin-right: 10px; }
-
-textarea, .text-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccd6dd;
-  font-size: 1rem;
-}
-textarea { height: 110px; resize: vertical; }
-
-.btn-finish {
-  width: 100%;
-  margin-top: 22px;
-  padding: 18px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.btn-finish:hover { background: #c0392b; }
-</style>
-
-<main class="test-container">
+<div class="mx-auto" style="max-width: 820px;">
 
   <!-- Breadcrumb -->
-
-  <div class="breadcrumb">
-    <a href="{% url 'content:chunk_grammar' chunk.id %}">Grammar Hub</a>
-    &nbsp;→&nbsp;
-    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}">Practice</a>
-    &nbsp;→&nbsp;
+  <nav class="mb-4 text-center">
+    <a href="{% url 'content:chunk_grammar' chunk.id %}" class="text-decoration-none text-muted">Grammar Hub</a>
+    <span class="mx-2 text-muted">&rarr;</span>
+    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}" class="text-decoration-none text-muted">Practice</a>
+    <span class="mx-2 text-muted">&rarr;</span>
     <strong>Final Test</strong>
-  </div>
+  </nav>
 
   <!-- Header -->
+  <div class="bg-dark text-white text-center rounded p-4 mb-4">
+    <h2 class="h4 fw-bold mb-1">Grammar Mastery Test</h2>
+    <p class="mb-1 opacity-75">{{ focus.focus_title }}</p>
+    <small class="opacity-50">100% score required for mastery</small>
+  </div>
 
-  <header class="test-header">
-    <h2>Grammar Mastery Test</h2>
-    <p>{{ focus.focus_title }}</p>
-    <small>100% score required for mastery</small>
-  </header>
-
-  <form method="post" onsubmit="this.querySelector('button').disabled=true;">
+  <form method="post" id="test-form">
     {% csrf_token %}
 
-```
-{% for q in questions %}
-  <fieldset class="question-card">
-    <legend class="question-text">
-      <strong>{{ forloop.counter }}.</strong> {{ q.question_text }}
-    </legend>
+    {% for q in questions %}
+    <fieldset class="card shadow-sm mb-4 border-0">
+      <div class="card-body">
+        <legend class="fw-semibold mb-3">
+          <strong>{{ forloop.counter }}.</strong> {{ q.question_text }}
+        </legend>
 
-    {% if q.question_type == "mcq" %}
-      {% for option in q.parsed_options %}
-        <label class="option-label">
-          <input
-            type="radio"
-            name="q{{ q.id }}"
-            value="{{ option }}"
-            required
-          >
-          {{ option }}
-        </label>
-      {% endfor %}
+        {% if q.question_type == "mcq" %}
+          <div class="d-flex flex-column gap-2">
+            {% for option in q.parsed_options %}
+            <label class="d-flex align-items-center gap-3 p-3 border rounded option-label" style="cursor: pointer;">
+              <input type="radio"
+                     name="q{{ q.id }}"
+                     value="{{ option }}"
+                     class="form-check-input mt-0 flex-shrink-0"
+                     required>
+              <span>{{ option }}</span>
+            </label>
+            {% endfor %}
+          </div>
 
-    {% elif q.question_type == "rewrite" %}
-      <textarea name="q{{ q.id }}" required></textarea>
+        {% elif q.question_type == "rewrite" %}
+          <textarea name="q{{ q.id }}" class="form-control" rows="4" required></textarea>
 
-    {% else %}
-      <input type="text" name="q{{ q.id }}" class="text-input" required>
+        {% else %}
+          <input type="text" name="q{{ q.id }}" class="form-control" required>
+        {% endif %}
+
+      </div>
+    </fieldset>
+    {% empty %}
+    <div class="text-center py-4 text-muted bg-light rounded">
+      <p class="mb-0">No test questions available.</p>
+    </div>
+    {% endfor %}
+
+    {% if questions %}
+    <div class="d-grid mt-3">
+      <button type="submit"
+              class="btn btn-danger btn-lg"
+              onclick="return confirm('Submit test? Mastery requires 100%.');"
+              id="submit-btn">
+        Submit for Evaluation
+      </button>
+    </div>
     {% endif %}
-  </fieldset>
-{% empty %}
-  <p style="text-align:center;">No test questions available.</p>
-{% endfor %}
-
-{% if questions %}
-  <button
-    type="submit"
-    class="btn-finish"
-    onclick="return confirm('Submit test? Mastery requires 100%.');"
-  >
-    Submit for Evaluation
-  </button>
-{% endif %}
-```
-
   </form>
 
-</main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById("test-form").addEventListener("submit", function () {
+  document.getElementById("submit-btn").disabled = true;
+});
+</script>
 {% endblock %}

@@ -1,64 +1,74 @@
-{% extends "base.html" %}
-{% load static %}
+{# content/templates/content/main/lesson_detail.html #}
 
-{% block title %}
-Lesson {{ lesson.number }} — {{ lesson.title }}
+{% extends "content/base.html" %}
+
+{% block title %}Lesson {{ lesson.number }} — {{ lesson.title }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'content:content_index' %}">Content</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'content:textbook_list' %}">Textbooks</a></li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'content:textbook_detail' lesson.unit.textbook.pk %}">
+        {{ lesson.unit.textbook.title }}
+      </a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'content:unit_detail' lesson.unit.pk %}">
+        Unit {{ lesson.unit.number }}
+      </a>
+    </li>
+    <li class="breadcrumb-item active">Lesson {{ lesson.number }}</li>
+  </ol>
+</nav>
 {% endblock %}
 
-{% block content %}
-<section class="lesson-detail-page">
+{% block page_header %}
+<div class="mb-4">
+  <h1 class="h3 fw-bold mb-1">
+    Lesson {{ lesson.number }}: {{ lesson.title }}
+  </h1>
+  <p class="text-muted mb-0">
+    Unit {{ lesson.unit.number }} · {{ lesson.unit.textbook.title }}
+  </p>
+</div>
 
-  <header class="page-header">
-    <h1>Lesson {{ lesson.number }}: {{ lesson.title }}</h1>
-    <p class="lesson-meta">
-      Unit {{ lesson.unit.number }} · {{ lesson.unit.textbook.title }}
-    </p>
-  </header>
-
-  <nav class="page-navigation">
-    <a href="{% url 'content:unit_detail' lesson.unit.pk %}">
-      ← Back to Unit {{ lesson.unit.number }}
-    </a>
-    <span class="nav-separator">|</span>
-    <a href="{% url 'content:textbook_detail' lesson.unit.textbook.pk %}">
-      {{ lesson.unit.textbook.title }}
-    </a>
-    <span class="nav-separator">|</span>
-    <a href="{% url 'content:textbook_list' %}">Textbooks</a>
-    <span class="nav-separator">|</span>
-    <a href="{% url 'content:content_index' %}">Content Index</a>
-    <span class="nav-separator">|</span>
-    <a href="{% url 'index' %}">Global Home</a>
-  </nav>
-
-  <section class="chunks-section">
-    <h2>Lesson Chunks</h2>
-
-    {% if chunks %}
-      <ul class="chunk-list">
-        {% for chunk in chunks %}
-          <li class="chunk-item">
-            <article class="chunk-card">
-              <a href="{% url 'content:chunk_hub' chunk.pk %}" class="chunk-link">
-                <span class="chunk-label">Chunk {{ chunk.order }}</span>
-                <span class="chunk-preview">
-                  {{ chunk.english_text|truncatewords:10 }}
-                </span>
-              </a>
-            </article>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="empty-message">
-        No chunks found for this lesson.
-      </p>
-    {% endif %}
-  </section>
-
-</section>
+{# Lesson audio if available #}
+{% if lesson.audio_file %}
+  <div class="mb-4">
+    <p class="fw-semibold mb-1 small text-muted text-uppercase">Listen to full lesson</p>
+    <audio controls class="w-100" style="max-width: 500px;">
+      <source src="{{ lesson.audio_file.url }}">
+    </audio>
+  </div>
+{% endif %}
 {% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'content/lesson_detail.css' %}">
+{% block page_content %}
+<h2 class="h5 fw-semibold mb-3">Chunks</h2>
+
+{% if chunks %}
+  <div class="list-group shadow-sm">
+    {% for chunk in chunks %}
+      <a href="{% url 'content:chunk_hub' chunk.pk %}"
+         class="list-group-item list-group-item-action">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span class="fw-semibold">Chunk {{ chunk.order }}</span>
+            <p class="mb-0 text-muted small mt-1">
+              {{ chunk.english_text|truncatewords:15 }}
+            </p>
+          </div>
+          {% if chunk.audio_file %}
+            <span class="badge bg-success ms-2">🔊 Audio</span>
+          {% endif %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">No chunks found for this lesson.</div>
+{% endif %}
 {% endblock %}

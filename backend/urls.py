@@ -6,6 +6,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from vocab_master.admin import admin_site
 from django.shortcuts import render
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # Admin (custom admin site from vocab_master)
@@ -28,6 +29,8 @@ urlpatterns = [
         "translation/",
         include(("translation.urls", "translation"), namespace="translation"),
     ),
+    path("accounts/login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(next_page="/"), name="logout"),
 ]
 
 # Serve media and static in development

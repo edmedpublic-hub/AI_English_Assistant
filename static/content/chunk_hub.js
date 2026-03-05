@@ -86,6 +86,12 @@
   document.getElementById("pause-btn").onclick = () => {
     paused = true;
     speechSynthesis.cancel();
-  };
+};
+document.getElementById("stop-btn").onclick = () => {
+    paused = true;
+    speechSynthesis.cancel();
+    clearHighlight();
+    currentIndex = 0;
+};
   document.getElementById("resume-btn").onclick = playAll;
 })();

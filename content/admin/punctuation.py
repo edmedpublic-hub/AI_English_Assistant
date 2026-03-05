@@ -1,10 +1,5 @@
 # content/admin/punctuation.py
 
-"""
-Admin configurations for the Punctuation domain.
-Provides ModelAdmin classes for punctuation marks, rules, focuses, and questions.
-"""
-
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
@@ -29,11 +24,6 @@ from content.admin.inlines.punctuation import (
 )
 
 
-# ============================================================
-# CURRICULUM LAYER (Global Punctuation Knowledge)
-# Rarely edited, protected from deletion
-# ============================================================
-
 @admin.register(PunctuationMark)
 class PunctuationMarkAdmin(admin.ModelAdmin):
     list_display = ("name", "symbol", "order_index", "rule_count", "last_updated")
@@ -41,7 +31,7 @@ class PunctuationMarkAdmin(admin.ModelAdmin):
     search_fields = ("name", "symbol", "description")
     ordering = ("order_index",)
     readonly_fields = ("created_at", "updated_at", "rule_count_display")
-    
+
     fieldsets = (
         ("Basic Information", {
             "fields": ("name", "symbol", "description", "order_index")
@@ -55,13 +45,13 @@ class PunctuationMarkAdmin(admin.ModelAdmin):
             "classes": ("collapse",),
         }),
     )
-    
+
     inlines = [PunctuationRuleInline]
 
     def rule_count(self, obj):
         return obj.rules.count()
     rule_count.short_description = "Rules"
-    
+
     def rule_count_display(self, obj):
         count = obj.rules.count()
         if count > 0:
@@ -69,13 +59,13 @@ class PunctuationMarkAdmin(admin.ModelAdmin):
             return format_html('<a href="{}">{} rule{}</a>', url, count, 's' if count != 1 else '')
         return "No rules"
     rule_count_display.short_description = "Rules"
-    
+
     def last_updated(self, obj):
         return obj.updated_at.strftime("%Y-%m-%d")
     last_updated.short_description = "Updated"
 
     def has_delete_permission(self, request, obj=None):
-        return False  # Protect curriculum
+        return False
 
 
 @admin.register(PunctuationRule)
@@ -86,7 +76,7 @@ class PunctuationRuleAdmin(admin.ModelAdmin):
     ordering = ("mark", "id")
     autocomplete_fields = ("mark",)
     readonly_fields = ("created_at", "updated_at", "example_count_display")
-    
+
     fieldsets = (
         ("Rule Details", {
             "fields": ("mark", "rule_text")
@@ -100,29 +90,28 @@ class PunctuationRuleAdmin(admin.ModelAdmin):
             "classes": ("collapse",),
         }),
     )
-    
+
     inlines = [PunctuationExampleInline]
 
     def rule_preview(self, obj):
         return obj.rule_text[:60] + "..." if len(obj.rule_text) > 60 else obj.rule_text
     rule_preview.short_description = "Rule"
-    
+
     def example_count(self, obj):
         return obj.examples.count()
     example_count.short_description = "Examples"
-    
+
     def example_count_display(self, obj):
         count = obj.examples.count()
         return format_html('<b>{}</b> example{}', count, 's' if count != 1 else '')
     example_count_display.short_description = "Examples"
-    
+
     def usage_count(self, obj):
-        """Count how many chunk focuses use this rule"""
         return obj.chunkpunctuationfocusrule_set.count()
     usage_count.short_description = "Used in"
 
     def has_delete_permission(self, request, obj=None):
-        return False  # Protect curriculum
+        return False
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("mark")
@@ -142,29 +131,21 @@ class PunctuationExampleAdmin(admin.ModelAdmin):
     sentence_preview.short_description = "Sentence"
 
     def has_delete_permission(self, request, obj=None):
-        return False  # Protect curriculum
+        return False
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("rule", "rule__mark")
 
 
-# ============================================================
-# FOCUS-RULE MAPPING ADMIN (ADDED TO FIX IMPORT ERROR)
-# ============================================================
-
 @admin.register(ChunkPunctuationFocusRule)
 class ChunkPunctuationFocusRuleAdmin(admin.ModelAdmin):
-    """
-    Admin interface for ChunkPunctuationFocusRule (mapping between focuses and rules).
-    This is the admin class expected by content.admin.__init__.
-    """
     list_display = ('focus_link', 'rule_link', 'order', 'created_at')
     list_filter = ('focus__mark', 'created_at')
     search_fields = ('focus__focus_title', 'rule__rule_text')
     autocomplete_fields = ('focus', 'rule')
     ordering = ('focus', 'order')
     readonly_fields = ('created_at', 'updated_at', 'mapping_preview')
-    
+
     fieldsets = (
         ('Mapping', {
             'fields': ('focus', 'rule', 'order')
@@ -178,24 +159,22 @@ class ChunkPunctuationFocusRuleAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
-    
+
     def focus_link(self, obj):
         url = reverse('admin:content_chunkpunctuationfocus_change', args=[obj.focus.id])
         return format_html('<a href="{}">{}</a>', url, obj.focus.focus_title)
     focus_link.short_description = "Focus"
-    
+
     def rule_link(self, obj):
         url = reverse('admin:content_punctuationrule_change', args=[obj.rule.id])
         return format_html('<a href="{}">{}</a>', url, obj.rule.rule_text[:50])
     rule_link.short_description = "Rule"
-    
+
     def mapping_preview(self, obj):
-        """Preview of the focus-rule mapping"""
         if not obj.pk:
             return "Not saved yet"
-        
         html = f"""
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #17a2b8;">
+        <div style="background:#f8f9fa;padding:15px;border-radius:5px;border-left:4px solid #17a2b8;">
             <p><strong>Focus:</strong> {obj.focus.focus_title}</p>
             <p><strong>Mark:</strong> {obj.focus.mark.symbol} - {obj.focus.mark.name}</p>
             <p><strong>Rule:</strong> {obj.rule.rule_text[:100]}</p>
@@ -204,37 +183,23 @@ class ChunkPunctuationFocusRuleAdmin(admin.ModelAdmin):
         """
         return format_html(html)
     mapping_preview.short_description = "Preview"
-    
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('focus', 'focus__mark', 'rule')
 
 
-# ============================================================
-# AUTHORING LAYER (Core Work Area)
-# ============================================================
-
 @admin.register(ChunkPunctuationFocus)
 class ChunkPunctuationFocusAdmin(admin.ModelAdmin):
     list_display = (
-        "focus_title", 
-        "chunk_link", 
-        "mark", 
-        "depth_level", 
-        "sequence_order",
-        "question_count",
-        "mastery_rate"
+        "focus_title", "chunk_link", "mark",
+        "depth_level", "sequence_order", "question_count", "mastery_rate"
     )
     list_filter = ("mark", "depth_level", "sequence_order")
     search_fields = ("focus_title", "focus_description", "chunk__english_text")
     ordering = ("chunk", "sequence_order")
     autocomplete_fields = ("chunk", "mark")
-    readonly_fields = (
-        "created_at", 
-        "updated_at", 
-        "question_count_display",
-        "mastery_stats_display"
-    )
-    
+    readonly_fields = ("created_at", "updated_at", "question_count_display", "mastery_stats_display")
+
     fieldsets = (
         ("Punctuation Focus", {
             "fields": ("chunk", "mark", "focus_title", "focus_description")
@@ -254,72 +219,49 @@ class ChunkPunctuationFocusAdmin(admin.ModelAdmin):
             "classes": ("collapse",),
         }),
     )
-    
+
     inlines = [FocusRuleInline, PunctuationQuestionInline]
 
     def chunk_link(self, obj):
         url = reverse('admin:content_lessonchunk_change', args=[obj.chunk.id])
         return format_html('<a href="{}">{}</a>', url, obj.chunk)
     chunk_link.short_description = "Chunk"
-    
+
     def question_count(self, obj):
         return obj.questions.count()
     question_count.short_description = "Questions"
-    
+
     def question_count_display(self, obj):
         count = obj.questions.count()
         if count > 0:
             url = reverse('admin:content_punctuationquestion_changelist') + f'?focus__id__exact={obj.id}'
             return format_html('<a href="{}">{} question{}</a>', url, count, 's' if count != 1 else '')
-        return format_html('<span style="color: orange;">No questions yet</span>')
+        return format_html('<span style="color:orange;">No questions yet</span>')
     question_count_display.short_description = "Questions"
-    
+
     def mastery_rate(self, obj):
-        """Show what percentage of students have mastered this focus"""
-        total_attempts = PunctuationTestAttempt.objects.filter(focus=obj).values('user').distinct().count()
-        if total_attempts == 0:
+        total = PunctuationTestAttempt.objects.filter(focus=obj).values('user').distinct().count()
+        if total == 0:
             return format_html('<span style="color:gray;">No data</span>')
-        
         mastered = PunctuationTestAttempt.objects.filter(
-            focus=obj, 
-            is_mastered=True
-        ).values('user').distinct().count()
-        
-        percentage = (mastered / total_attempts) * 100
-        color = 'green' if percentage >= 80 else 'orange' if percentage >= 50 else 'red'
-        
-        return format_html(
-            '<span style="color:{};">{}% ({} of {})</span>',
-            color, int(percentage), mastered, total_attempts
-        )
+            focus=obj, is_mastered=True).values('user').distinct().count()
+        pct = (mastered / total) * 100
+        color = 'green' if pct >= 80 else 'orange' if pct >= 50 else 'red'
+        return format_html('<span style="color:{};">{}% ({} of {})</span>', color, int(pct), mastered, total)
     mastery_rate.short_description = "Mastery Rate"
-    
+
     def mastery_stats_display(self, obj):
-        """Detailed mastery statistics"""
         attempts = PunctuationTestAttempt.objects.filter(focus=obj)
-        
         if not attempts.exists():
             return "No attempts yet"
-        
         total_students = attempts.values('user').distinct().count()
         mastered_students = attempts.filter(is_mastered=True).values('user').distinct().count()
-        
         avg_score = attempts.aggregate(models.Avg('score_percent'))['score_percent__avg'] or 0
-        
-        # Attempt distribution
-        attempt_counts = {}
-        for i in range(1, 4):
-            attempt_counts[f'attempt_{i}'] = attempts.filter(attempt_number=i).count()
-        
         html = f"""
         <table style="width:100%">
             <tr><td>Total Students:</td><td><b>{total_students}</b></td></tr>
             <tr><td>Mastered:</td><td><b style="color:green;">{mastered_students}</b></td></tr>
             <tr><td>Average Score:</td><td><b>{avg_score:.1f}%</b></td></tr>
-            <tr><td colspan="2"><hr></td></tr>
-            <tr><td>Attempt 1:</td><td>{attempt_counts.get('attempt_1', 0)}</td></tr>
-            <tr><td>Attempt 2:</td><td>{attempt_counts.get('attempt_2', 0)}</td></tr>
-            <tr><td>Attempt 3:</td><td>{attempt_counts.get('attempt_3', 0)}</td></tr>
         </table>
         """
         return format_html(html)
@@ -329,25 +271,17 @@ class ChunkPunctuationFocusAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related("chunk", "mark")
 
 
-# ============================================================
-# QUESTIONS (Global Inspection)
-# ============================================================
-
 @admin.register(PunctuationQuestion)
 class PunctuationQuestionAdmin(admin.ModelAdmin):
     list_display = (
-        "question_preview", 
-        "focus_link", 
-        "question_type", 
-        "difficulty",
-        "has_options"
+        "question_preview", "focus_link", "question_type", "difficulty", "has_options"
     )
     list_filter = ("question_type", "difficulty", "focus__mark")
     search_fields = ("question_text", "focus__focus_title", "correct_answer")
     ordering = ("focus", "id")
     autocomplete_fields = ("focus",)
     readonly_fields = ("created_at", "updated_at", "options_preview")
-    
+
     fieldsets = (
         ("Question Details", {
             "fields": ("focus", "question_type", "difficulty", "question_text")
@@ -364,21 +298,22 @@ class PunctuationQuestionAdmin(admin.ModelAdmin):
     def question_preview(self, obj):
         return obj.question_text[:60] + "..." if len(obj.question_text) > 60 else obj.question_text
     question_preview.short_description = "Question"
-    
+
     def focus_link(self, obj):
         url = reverse('admin:content_chunkpunctuationfocus_change', args=[obj.focus.id])
         return format_html('<a href="{}">{}</a>', url, obj.focus.focus_title)
     focus_link.short_description = "Focus"
-    
+
     def has_options(self, obj):
         return bool(obj.options)
     has_options.boolean = True
     has_options.short_description = "Has Options"
-    
+
     def options_preview(self, obj):
         if not obj.options:
             return "No options"
-        options = obj.get_options_list()
+        # FIXED: use options_list property, not get_options_list() method
+        options = obj.options_list
         html = "<ul style='margin:0;padding-left:15px;'>"
         for opt in options:
             if opt == obj.correct_answer:
@@ -393,27 +328,21 @@ class PunctuationQuestionAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related("focus", "focus__mark")
 
 
-# ============================================================
-# ANALYTICS (Read-only)
-# ============================================================
-
 @admin.register(PunctuationPracticeAttempt)
 class PunctuationPracticeAttemptAdmin(admin.ModelAdmin):
     list_display = (
-        "user_link",
-        "focus_link",
-        "attempt_number",
-        "cycle_number",
-        "score_percent",
-        "is_passed",
-        "created_at",
+        "user_link", "focus_link", "attempt_number",
+        "cycle_number", "score_percent", "is_passed", "created_at",
     )
     list_filter = ("is_passed", "attempt_number", "cycle_number", "created_at")
     search_fields = ("user__username", "focus__focus_title")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
-    readonly_fields = [f.name for f in PunctuationPracticeAttempt._meta.fields]
-    
+
+    # FIXED: only reference fields that actually exist on the model
+    readonly_fields = ("user", "focus", "attempt_number", "cycle_number",
+                       "score_percent", "is_passed", "questions_data", "created_at")
+
     fieldsets = (
         ("Student", {
             "fields": ("user", "focus")
@@ -422,19 +351,19 @@ class PunctuationPracticeAttemptAdmin(admin.ModelAdmin):
             "fields": ("attempt_number", "cycle_number", "created_at")
         }),
         ("Results", {
-            "fields": ("score_percent", "is_passed", "correct_answers", "total_questions")
+            "fields": ("score_percent", "is_passed")  # FIXED: removed correct_answers/total_questions
         }),
         ("Snapshot", {
             "fields": ("questions_data",),
             "classes": ("collapse",),
         }),
     )
-    
+
     def user_link(self, obj):
         url = reverse('admin:auth_user_change', args=[obj.user.id])
         return format_html('<a href="{}">{}</a>', url, obj.user.username)
     user_link.short_description = "User"
-    
+
     def focus_link(self, obj):
         url = reverse('admin:content_chunkpunctuationfocus_change', args=[obj.focus.id])
         return format_html('<a href="{}">{}</a>', url, obj.focus.focus_title)
@@ -450,22 +379,15 @@ class PunctuationPracticeAttemptAdmin(admin.ModelAdmin):
 @admin.register(PunctuationTestAttempt)
 class PunctuationTestAttemptAdmin(admin.ModelAdmin):
     list_display = (
-        "user_link",
-        "focus_link",
-        "attempt_number",
-        "cycle_number",
-        "score_percent",
-        "is_mastered",
-        "correct_answers",
-        "total_questions",
-        "created_at",
+        "user_link", "focus_link", "attempt_number", "cycle_number",
+        "score_percent", "is_mastered", "correct_answers", "total_questions", "created_at",
     )
     list_filter = ("is_mastered", "attempt_number", "cycle_number", "created_at")
     search_fields = ("user__username", "focus__focus_title")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
     readonly_fields = [f.name for f in PunctuationTestAttempt._meta.fields]
-    
+
     fieldsets = (
         ("Student", {
             "fields": ("user", "focus")
@@ -481,12 +403,12 @@ class PunctuationTestAttemptAdmin(admin.ModelAdmin):
             "classes": ("collapse",),
         }),
     )
-    
+
     def user_link(self, obj):
         url = reverse('admin:auth_user_change', args=[obj.user.id])
         return format_html('<a href="{}">{}</a>', url, obj.user.username)
     user_link.short_description = "User"
-    
+
     def focus_link(self, obj):
         url = reverse('admin:content_chunkpunctuationfocus_change', args=[obj.focus.id])
         return format_html('<a href="{}">{}</a>', url, obj.focus.focus_title)
@@ -497,20 +419,16 @@ class PunctuationTestAttemptAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-    
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("user", "focus")
 
-
-# ============================================================
-# EXPORTS (Optional - for use in __init__.py)
-# ============================================================
 
 __all__ = [
     'PunctuationMarkAdmin',
     'PunctuationRuleAdmin',
     'PunctuationExampleAdmin',
-    'ChunkPunctuationFocusRuleAdmin',  # Added this - fixes the import error
+    'ChunkPunctuationFocusRuleAdmin',
     'ChunkPunctuationFocusAdmin',
     'PunctuationQuestionAdmin',
     'PunctuationPracticeAttemptAdmin',

@@ -1,105 +1,200 @@
-# content/templates/content/chunks/chunk_hub.html - UPDATED
+{# content/templates/content/chunks/chunk_hub.html #}
 
-{% extends "base.html" %}
+{% extends "content/base.html" %}
 {% load static %}
 
-{% block title %}
-Chunk {{ chunk.order }}
+{% block title %}Chunk {{ chunk.order }} — {{ lesson.title }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'content:content_index' %}">Content</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'content:textbook_list' %}">Textbooks</a></li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'content:textbook_detail' textbook.pk %}">{{ textbook.title }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'content:unit_detail' unit.pk %}">Unit {{ unit.number }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'content:lesson_detail' lesson.pk %}">Lesson {{ lesson.number }}</a>
+    </li>
+    <li class="breadcrumb-item active">Chunk {{ chunk.order }}</li>
+  </ol>
+</nav>
 {% endblock %}
 
-{% block content %}
-<section class="chunk-hub-page">
+{% block page_header %}
+<div class="mb-3">
+  <h1 class="h4 fw-bold mb-0">
+    Chunk {{ chunk.order }}
+    <span class="text-muted fw-normal fs-6 ms-2">{{ lesson.title }}</span>
+  </h1>
+</div>
+{% endblock %}
 
-  <nav class="page-navigation">
-    <a href="{% url 'content:lesson_detail' lesson.pk %}">
-      ← Lesson {{ lesson.number }}
-    </a>
-    <span>|</span>
-    <a href="{% url 'content:unit_detail' unit.pk %}">
-      Unit {{ unit.number }}
-    </a>
-    <span>|</span>
-    <a href="{% url 'content:textbook_detail' textbook.pk %}">
-      {{ textbook.title }}
-    </a>
-    <span>|</span>
-    <a href="{% url 'content:content_index' %}">Content Index</a>
-    <span>|</span>
-    <a href="{% url 'index' %}">Global Home</a>
-  </nav>
+{% block page_content %}
 
-  <div class="controls">
-    <button id="play-btn">▶ Play All</button>
-    <button id="pause-btn">⏸ Pause</button>
-    <button id="resume-btn">⏯ Resume</button>
-    <span class="hint">
-      Tip: Click a sentence or use ← → then Enter
-    </span>
+{# ── Audio controls ───────────────────────────────────────── #}
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div class="btn-group" role="group">
+        <button id="play-btn" class="btn btn-primary btn-sm">▶ Play All</button>
+        <button id="pause-btn" class="btn btn-outline-secondary btn-sm">⏸ Pause</button>
+        <button id="resume-btn" class="btn btn-outline-secondary btn-sm">⏯ Resume</button>
+        <button id="stop-btn" class="btn btn-outline-danger btn-sm">⏹ Stop</button>
+      </div>
+      <span class="text-muted small">
+        Tip: Click a sentence or use ← → then Enter
+      </span>
+    </div>
+  </div>
+</div>
+
+{# ── Sentence table ───────────────────────────────────────── #}
+<div class="card shadow-sm mb-4">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0" id="chunk-table">
+      <thead class="table-light">
+        <tr>
+          <th class="ps-3">English</th>
+          <th>اردو</th>
+        </tr>
+      </thead>
+      <tbody id="sentence-table"></tbody>
+    </table>
+  </div>
+</div>
+
+{# Hidden audio elements #}
+{% if chunk.audio_file %}
+  <audio id="english-audio" src="{{ chunk.audio_file.url }}"></audio>
+{% endif %}
+{% if chunk.translated_audio_file %}
+  <audio id="urdu-audio" src="{{ chunk.translated_audio_file.url }}"></audio>
+{% endif %}
+
+{# ── Study domains ────────────────────────────────────────── #}
+<h2 class="h5 fw-semibold mb-3">Study This Chunk</h2>
+
+<div class="row g-3">
+
+  {# Vocabulary #}
+  <div class="col-6 col-md-4 col-lg-2">
+    <a href="{% url 'content:chunk_vocabulary_hub' chunk.pk %}"
+       class="card text-center text-decoration-none h-100 shadow-sm domain-card">
+      <div class="card-body py-3 px-2">
+        <div class="fs-2 mb-1">📝</div>
+        <div class="fw-semibold small">Vocabulary</div>
+      </div>
+    </a>
   </div>
 
-  <table class="chunk-table">
-    <thead>
-      <tr>
-        <th>English</th>
-        <th>Urdu</th>
-      </tr>
-    </thead>
-    <tbody id="sentence-table"></tbody>
-  </table>
+  {# Grammar #}
+  <div class="col-6 col-md-4 col-lg-2">
+    <a href="{% url 'content:chunk_grammar' chunk.id %}"
+       class="card text-center text-decoration-none h-100 shadow-sm domain-card">
+      <div class="card-body py-3 px-2">
+        <div class="fs-2 mb-1">📖</div>
+        <div class="fw-semibold small">Grammar</div>
+      </div>
+    </a>
+  </div>
 
-  {% if chunk.audio_file %}
-    <audio id="english-audio" src="{{ chunk.audio_file.url }}"></audio>
-  {% endif %}
-  {% if chunk.translated_audio_file %}
-    <audio id="urdu-audio" src="{{ chunk.translated_audio_file.url }}"></audio>
-  {% endif %}
+  {# Punctuation #}
+  <div class="col-6 col-md-4 col-lg-2">
+    <a href="{% url 'content:chunk_punctuation' chunk.id %}"
+       class="card text-center text-decoration-none h-100 shadow-sm domain-card">
+      <div class="card-body py-3 px-2">
+        <div class="fs-2 mb-1">✏️</div>
+        <div class="fw-semibold small">Punctuation</div>
+      </div>
+    </a>
+  </div>
 
-  <section class="study-section">
-    <h2>Study this chunk</h2>
-    <div class="study-nav">
-      <!-- FIXED: Use direct URL pattern instead of namespace -->
-      <a class="btn" href="{% url 'content:chunk_vocabulary_hub' chunk.pk %}">Vocabulary</a>
-      
-      <a class="btn {% if chunk_mastered %}btn-mastered{% else %}btn-pending{% endif %}" 
-         href="{% url 'content:chunk_grammar' chunk.id %}">
-         Grammar
-         {% if chunk_mastered %}
-           <span class="status-badge status-pass">✅ Mastered</span>
-         {% else %}
-           <span class="status-badge status-goal">🎯 Goal: 100%</span>
-         {% endif %}
-      </a>
+  {# Comprehension #}
+  <div class="col-6 col-md-4 col-lg-2">
+    <a href="{% url 'content:chunk_comprehension' chunk.id %}"
+       class="card text-center text-decoration-none h-100 shadow-sm domain-card">
+      <div class="card-body py-3 px-2">
+        <div class="fs-2 mb-1">🧠</div>
+        <div class="fw-semibold small">Comprehension</div>
+      </div>
+    </a>
+  </div>
 
-      <a class="btn" href="{% url 'content:chunk_punctuation' chunk.id %}">Punctuation</a>
-      <a class="btn" href="{% url 'content:chunk_comprehension' chunk.id %}">Comprehension</a>
-      <a class="btn" href="{% url 'content:chunk_writing' chunk.id %}">Writing</a>
-      <a class="btn" href="{% url 'content:chunk_progress' chunk.id %}">Progress</a>
-    </div>
-  </section>
+  {# Writing #}
+  <div class="col-6 col-md-4 col-lg-2">
+    <a href="{% url 'content:chunk_writing' chunk.id %}"
+       class="card text-center text-decoration-none h-100 shadow-sm domain-card">
+      <div class="card-body py-3 px-2">
+        <div class="fs-2 mb-1">✍️</div>
+        <div class="fw-semibold small">Writing</div>
+      </div>
+    </a>
+  </div>
 
-</section>
+  {# Pronunciation #}
+  <div class="col-6 col-md-4 col-lg-2">
+    <a href="{% url 'content:chunk_pronunciation' chunk.id %}"
+       class="card text-center text-decoration-none h-100 shadow-sm domain-card">
+      <div class="card-body py-3 px-2">
+        <div class="fs-2 mb-1">🎤</div>
+        <div class="fw-semibold small">Pronunciation</div>
+      </div>
+    </a>
+  </div>
 
+</div>
+
+{# ── Progress link ────────────────────────────────────────── #}
+<div class="mt-4">
+  <a href="{% url 'content:chunk_progress' chunk.id %}"
+     class="btn btn-outline-secondary btn-sm">
+    📊 View My Progress
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
 <style>
-    .btn-mastered { border: 2px solid #27ae60 !important; color: #27ae60 !important; background-color: #fafffa !important; }
-    .btn-pending { border: 1px dashed #3498db !important; }
-    .status-badge { display: block; font-size: 0.75rem; font-weight: bold; margin-top: 5px; }
-    .status-pass { color: #27ae60; }
-    .status-goal { color: #3498db; }
+  .domain-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid rgba(0,0,0,.1);
+  }
+  .domain-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+  }
+  .sentence {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .sentence.highlight {
+    background-color: #fff3cd;
+    font-weight: 500;
+  }
+  [data-bs-theme="dark"] .sentence.highlight {
+    background-color: #664d03;
+  }
+  td[lang="ur"] {
+    font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+    direction: rtl;
+    text-align: right;
+    font-size: 1.1rem;
+  }
 </style>
+{% endblock %}
 
+{% block extra_js %}
 <script>
   window.CHUNK_DATA = {
     englishText: "{{ chunk.english_text|escapejs }}",
     urduText: "{{ chunk.translated_text|escapejs }}"
   };
 </script>
-
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'content/chunk_hub.css' %}">
-{% endblock %}
-
-{% block extra_js %}
 <script src="{% static 'content/chunk_hub.js' %}"></script>
 {% endblock %}

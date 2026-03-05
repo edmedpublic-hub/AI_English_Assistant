@@ -1,51 +1,56 @@
-{% extends "base.html" %}
-{% load static %}
+{# content/templates/content/main/textbook_list.html #}
 
-{% block title %}Textbooks{% endblock %}
+{% extends "content/base.html" %}
 
-{% block content %}
-<section class="textbook-list-page">
+{% block title %}Textbooks — AI English Assistant{% endblock %}
 
-  <header class="page-header">
-    <h1>Textbooks</h1>
-    <p class="page-subtitle">Available textbooks by level</p>
-  </header>
-
-  <nav class="page-navigation">
-    <a href="{% url 'content:content_index' %}">← Back to Content Index</a>
-  </nav>
-
-  {% if textbooks %}
-    <ul class="textbook-list">
-      {% for textbook in textbooks %}
-        <li class="textbook-item">
-          <article class="textbook-card">
-            <h2 class="textbook-title">
-              <a href="{% url 'content:textbook_detail' textbook.id %}">
-                {{ textbook.title }}
-              </a>
-            </h2>
-
-            <span class="textbook-level">
-              {{ textbook.class_level }}
-            </span>
-
-            {% if textbook.description %}
-              <p class="textbook-description">
-                {{ textbook.description }}
-              </p>
-            {% endif %}
-          </article>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="empty-message">No textbooks found.</p>
-  {% endif %}
-
-</section>
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'content:content_index' %}">Content</a></li>
+    <li class="breadcrumb-item active">Textbooks</li>
+  </ol>
+</nav>
 {% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'content/textbook_list.css' %}">
+{% block page_header %}
+<div class="mb-4">
+  <h1 class="h3 fw-bold">Textbooks</h1>
+  <p class="text-muted">Select a textbook to begin.</p>
+</div>
+{% endblock %}
+
+{% block page_content %}
+{% if textbooks %}
+  <div class="row g-4">
+    {% for textbook in textbooks %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="card-title mb-0">
+                <a href="{% url 'content:textbook_detail' textbook.id %}"
+                   class="text-decoration-none stretched-link">
+                  {{ textbook.title }}
+                </a>
+              </h5>
+              <span class="badge bg-secondary ms-2">{{ textbook.class_level }}</span>
+            </div>
+            {% if textbook.description %}
+              <p class="card-text text-muted small">
+                {{ textbook.description|truncatewords:20 }}
+              </p>
+            {% endif %}
+          </div>
+          <div class="card-footer text-muted small">
+            {{ textbook.units.count }} unit{{ textbook.units.count|pluralize }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">No textbooks found.</div>
+{% endif %}
 {% endblock %}

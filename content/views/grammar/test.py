@@ -17,68 +17,42 @@ from .core import _chunk_context, get_grammar_objects
 
 @login_required
 def grammar_test(request, chunk_id, focus_id):
-    """
-    Final Grammar Test View
 
-    Guarantees:
-    - Practice must be completed before test access
-    - Cooldown enforced after failed attempt
-    - 3 attempts max per cycle with auto cycle increment
-    - Mastery defined as 100%
-    - Safe against empty question sets
-    """
-
-    # ---------------------------------------------------------
-    # 1. Resolve core objects safely
-    # ---------------------------------------------------------
+    # 1. Resolve objects
     chunk, focus = get_grammar_objects(chunk_id, focus_id)
     concept = focus.concept
 
-    # ---------------------------------------------------------
-    # 2. HARD PRACTICE GATE
-    # ---------------------------------------------------------
+    # 2. Practice gate
     if not GrammarPracticeAttempt.objects.filter(
-        user=request.user,
-        focus=focus,
+        user=request.user, focus=focus
     ).exists():
         messages.warning(
             request,
             "You must complete the Practice session before taking the test.",
         )
         return redirect(
-            "content:grammar_practice",
+            "content:grammar:practice",  # FIXED
             chunk_id=chunk.id,
             focus_id=focus.id,
         )
 
-    # ---------------------------------------------------------
-    # 3. PERMANENT MASTERY LOCK
-    # ---------------------------------------------------------
+    # 3. Permanent mastery lock
     if GrammarTestAttempt.objects.filter(
-        user=request.user,
-        focus=focus,
-        is_mastered=True,
+        user=request.user, focus=focus, is_mastered=True
     ).exists():
         messages.success(request, "You have already mastered this grammar focus.")
-        return redirect("content:chunk_grammar", chunk_id=chunk.id)
+        return redirect("content:chunk_grammar", chunk.id)  # FIXED
 
-    # ---------------------------------------------------------
-    # 4. CYCLE & ATTEMPT TRACKING
-    # ---------------------------------------------------------
+    # 4. Cycle & attempt tracking
     latest = (
-        GrammarTestAttempt.objects.filter(
-            user=request.user,
-            focus=focus,
-        )
+        GrammarTestAttempt.objects.filter(user=request.user, focus=focus)
         .order_by("-cycle_number", "-attempt_number")
         .first()
     )
 
     if latest:
         attempts_in_cycle = GrammarTestAttempt.objects.filter(
-            user=request.user,
-            focus=focus,
-            cycle_number=latest.cycle_number,
+            user=request.user, focus=focus, cycle_number=latest.cycle_number
         ).count()
 
         if attempts_in_cycle >= 3:
@@ -91,9 +65,7 @@ def grammar_test(request, chunk_id, focus_id):
         cycle_number = 1
         attempt_number = 1
 
-    # ---------------------------------------------------------
-    # 5. COOLDOWN AFTER FAILED ATTEMPT
-    # ---------------------------------------------------------
+    # 5. Cooldown after failed attempt
     if latest and not latest.is_mastered:
         cooldown = timedelta(minutes=10)
         elapsed = timezone.now() - latest.created_at
@@ -101,26 +73,21 @@ def grammar_test(request, chunk_id, focus_id):
         if elapsed < cooldown:
             remaining_seconds = int((cooldown - elapsed).total_seconds())
             minutes_left = (remaining_seconds // 60) + 1
-
             messages.error(
                 request,
                 f"Cooldown active. You can retry in {minutes_left} minute(s).",
             )
-            return redirect("content:chunk_grammar", chunk_id=chunk.id)
+            return redirect("content:chunk_grammar", chunk.id)  # FIXED
 
-    # ---------------------------------------------------------
-    # 6. LOAD QUESTIONS
-    # ---------------------------------------------------------
+    # 6. Load questions
     questions = GrammarQuestion.objects.filter(focus=focus).order_by("id")
     total_questions = questions.count()
 
     if total_questions == 0:
         messages.error(request, "This test is not yet available.")
-        return redirect("content:chunk_grammar", chunk_id=chunk.id)
+        return redirect("content:chunk_grammar", chunk.id)  # FIXED
 
-    # ---------------------------------------------------------
-    # 7. GET → Render test form
-    # ---------------------------------------------------------
+    # 7. GET — render test form
     if request.method == "GET":
         context = _chunk_context(chunk, focus, concept)
         context.update({
@@ -132,19 +99,14 @@ def grammar_test(request, chunk_id, focus_id):
         })
         return render(request, "content/grammar/test.html", context)
 
-    # ---------------------------------------------------------
-    # 8. POST → Grade submission
-    # ---------------------------------------------------------
+    # 8. POST — grade submission
     correct_count = 0
     results = []
     snapshot = {}
 
     for q in questions:
         user_answer = request.POST.get(f"q{q.id}", "").strip()
-
-        is_correct = (
-            user_answer.lower() == q.correct_answer.strip().lower()
-        )
+        is_correct = user_answer.lower() == q.correct_answer.strip().lower()
 
         if is_correct:
             correct_count += 1
@@ -160,11 +122,10 @@ def grammar_test(request, chunk_id, focus_id):
             "is_correct": is_correct,
         }
 
-    score_percent = int((correct_count / total_questions) * 100) if total_questions else 0
+    score_percent = int(
+        (correct_count / total_questions) * 100) if total_questions else 0
 
-    # ---------------------------------------------------------
     # 9. Persist attempt
-    # ---------------------------------------------------------
     attempt = GrammarTestAttempt.objects.create(
         user=request.user,
         focus=focus,
@@ -176,9 +137,7 @@ def grammar_test(request, chunk_id, focus_id):
         questions_snapshot=snapshot,
     )
 
-    # ---------------------------------------------------------
-    # 10. User feedback messaging
-    # ---------------------------------------------------------
+    # 10. Feedback messaging
     if attempt.is_mastered:
         messages.success(
             request,
@@ -200,11 +159,8 @@ def grammar_test(request, chunk_id, focus_id):
                 f"A new cycle will start on your next attempt.",
             )
 
-    # ---------------------------------------------------------
-    # 11. Render result page
-    # ---------------------------------------------------------
+    # 11. Render result
     mistakes = total_questions - correct_count
-
     context = _chunk_context(chunk, focus, concept)
     context.update({
         "attempt": attempt,

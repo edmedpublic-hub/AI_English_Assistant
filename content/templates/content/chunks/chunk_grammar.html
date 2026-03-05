@@ -1,124 +1,104 @@
-## chunk_grammar.html
-
-```html
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Grammar — {{ chunk.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'content/grammar/css/chunk_grammar.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-.chunk-wrapper { max-width: 900px; margin: 0 auto; padding: 20px; }
-.breadcrumb-nav { margin-bottom: 30px; background: #f8f9fa; padding: 12px; border-radius: 8px; }
-.breadcrumb-nav a { text-decoration: none; color: #3498db; font-weight: 500; }
+<div class="mx-auto" style="max-width: 900px;">
 
-.chunk-header { border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 30px; }
-.page-title { color: #2c3e50; margin-bottom: 5px; }
-.meta-info { color: #7f8c8d; font-size: 0.95rem; }
-
-.focus-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 25px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-.focus-title { margin-top: 0; color: #2c3e50; font-size: 1.4rem; }
-.focus-desc { color: #636e72; line-height: 1.6; margin-bottom: 20px; }
-
-.focus-actions { display: flex; gap: 15px; }
-
-.btn-action {
-  flex: 1;
-  text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: bold;
-  color: white;
-  transition: 0.2s;
-}
-
-.btn-learn { background: #3498db; }
-.btn-practice { background: #f39c12; }
-.btn-test { background: #e74c3c; }
-
-.btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
-
-.progress-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-left: 10px;
-}
-
-.progress-not_started { background: #dfe6e9; color: #2d3436; }
-.progress-in_progress { background: #ffeaa7; color: #2d3436; }
-.progress-mastered { background: #55efc4; color: #065f46; }
-
-.summary-box {
-  background: #f1f5f9;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 25px;
-  font-weight: 500;
-}
-</style>
-
-<div class="chunk-wrapper">
-
-  <nav class="breadcrumb-nav">
-    <a href="{% url 'content:chunk_hub' chunk.id %}">&larr; Back to Lesson Hub</a>
+  <!-- Breadcrumb -->
+  <nav class="mb-4">
+    <a href="{% url 'content:chunk_hub' chunk.id %}" class="btn btn-sm btn-outline-secondary">
+      &larr; Back to Chunk Hub
+    </a>
   </nav>
 
-  <header class="chunk-header">
-    <h1 class="page-title">Grammar Curriculum: {{ chunk.title }}</h1>
-    <p class="meta-info">
-      <strong>Lesson:</strong> {{ lesson.title }} |
+  <!-- Header -->
+  <header class="border-bottom pb-3 mb-4">
+    <h1 class="h3 fw-bold mb-1">Grammar: {{ chunk.title }}</h1>
+    <p class="text-muted mb-0">
+      <strong>Lesson:</strong> {{ lesson.title }} &nbsp;|&nbsp;
       <strong>Unit:</strong> {{ unit.title }}
     </p>
   </header>
 
-  <div class="summary-box">
-    Mastered {{ mastered_count }} of {{ total_focuses }} focuses
-    ({{ mastery_percent }}% complete)
-  </div>
-
-  {% for focus in focuses %}
-    <div class="focus-card">
-      <h3 class="focus-title">
-        {{ focus.focus_title }}
-        <span class="progress-badge progress-{{ focus.progress_state }}">
-          {{ focus.progress_state|title|cut:"_" }}
-        </span>
-      </h3>
-
-      <p class="focus-desc">{{ focus.focus_description }}</p>
-
-      <div class="focus-actions">
-        <a href="{% url 'content:grammar:teach' chunk.id focus.id %}" class="btn-action btn-learn">
-          Study Passage
-        </a>
-
-        <a href="{% url 'content:grammar:practice' chunk.id focus.id %}" class="btn-action btn-practice">
-          Practice
-        </a>
-
-        {% if focus.practice_attempted %}
-          <a href="{% url 'content:grammar:test' chunk.id focus.id %}" class="btn-action btn-test">
-            Test
-          </a>
-        {% endif %}
+  <!-- Mastery Summary -->
+  <div class="alert alert-light border mb-4 fw-medium">
+    Mastered <strong>{{ mastered_count }}</strong> of <strong>{{ total_focuses }}</strong> focuses
+    <span class="text-muted">({{ mastery_percent }}% complete)</span>
+    <div class="progress mt-2" style="height: 6px;">
+      <div class="progress-bar bg-success" role="progressbar"
+           id="mastery-progress"
+           data-value="{{ mastery_percent }}"
+           aria-valuenow="{{ mastery_percent }}" aria-valuemin="0" aria-valuemax="100">
       </div>
     </div>
+  </div>
+
+  <!-- Focus Cards -->
+  {% for focus in focuses %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+      <!-- Title + Badge -->
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <h3 class="h5 fw-bold mb-0">{{ focus.focus_title }}</h3>
+        {% if focus.progress_state == 'mastered' %}
+          <span class="badge bg-success">Mastered</span>
+        {% elif focus.progress_state == 'in_progress' %}
+          <span class="badge bg-warning text-dark">In Progress</span>
+        {% else %}
+          <span class="badge bg-secondary">Not Started</span>
+        {% endif %}
+      </div>
+
+      <!-- Description -->
+      <p class="text-muted mb-4">{{ focus.focus_description }}</p>
+
+      <!-- Action Buttons -->
+      <div class="row g-2">
+        <div class="col">
+          <a href="{% url 'content:grammar:teach' chunk.id focus.id %}"
+             class="btn btn-primary w-100">
+            📖 Study
+          </a>
+        </div>
+        <div class="col">
+          <a href="{% url 'content:grammar:practice' chunk.id focus.id %}"
+             class="btn btn-warning w-100">
+            ✏️ Practice
+          </a>
+        </div>
+        {% if focus.practice_attempted %}
+        <div class="col">
+          <a href="{% url 'content:grammar:test' chunk.id focus.id %}"
+             class="btn btn-danger w-100">
+            📋 Test
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
   {% empty %}
-    <p>No grammar focuses available for this chunk.</p>
+  <div class="text-center py-5 text-muted bg-light rounded">
+    <p class="mb-0">No grammar focuses available for this chunk.</p>
+  </div>
   {% endfor %}
 
 </div>
 {% endblock %}
-```
 
-
-
+{% block extra_js %}
+<script>
+(function () {
+  const bar = document.getElementById("mastery-progress");
+  if (bar) bar.style.width = bar.dataset.value + "%";
+})();
+</script>
+{% endblock %}
