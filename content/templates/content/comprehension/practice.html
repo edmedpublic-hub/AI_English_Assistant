@@ -1,36 +1,43 @@
 {% extends "base.html" %}
 
-{% block title %}
-Comprehension Practice — {{ focus.focus_title }}
-{% endblock %}
+{% block title %}Comprehension Practice — {{ focus.focus_title }}{% endblock %}
 
 {% block content %}
-<div class="comprehension-practice-wrapper" style="max-width: 850px; margin: 0 auto; padding: 20px;">
+<div class="comprehension-practice-wrapper"
+     style="max-width:850px; margin:0 auto; padding:20px;">
+
+  <nav style="margin-bottom:20px;">
+    <a href="{% url 'content:chunk_comprehension' chunk.id %}"
+       style="text-decoration:none; color:#3498db; font-weight:500;">
+      &larr; Back to Comprehension Hub
+    </a>
+  </nav>
 
   <h2>{{ focus.focus_title }}</h2>
   <p class="text-muted">{{ focus.focus_description }}</p>
 
-  {% if submitted %}
-    <div class="alert alert-info" style="margin-bottom:20px;">
-      <strong>Score:</strong> {{ correct_count }} / {{ total_questions }}
-    </div>
-  {% endif %}
+  <p style="color:#666; font-size:0.9em;">
+    Attempt {{ attempt_number }} of 3 &nbsp;|&nbsp; Cycle {{ cycle_number }}
+    &nbsp;|&nbsp; Need 100% to pass
+  </p>
 
   {% if questions %}
   <form method="post" action="">
     {% csrf_token %}
 
     {% for q in questions %}
-      <div class="question-block" style="margin-bottom: 25px;">
+      <div class="question-block"
+           style="background:#fff; border:1px solid #e1e8ed; border-radius:10px;
+                  padding:20px; margin-bottom:20px;">
 
-        <p class="question-text">
-          <strong>Q{{ forloop.counter }}.</strong>
-          {{ q.question_text }}
+        <p style="font-weight:600; margin-bottom:15px;">
+          <strong>Q{{ forloop.counter }}.</strong> {{ q.question_text }}
         </p>
 
-        {% if q.question_type == "mcq" or q.question_type == "true_false" %}
+        {% if q.question_type == "mcq" %}
           {% for option in q.parsed_options %}
-            <label style="display:block; margin-bottom:8px;">
+            <label style="display:block; margin-bottom:10px; padding:10px 14px;
+                          border:1px solid #eee; border-radius:8px; cursor:pointer;">
               <input
                 type="radio"
                 name="q{{ q.id }}"
@@ -38,47 +45,56 @@ Comprehension Practice — {{ focus.focus_title }}
                 required
                 {% if q.user_answer == option %}checked{% endif %}
               >
-              {{ option }}
+              &nbsp;{{ option }}
             </label>
           {% endfor %}
+
+        {% elif q.question_type == "true_false" %}
+          {% for option in q.tf_options %}
+            <label style="display:block; margin-bottom:10px; padding:10px 14px;
+                          border:1px solid #eee; border-radius:8px; cursor:pointer;">
+              <input
+                type="radio"
+                name="q{{ q.id }}"
+                value="{{ option }}"
+                required
+                {% if q.user_answer == option %}checked{% endif %}
+              >
+              &nbsp;{{ option }}
+            </label>
+          {% endfor %}
+
+        {% elif q.question_type == "short_answer" %}
+          <input
+            type="text"
+            name="q{{ q.id }}"
+            value="{{ q.user_answer|default:'' }}"
+            required
+            style="width:100%; padding:10px; border-radius:6px;
+                   border:1px solid #ccc; font-size:1rem;"
+          >
+
         {% else %}
           <textarea
             name="q{{ q.id }}"
-            rows="3"
-            required
-            style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;"
+            rows="4"
+            style="width:100%; padding:10px; border-radius:6px;
+                   border:1px solid #ccc; font-size:1rem;"
           >{{ q.user_answer|default:'' }}</textarea>
-        {% endif %}
-
-        {% if submitted and q.feedback_ready %}
-          <div style="margin-top:10px;">
-            {% if q.is_correct %}
-              <span style="color:#27ae60; font-weight:bold;">✔ Correct</span>
-            {% else %}
-              <span style="color:#e74c3c; font-weight:bold;">
-                ✖ Incorrect
-                {% if q.correct_answer %}
-                  <br><small>Correct answer: <strong>{{ q.correct_answer }}</strong></small>
-                {% endif %}
-              </span>
-            {% endif %}
-
-            {% if q.explanation %}
-              <div style="margin-top:8px; color:#7f8c8d;">
-                {{ q.explanation }}
-              </div>
-            {% endif %}
-          </div>
+          <small style="color:#856404;">Open-ended — answer in your own words.</small>
         {% endif %}
 
       </div>
-      <hr>
     {% endfor %}
 
-    <button type="submit" class="btn btn-primary" style="padding:12px 25px; font-weight:bold;">
+    <button type="submit"
+            style="padding:14px 30px; background:#9b59b6; color:#fff;
+                   border:none; border-radius:8px; font-weight:bold;
+                   font-size:1rem; cursor:pointer; width:100%;">
       Submit Practice
     </button>
   </form>
+
   {% else %}
     <p>No practice questions available for this focus.</p>
   {% endif %}

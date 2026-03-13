@@ -1,17 +1,22 @@
+# content/views/punctuation/teach.py
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from content.models.punctuation import ChunkPunctuationFocusRule, ChunkPunctuationFocus, PunctuationTestAttempt
 
+from content.models.punctuation import (
+    ChunkPunctuationFocusRule,
+    ChunkPunctuationFocus,
+    PunctuationTestAttempt,
+)
 from .core import _chunk_context, get_punctuation_objects
-from content.models.punctuation import ChunkPunctuationFocusRule, ChunkPunctuationFocus, PunctuationTestAttempt
 
 
 @login_required
 def teach_punctuation_view(request, chunk_id, focus_id):
     chunk, focus = get_punctuation_objects(chunk_id, focus_id)
 
-    # --- Sequential focus lock ---
+    # Sequential focus lock
     previous_focus = (
         ChunkPunctuationFocus.objects
         .filter(chunk=chunk, sequence_order__lt=focus.sequence_order)
@@ -22,7 +27,7 @@ def teach_punctuation_view(request, chunk_id, focus_id):
     if previous_focus and not PunctuationTestAttempt.objects.filter(
         user=request.user,
         focus=previous_focus,
-        is_mastery=True
+        is_mastered=True,  # FIXED: was is_mastery
     ).exists():
         messages.warning(
             request,
@@ -30,7 +35,7 @@ def teach_punctuation_view(request, chunk_id, focus_id):
         )
         return redirect("content:chunk_punctuation", chunk_id=chunk.id)
 
-    # --- Load rules efficiently ---
+    # Load all rules linked to this focus
     focus_rules = (
         ChunkPunctuationFocusRule.objects
         .filter(focus=focus)

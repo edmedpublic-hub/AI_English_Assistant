@@ -1,10 +1,10 @@
-# content/views/comprehension/practice.py
+# PATH: content/views/comprehension/practice.py
 
-from django.db import transaction, IntegrityError
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.response import Response
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.db import transaction
 
 from content.models.comprehension import (
     ChunkComprehensionFocus,
@@ -12,318 +12,247 @@ from content.models.comprehension import (
     ComprehensionPracticeAttempt,
     ComprehensionQuestionAttempt,
 )
-from content.serializers.comprehension import ComprehensionPracticeAttemptSerializer
 from content.services.comprehension.comprehension_mastery import is_focus_mastered
 
 
-class ComprehensionPracticeView(generics.CreateAPIView):
+class ComprehensionPracticeView(LoginRequiredMixin, View):
     """
-    Record a practice attempt for comprehension questions,
-    enforcing LMS progression, chunk integrity, and student ownership.
-    
-    Practice requires 100% correct to pass, with 3 attempts per cycle.
-    Tracks individual question attempts for detailed analytics.
+    HTML practice view for comprehension focuses.
+
+    GET  — renders practice.html with questions
+    POST — scores answers, saves attempt, redirects to practice-result
     """
 
-    serializer_class = ComprehensionPracticeAttemptSerializer
-    permission_classes = [IsAuthenticated]
+    template_name = "content/comprehension/practice.html"
 
-    def get_serializer_context(self):
-        """Add request to serializer context for user access."""
-        context = super().get_serializer_context()
-        context.update({
-            'chunk_id': self.kwargs.get('chunk_id'),
-            'focus_id': self.kwargs.get('focus_id'),
-        })
-        return context
+    # ── shared helpers ────────────────────────────────────────
 
-    def get_current_cycle(self, user, focus):
-        """Get current practice cycle number."""
-        latest_attempt = ComprehensionPracticeAttempt.objects.filter(
-            user=user,
-            focus=focus
-        ).order_by('-cycle_number', '-attempt_number').first()
-        
-        if latest_attempt:
-            return latest_attempt.cycle_number
-        return 1
+    def _get_focus(self, chunk_id, focus_id):
+        return get_object_or_404(
+            ChunkComprehensionFocus.objects.select_related("chunk"),
+            id=focus_id,
+            chunk_id=chunk_id,
+        )
 
-    def get_current_attempt_number(self, user, focus, cycle_number):
-        """Get next attempt number for current cycle."""
-        attempts_in_cycle = ComprehensionPracticeAttempt.objects.filter(
-            user=user,
-            focus=focus,
-            cycle_number=cycle_number
-        ).count()
-        
-        return attempts_in_cycle + 1
-
-    def validate_attempt_limits(self, user, focus):
-        """
-        Validate user hasn't exceeded attempt limits.
-        Returns (cycle_number, attempt_number) if valid.
-        Raises ValidationError if limit exceeded.
-        """
-        current_cycle = self.get_current_cycle(user, focus)
-        attempt_number = self.get_current_attempt_number(user, focus, current_cycle)
-        
-        if attempt_number > 3:
-            # Check if any attempts in next cycle
-            next_cycle_attempts = ComprehensionPracticeAttempt.objects.filter(
-                user=user,
-                focus=focus,
-                cycle_number=current_cycle + 1
-            ).exists()
-            
-            if not next_cycle_attempts:
-                # Auto-start new cycle
-                return current_cycle + 1, 1
-            else:
-                raise ValidationError(
-                    f"Maximum attempts (3) reached for cycle {current_cycle}. "
-                    f"Please start a new practice cycle."
-                )
-        
-        return current_cycle, attempt_number
-
-    @transaction.atomic
-    def create(self, request, *args, **kwargs):
-        """
-        Wrapped in atomic transaction for LMS consistency.
-        Expects list of question attempts in request data.
-        """
-        chunk_id = self.kwargs.get("chunk_id")
-        focus_id = self.kwargs.get("focus_id")
-        
-        # Validate focus exists and belongs to chunk
-        try:
-            focus = ChunkComprehensionFocus.objects.select_related(
-                'chunk'
-            ).prefetch_related(
-                'questions'
-            ).get(
-                id=focus_id,
-                chunk_id=chunk_id
-            )
-        except ChunkComprehensionFocus.DoesNotExist:
-            raise ValidationError("Focus not found in this chunk.")
-        
-        student = request.user
-        
-        # --------------------------------------------------
-        # 1️⃣ Sequential mastery enforcement
-        # --------------------------------------------------
-        previous_focus = (
+    def _enforce_progression(self, request, focus, chunk_id):
+        previous = (
             ChunkComprehensionFocus.objects
             .filter(chunk=focus.chunk, sequence_order__lt=focus.sequence_order)
             .order_by("-sequence_order")
             .first()
         )
-
-        if previous_focus and not is_focus_mastered(student, previous_focus):
-            raise PermissionDenied(
-                f"You must master {previous_focus.focus_title} "
-                f"({previous_focus.get_level_display()}) first."
+        if previous and not is_focus_mastered(request.user, previous):
+            messages.error(
+                request,
+                f"You must master '{previous.focus_title}' "
+                f"({previous.get_level_display()}) first.",
             )
+            return redirect(
+                "content:comprehension:teach",
+                chunk_id=chunk_id,
+                focus_id=previous.id,
+            )
+        return None
 
-        # --------------------------------------------------
-        # 2️⃣ Validate attempt limits
-        # --------------------------------------------------
-        cycle_number, attempt_number = self.validate_attempt_limits(student, focus)
-        
-        # --------------------------------------------------
-        # 3️⃣ Validate and process question attempts
-        # --------------------------------------------------
-        question_data = request.data.get('questions', [])
-        
-        if not question_data:
-            raise ValidationError("No question attempts provided.")
-        
-        # Get all questions for this focus
-        questions = {
-            q.id: q for q in ComprehensionQuestion.objects.filter(
-                focus=focus
-            ).select_related('focus')
+    def _get_cycle_and_attempt(self, user, focus):
+        latest = (
+            ComprehensionPracticeAttempt.objects
+            .filter(user=user, focus=focus)
+            .order_by("-cycle_number", "-attempt_number")
+            .first()
+        )
+        if not latest:
+            return 1, 1
+
+        cycle   = latest.cycle_number
+        attempt = latest.attempt_number + 1
+
+        if attempt > 3:
+            cycle  += 1
+            attempt = 1
+
+        return cycle, attempt
+
+    def _get_questions(self, focus):
+        questions = list(
+            ComprehensionQuestion.objects
+            .filter(focus=focus)
+            .order_by("difficulty", "id")
+        )
+        for q in questions:
+            if q.question_type == ComprehensionQuestion.TYPE_TRUE_FALSE:
+                q.tf_options = ["True", "False"]
+            else:
+                q.tf_options = []
+        return questions
+
+    # ── GET ───────────────────────────────────────────────────
+
+    def get(self, request, chunk_id, focus_id):
+        focus = self._get_focus(chunk_id, focus_id)
+
+        redirect_response = self._enforce_progression(request, focus, chunk_id)
+        if redirect_response:
+            return redirect_response
+
+        questions = self._get_questions(focus)
+
+        latest_attempt = (
+            ComprehensionPracticeAttempt.objects
+            .filter(user=request.user, focus=focus)
+            .order_by("-attempted_at")
+            .first()
+        )
+
+        previous_answers = {}
+        if latest_attempt and latest_attempt.questions_data:
+            for q_data in latest_attempt.questions_data.get("questions", []):
+                previous_answers[q_data["id"]] = q_data.get("user_answer", "")
+
+        for q in questions:
+            q.user_answer    = previous_answers.get(q.id, "")
+            q.feedback_ready = False
+
+        cycle, attempt = self._get_cycle_and_attempt(request.user, focus)
+
+        context = {
+            "chunk":          focus.chunk,
+            "focus":          focus,
+            "questions":      questions,
+            "submitted":      False,
+            "cycle_number":   cycle,
+            "attempt_number": attempt,
+            "attempts_left":  3 - (attempt - 1),
         }
-        
-        # Validate all questions belong to this focus
-        for item in question_data:
-            question_id = item.get('question_id')
-            if question_id not in questions:
-                raise ValidationError(
-                    f"Question {question_id} does not belong to this focus."
-                )
-        
-        # Process answers and calculate score
-        correct_count = 0
+        return render(request, self.template_name, context)
+
+    # ── POST ──────────────────────────────────────────────────
+
+    @transaction.atomic
+    def post(self, request, chunk_id, focus_id):
+        focus = self._get_focus(chunk_id, focus_id)
+
+        redirect_response = self._enforce_progression(request, focus, chunk_id)
+        if redirect_response:
+            return redirect_response
+
+        questions      = self._get_questions(focus)
+        cycle, attempt = self._get_cycle_and_attempt(request.user, focus)
+
+        correct_count     = 0
+        auto_scorable     = 0
         question_attempts = []
-        
-        for item in question_data:
-            question_id = item.get('question_id')
-            selected_answer = item.get('selected_answer', '').strip()
-            open_ended_answer = item.get('open_ended_answer', '').strip()
-            
-            question = questions[question_id]
-            
-            # Determine correctness based on question type
+
+        for q in questions:
+            raw_answer = request.POST.get(f"q{q.id}", "").strip()
             is_correct = False
-            
-            if question.question_type == ComprehensionQuestion.TYPE_MCQ:
-                # MCQ: exact match with correct answer (case-insensitive)
-                if selected_answer:
-                    options_lower = [opt.lower() for opt in question.get_options_list()]
+
+            if q.question_type == ComprehensionQuestion.TYPE_MCQ:
+                auto_scorable += 1
+                if raw_answer:
                     is_correct = (
-                        selected_answer.lower() in options_lower and
-                        selected_answer.lower() == question.correct_answer.strip().lower()
+                        raw_answer.lower()
+                        == (q.correct_answer or "").strip().lower()
                     )
-            
-            elif question.question_type == ComprehensionQuestion.TYPE_TRUE_FALSE:
-                # True/False: match boolean representation
-                if selected_answer:
-                    selected_lower = selected_answer.lower()
-                    correct_lower = question.correct_answer.strip().lower()
-                    is_correct = selected_lower == correct_lower
-            
-            elif question.question_type == ComprehensionQuestion.TYPE_SHORT_ANSWER:
-                # Short answer: case-insensitive trim comparison
-                if selected_answer:
+
+            elif q.question_type == ComprehensionQuestion.TYPE_TRUE_FALSE:
+                auto_scorable += 1
+                if raw_answer:
                     is_correct = (
-                        selected_answer.lower().strip()
-                        == question.correct_answer.strip().lower()
+                        raw_answer.lower()
+                        == (q.correct_answer or "").strip().lower()
                     )
-            
-            elif question.question_type == ComprehensionQuestion.TYPE_OPEN_ENDED:
-                # Open-ended: no automatic correctness, mark as needs review
-                is_correct = False  # Will be reviewed by teacher
-            
+
+            elif q.question_type == ComprehensionQuestion.TYPE_SHORT_ANSWER:
+                auto_scorable += 1
+                if raw_answer:
+                    is_correct = (
+                        raw_answer.lower()
+                        == (q.correct_answer or "").strip().lower()
+                    )
+
+            elif q.question_type == ComprehensionQuestion.TYPE_OPEN_ENDED:
+                pass  # not auto-scored
+
             if is_correct:
                 correct_count += 1
-            
-            # Store question attempt (will be linked after practice attempt created)
+
             question_attempts.append({
-                'question': question,
-                'selected_answer': selected_answer,
-                'open_ended_answer': open_ended_answer,
-                'is_correct': is_correct,
-                'cycle_number': cycle_number,
-                'attempt_number': attempt_number,
+                "question":        q,
+                "selected_answer": raw_answer,
+                "is_correct":      is_correct,
             })
-        
-        # Calculate score percentage
-        total_questions = len(questions)
-        score_percent = int((correct_count / total_questions) * 100) if total_questions else 0
-        is_passed = (score_percent == 100)  # Must be perfect to pass
-        
-        # --------------------------------------------------
-        # 4️⃣ Create practice attempt record
-        # --------------------------------------------------
+
+        total_for_score = auto_scorable or len(questions)
+        score_percent   = int((correct_count / total_for_score) * 100)
+        is_passed       = (score_percent == 100)
+
         practice_attempt = ComprehensionPracticeAttempt.objects.create(
-            user=student,
-            focus=focus,
-            attempt_number=attempt_number,
-            cycle_number=cycle_number,
-            score_percent=score_percent,
-            is_passed=is_passed,
-            correct_answers=correct_count,
-            total_questions=total_questions,
-            questions_data={
-                'questions': [
+            user            = request.user,
+            focus           = focus,
+            attempt_number  = attempt,
+            cycle_number    = cycle,
+            score_percent   = score_percent,
+            is_passed       = is_passed,
+            correct_answers = correct_count,
+            total_questions = total_for_score,
+            questions_data  = {
+                "questions": [
                     {
-                        'id': q['question'].id,
-                        'text': q['question'].question_text,
-                        'type': q['question'].question_type,
-                        'correct': q['question'].correct_answer,
-                        'options': q['question'].get_options_list(),
-                        'user_answer': q['selected_answer'] or q['open_ended_answer'],
-                        'is_correct': q['is_correct']
+                        "id":          qa["question"].id,
+                        "text":        qa["question"].question_text,
+                        "type":        qa["question"].question_type,
+                        "correct":     qa["question"].correct_answer,
+                        "options":     qa["question"].get_options_list(),
+                        "user_answer": qa["selected_answer"],
+                        "is_correct":  qa["is_correct"],
                     }
-                    for q in question_attempts
+                    for qa in question_attempts
                 ],
-                'cycle_number': cycle_number,
-                'attempt_number': attempt_number,
-                'focus_title': focus.focus_title,
-                'level': focus.level,
-            }
+                "cycle_number":   cycle,
+                "attempt_number": attempt,
+                "focus_title":    focus.focus_title,
+                "level":          focus.level,
+            },
         )
-        
-        # --------------------------------------------------
-        # 5️⃣ Create individual question attempts
-        # --------------------------------------------------
-        question_attempt_objects = []
-        for qa in question_attempts:
-            question_attempt_objects.append(
-                ComprehensionQuestionAttempt(
-                    user=student,
-                    question=qa['question'],
-                    practice_attempt=practice_attempt,
-                    selected_answer=qa['selected_answer'],
-                    open_ended_answer=qa['open_ended_answer'],
-                    is_correct=qa['is_correct'],
-                    cycle_number=qa['cycle_number'],
-                    attempt_number=qa['attempt_number'],
-                )
+
+        ComprehensionQuestionAttempt.objects.bulk_create([
+            ComprehensionQuestionAttempt(
+                user             = request.user,
+                question         = qa["question"],
+                practice_attempt = practice_attempt,
+                selected_answer  = qa["selected_answer"],
+                is_correct       = qa["is_correct"],
+                cycle_number     = cycle,
+                attempt_number   = attempt,
             )
-        
-        if question_attempt_objects:
-            ComprehensionQuestionAttempt.objects.bulk_create(question_attempt_objects)
-        
-        # --------------------------------------------------
-        # 6️⃣ Prepare response
-        # --------------------------------------------------
-        response_data = {
-            'practice_attempt_id': practice_attempt.id,
-            'focus_id': focus.id,
-            'focus_title': focus.focus_title,
-            'level': focus.level,
-            'attempt_number': attempt_number,
-            'cycle_number': cycle_number,
-            'score_percent': score_percent,
-            'is_passed': is_passed,
-            'correct_answers': correct_count,
-            'total_questions': total_questions,
-            'attempts_remaining_in_cycle': 3 - attempt_number,
-            'next_allowed_cycle': cycle_number + (1 if attempt_number >= 3 else 0),
-            'question_results': [
-                {
-                    'question_id': qa['question'].id,
-                    'is_correct': qa['is_correct'],
-                    'correct_answer': qa['question'].correct_answer,
-                    'explanation': qa['question'].explanation,
-                }
-                for qa in question_attempts
-            ]
-        }
-        
-        # Add mastery status if passed
+            for qa in question_attempts
+        ])
+
         if is_passed:
-            response_data['mastery_achieved'] = True
-            response_data['next_focus_available'] = (
-                ChunkComprehensionFocus.objects.filter(
-                    chunk=focus.chunk,
-                    sequence_order=focus.sequence_order + 1
-                ).exists()
+            messages.success(
+                request,
+                f"Perfect score! You've passed practice for "
+                f"'{focus.focus_title}'. You can now take the test.",
             )
-        
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            remaining = 3 - attempt
+            if remaining > 0:
+                messages.warning(
+                    request,
+                    f"You scored {score_percent}%. "
+                    f"{remaining} attempt(s) remaining in this cycle.",
+                )
+            else:
+                messages.warning(
+                    request,
+                    f"You scored {score_percent}%. "
+                    f"All 3 attempts used. A new cycle will begin next time.",
+                )
 
-
-class ComprehensionPracticeHistoryView(generics.ListAPIView):
-    """
-    Retrieve practice history for a comprehension focus.
-    """
-    serializer_class = ComprehensionPracticeAttemptSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        chunk_id = self.kwargs.get("chunk_id")
-        focus_id = self.kwargs.get("focus_id")
-        
-        return ComprehensionPracticeAttempt.objects.filter(
-            user=self.request.user,
+        return redirect(
+            "content:comprehension:practice-result-detail",
+            chunk_id=chunk_id,
             focus_id=focus_id,
-            focus__chunk_id=chunk_id
-        ).select_related(
-            'focus'
-        ).prefetch_related(
-            'question_attempts'
-        ).order_by('-cycle_number', '-attempt_number')
+            practice_id=practice_attempt.id,
+        )
