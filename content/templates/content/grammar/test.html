@@ -12,9 +12,11 @@
 
   <!-- Breadcrumb -->
   <nav class="mb-4 text-center">
-    <a href="{% url 'content:chunk_grammar' chunk.id %}" class="text-decoration-none text-muted">Grammar Hub</a>
+    <a href="{% url 'content:chunk_grammar' chunk.id %}"
+       class="text-decoration-none text-muted">Grammar Hub</a>
     <span class="mx-2 text-muted">&rarr;</span>
-    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}" class="text-decoration-none text-muted">Practice</a>
+    <a href="{% url 'content:grammar:practice' chunk.id focus.id %}"
+       class="text-decoration-none text-muted">Practice</a>
     <span class="mx-2 text-muted">&rarr;</span>
     <strong>Final Test</strong>
   </nav>
@@ -26,7 +28,7 @@
     <small class="opacity-50">100% score required for mastery</small>
   </div>
 
-  <form method="post" id="test-form">
+  <form method="post" id="test-form" autocomplete="off">
     {% csrf_token %}
 
     {% for q in questions %}
@@ -39,22 +41,68 @@
         {% if q.question_type == "mcq" %}
           <div class="d-flex flex-column gap-2">
             {% for option in q.parsed_options %}
-            <label class="d-flex align-items-center gap-3 p-3 border rounded option-label" style="cursor: pointer;">
-              <input type="radio"
-                     name="q{{ q.id }}"
-                     value="{{ option }}"
-                     class="form-check-input mt-0 flex-shrink-0"
-                     required>
+            <label class="d-flex align-items-center gap-3 p-3 border rounded option-label"
+                   style="cursor:pointer;">
+              <input
+                type="radio"
+                name="q{{ q.id }}"
+                value="{{ option }}"
+                class="form-check-input mt-0 flex-shrink-0"
+                required
+              >
               <span>{{ option }}</span>
             </label>
             {% endfor %}
           </div>
 
+        {% elif q.question_type == "fill" %}
+          <p class="text-muted small mb-2">
+            Type the missing word or phrase to complete the sentence.
+          </p>
+          <input
+            type="text"
+            name="q{{ q.id }}"
+            class="form-control"
+            placeholder="Type the missing word..."
+            autocomplete="off"
+            required
+          >
+
         {% elif q.question_type == "rewrite" %}
-          <textarea name="q{{ q.id }}" class="form-control" rows="4" required></textarea>
+          <p class="text-muted small mb-2">
+            Rewrite the sentence applying the grammar rule correctly.
+          </p>
+          <textarea
+            name="q{{ q.id }}"
+            class="form-control"
+            rows="4"
+            placeholder="Rewrite the sentence here..."
+            autocomplete="off"
+            required
+          ></textarea>
+
+        {% elif q.question_type == "identify" %}
+          <p class="text-muted small mb-2">
+            Identify the part of speech or grammatical function.
+          </p>
+          <input
+            type="text"
+            name="q{{ q.id }}"
+            class="form-control"
+            placeholder="e.g. noun, adjective, subject..."
+            autocomplete="off"
+            required
+          >
 
         {% else %}
-          <input type="text" name="q{{ q.id }}" class="form-control" required>
+          <input
+            type="text"
+            name="q{{ q.id }}"
+            class="form-control"
+            placeholder="Your answer..."
+            autocomplete="off"
+            required
+          >
         {% endif %}
 
       </div>
@@ -67,14 +115,17 @@
 
     {% if questions %}
     <div class="d-grid mt-3">
-      <button type="submit"
-              class="btn btn-danger btn-lg"
-              onclick="return confirm('Submit test? Mastery requires 100%.');"
-              id="submit-btn">
+      <button
+        type="submit"
+        class="btn btn-danger btn-lg"
+        onclick="return confirm('Submit test? Mastery requires 100%.');"
+        id="submit-btn"
+      >
         Submit for Evaluation
       </button>
     </div>
     {% endif %}
+
   </form>
 
 </div>

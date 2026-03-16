@@ -22,7 +22,7 @@
   </p>
 
   {% if questions %}
-  <form method="post" action="">
+  <form method="post" action="" autocomplete="off">
     {% csrf_token %}
 
     {% for q in questions %}
@@ -65,23 +65,31 @@
           {% endfor %}
 
         {% elif q.question_type == "short_answer" %}
+          <p style="color:#666; font-size:0.85em; margin-bottom:8px;">
+            Write a brief answer in your own words.
+          </p>
           <input
             type="text"
             name="q{{ q.id }}"
             value="{{ q.user_answer|default:'' }}"
             required
+            autocomplete="off"
             style="width:100%; padding:10px; border-radius:6px;
                    border:1px solid #ccc; font-size:1rem;"
           >
 
         {% else %}
+          <p style="color:#856404; font-size:0.85em; margin-bottom:8px;">
+            Answer in your own words. This question is not auto-scored.
+          </p>
           <textarea
             name="q{{ q.id }}"
             rows="4"
+            autocomplete="off"
             style="width:100%; padding:10px; border-radius:6px;
                    border:1px solid #ccc; font-size:1rem;"
           >{{ q.user_answer|default:'' }}</textarea>
-          <small style="color:#856404;">Open-ended — answer in your own words.</small>
+          <small style="color:#856404;">Open-ended — teacher review required.</small>
         {% endif %}
 
       </div>

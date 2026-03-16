@@ -216,18 +216,21 @@ class ComprehensionPracticeView(LoginRequiredMixin, View):
             },
         )
 
-        ComprehensionQuestionAttempt.objects.bulk_create([
-            ComprehensionQuestionAttempt(
-                user             = request.user,
-                question         = qa["question"],
-                practice_attempt = practice_attempt,
-                selected_answer  = qa["selected_answer"],
-                is_correct       = qa["is_correct"],
-                cycle_number     = cycle,
-                attempt_number   = attempt,
-            )
-            for qa in question_attempts
-        ])
+        ComprehensionQuestionAttempt.objects.bulk_create(
+            [
+                ComprehensionQuestionAttempt(
+                    user             = request.user,
+                    question         = qa["question"],
+                    practice_attempt = practice_attempt,
+                    selected_answer  = qa["selected_answer"],
+                    is_correct       = qa["is_correct"],
+                    cycle_number     = cycle,
+                    attempt_number   = attempt,
+                )
+                for qa in question_attempts
+            ],
+            ignore_conflicts=True,  # prevents IntegrityError on retry
+        )
 
         if is_passed:
             messages.success(

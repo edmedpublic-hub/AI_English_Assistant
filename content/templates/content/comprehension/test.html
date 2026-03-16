@@ -61,7 +61,7 @@
     You must score <strong>100%</strong> to achieve mastery.
   </div>
 
-  <form method="post" id="test-form">
+  <form method="post" id="test-form" autocomplete="off">
     {% csrf_token %}
 
     {% for q in questions %}
@@ -88,17 +88,29 @@
           {% endfor %}
 
         {% elif q.question_type == "short_answer" %}
+          <p class="text-muted small mb-2">
+            Write a brief answer in your own words.
+          </p>
           <input
             type="text"
             name="q{{ q.id }}"
             class="text-input"
+            placeholder="Your answer..."
+            autocomplete="off"
             required
           >
 
         {% else %}
-          <textarea name="q{{ q.id }}"></textarea>
+          {# open_ended #}
+          <p class="text-muted small mb-2">
+            Answer in your own words. This question is not auto-scored.
+          </p>
+          <textarea
+            name="q{{ q.id }}"
+            autocomplete="off"
+          ></textarea>
           <small style="color:#856404;">
-            Open-ended — answer in your own words. Not auto-scored.
+            Open-ended — teacher review required.
           </small>
         {% endif %}
 

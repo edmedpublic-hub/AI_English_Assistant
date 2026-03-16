@@ -1,4 +1,8 @@
-# content/views/grammar/practice.py
+# PATH: content/views/grammar/practice.py
+# CHANGES FROM ORIGINAL:
+#   - bulk_create: added ignore_conflicts=True to prevent IntegrityError
+#     on retry when question attempt records already exist for same
+#     user + question + cycle + attempt combination
 
 import random
 from django.views.generic import TemplateView
@@ -85,16 +89,16 @@ class GrammarPracticeView(LoginRequiredMixin, TemplateView):
             consecutive_fails = self.get_consecutive_fails(focus.id)
 
         context.update({
-            "chunk": chunk,
-            "focus": focus,
-            "concept": focus.concept,
-            "questions": questions,
-            "submitted": submitted,
-            "score_percent": score_percent,
-            "correct_count": correct_count,
-            "total_questions": total_questions,
+            "chunk":            chunk,
+            "focus":            focus,
+            "concept":          focus.concept,
+            "questions":        questions,
+            "submitted":        submitted,
+            "score_percent":    score_percent,
+            "correct_count":    correct_count,
+            "total_questions":  total_questions,
             "consecutive_fails": consecutive_fails,
-            "suggest_reteach": consecutive_fails >= 3,
+            "suggest_reteach":  consecutive_fails >= 3,
         })
         return context
 
@@ -104,14 +108,13 @@ class GrammarPracticeView(LoginRequiredMixin, TemplateView):
         chunk, focus = self.get_chunk_and_focus()
         questions = self.get_questions(focus, shuffle=False)
 
-        current_cycle = self.get_current_cycle(request.user, focus)
+        current_cycle  = self.get_current_cycle(request.user, focus)
         attempt_number = self.get_current_attempt_number(
             request.user, focus, current_cycle)
 
-        # Process answers
-        correct_count = 0
+        correct_count     = 0
         question_attempts = []
-        any_answered = False
+        any_answered      = False
 
         for q in questions:
             user_answer = request.POST.get(f"q{q.id}", "").strip()
@@ -119,7 +122,7 @@ class GrammarPracticeView(LoginRequiredMixin, TemplateView):
                 continue
 
             any_answered = True
-            is_correct = (
+            is_correct   = (
                 user_answer.lower().strip()
                 == q.correct_answer.strip().lower()
             )
@@ -129,15 +132,15 @@ class GrammarPracticeView(LoginRequiredMixin, TemplateView):
 
             question_attempts.append(
                 GrammarQuestionAttempt(
-                    user=request.user,
-                    question=q,
-                    selected_answer=user_answer,
-                    is_correct=is_correct,
+                    user            = request.user,
+                    question        = q,
+                    selected_answer = user_answer,
+                    is_correct      = is_correct,
                 )
             )
 
-            q.user_answer = user_answer
-            q.is_correct = is_correct
+            q.user_answer    = user_answer
+            q.is_correct     = is_correct
             q.feedback_ready = True
 
         if not any_answered:
@@ -146,28 +149,28 @@ class GrammarPracticeView(LoginRequiredMixin, TemplateView):
                 self.get_context_data(questions=questions, submitted=True))
 
         total_questions = len(questions)
-        score_percent = int(
+        score_percent   = int(
             (correct_count / total_questions) * 100) if total_questions else 0
         is_passed = (score_percent == 100)
 
         # Save attempt record
         practice_attempt = GrammarPracticeAttempt.objects.create(
-            user=request.user,
-            focus=focus,
-            attempt_number=attempt_number,
-            cycle_number=current_cycle,
-            score_percent=score_percent,
-            is_passed=is_passed,
-            correct_answers=correct_count,
-            total_questions=total_questions,
-            questions_data={
+            user            = request.user,
+            focus           = focus,
+            attempt_number  = attempt_number,
+            cycle_number    = current_cycle,
+            score_percent   = score_percent,
+            is_passed       = is_passed,
+            correct_answers = correct_count,
+            total_questions = total_questions,
+            questions_data  = {
                 'questions': [
                     {
-                        'id': q.id,
-                        'text': q.question_text,
-                        'correct': q.correct_answer,
+                        'id':          q.id,
+                        'text':        q.question_text,
+                        'correct':     q.correct_answer,
                         'user_answer': getattr(q, 'user_answer', None),
-                        'is_correct': getattr(q, 'is_correct', None),
+                        'is_correct':  getattr(q, 'is_correct', None),
                     }
                     for q in questions if getattr(q, 'user_answer', None)
                 ]
@@ -176,10 +179,14 @@ class GrammarPracticeView(LoginRequiredMixin, TemplateView):
 
         for qa in question_attempts:
             qa.practice_attempt = practice_attempt
-        if question_attempts:
-            GrammarQuestionAttempt.objects.bulk_create(question_attempts)
 
-        # --- PASS: reset fails, go to test ---
+        if question_attempts:
+            GrammarQuestionAttempt.objects.bulk_create(
+                question_attempts,
+                ignore_conflicts=True,   # ← prevents IntegrityError on retry
+            )
+
+        # PASS
         if is_passed:
             self.reset_fails(focus.id)
             messages.success(
@@ -190,18 +197,18 @@ class GrammarPracticeView(LoginRequiredMixin, TemplateView):
                 focus_id=focus.id,
             )
 
-        # --- FAIL: increment and re-render with feedback ---
+        # FAIL
         self.increment_fails(focus.id)
         consecutive_fails = self.get_consecutive_fails(focus.id)
 
         return self.render_to_response(
             self.get_context_data(
-                questions=questions,
-                submitted=True,
-                score_percent=score_percent,
-                correct_count=correct_count,
-                total_questions=total_questions,
-                consecutive_fails=consecutive_fails,
+                questions       = questions,
+                submitted       = True,
+                score_percent   = score_percent,
+                correct_count   = correct_count,
+                total_questions = total_questions,
+                consecutive_fails = consecutive_fails,
             )
         )
 
