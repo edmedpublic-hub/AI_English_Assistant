@@ -93,9 +93,6 @@ from .vocabulary import (
     
     # Flashcard mode
     FlashcardViewSet,
-    
-    # Note: VocabularyBulkOperationViewSet does not exist in vocabulary.py
-    # If you need bulk operations, you'll need to create it first
 )
 
 # ============================================================
@@ -120,23 +117,19 @@ from .comprehension import (
 
 # ============================================================
 # WRITING VIEWS
+# Temporarily silenced — API layer being rebuilt
+# to match new three-tier writing architecture.
+# Restore after content/api_views/writing.py is rebuilt.
 # ============================================================
-from .writing import (
-    # Teaching layer
-    ChunkWritingFocusViewSet,
-    UnitWritingTaskViewSet,
-    WritingPromptViewSet,
-    
-    # Practice and test
-    WritingPracticeViewSet,
-    WritingTestViewSet,
-    
-    # Progress
-    WritingProgressViewSet,
-    
-    # Bulk operations
-    WritingBulkOperationViewSet,
-)
+# from .writing import (
+#     ChunkWritingFocusViewSet,
+#     UnitWritingTaskViewSet,
+#     WritingPromptViewSet,
+#     WritingPracticeViewSet,
+#     WritingTestViewSet,
+#     WritingProgressViewSet,
+#     WritingBulkOperationViewSet,
+# )
 
 # ============================================================
 # PRONUNCIATION VIEWS
@@ -304,7 +297,6 @@ __all__ = [
     "StudentVocabMasteryViewSet",
     "VocabularyProgressViewSet",
     "FlashcardViewSet",
-    # "VocabularyBulkOperationViewSet",  # Commented out - doesn't exist
     
     # Comprehension
     "ChunkComprehensionFocusViewSet",
@@ -315,14 +307,14 @@ __all__ = [
     "ComprehensionProgressViewSet",
     "ComprehensionBulkOperationViewSet",
     
-    # Writing
-    "ChunkWritingFocusViewSet",
-    "UnitWritingTaskViewSet",
-    "WritingPromptViewSet",
-    "WritingPracticeViewSet",
-    "WritingTestViewSet",
-    "WritingProgressViewSet",
-    "WritingBulkOperationViewSet",
+    # Writing — temporarily silenced
+    # "ChunkWritingFocusViewSet",
+    # "UnitWritingTaskViewSet",
+    # "WritingPromptViewSet",
+    # "WritingPracticeViewSet",
+    # "WritingTestViewSet",
+    # "WritingProgressViewSet",
+    # "WritingBulkOperationViewSet",
     
     # Pronunciation
     "PronunciationFocusViewSet",

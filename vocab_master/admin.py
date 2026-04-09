@@ -1,24 +1,4 @@
 # PATH: vocab_master/admin.py
-# ACTION: Replace the entire existing file with this content.
-#
-# CHANGES FROM ORIGINAL:
-#   - Removed the blind `for model in apps.get_models()` loop that dumped
-#     every model into one flat list.
-#   - Added explicit registration of all content/reading/translation/vocab_master
-#     models using their proper ModelAdmin classes.
-#   - Overrode get_app_list() to organise the sidebar into logical groups:
-#       • Core Structure       (Textbooks, Units, Lessons, Chunks)
-#       • Punctuation          (Global → Teaching → Attempts)
-#       • Grammar              (Global → Teaching → Attempts)
-#       • Vocabulary           (Global → Teaching → Attempts)
-#       • Comprehension        (Teaching → Attempts)
-#       • Writing              (Teaching → Attempts)
-#       • Pronunciation        (Teaching → Attempts)
-#       • Unit Testing         (Sessions, Questions, Answers)
-#       • Reading App
-#       • Translation App
-#       • Vocab Master App
-#       • Auth & Permissions
 
 from django.contrib import admin
 from django.contrib.admin import AdminSite
@@ -39,8 +19,6 @@ class DashboardAdminSite(AdminSite):
     site_header  = "AI English Assistant — Admin"
     site_title   = "Teaching Dashboard"
     index_title  = "Welcome to the Teaching Dashboard"
-
-    # ── Dashboard view (unchanged from original) ──────────────
 
     def dashboard_view(self, request):
         if not request.user.is_active or not request.user.is_staff:
@@ -104,16 +82,7 @@ class DashboardAdminSite(AdminSite):
             path("dashboard/", self.admin_view(self.dashboard_view), name="dashboard"),
         ] + urls
 
-    # ── Organised sidebar ─────────────────────────────────────
-
     def get_app_list(self, request, app_label=None):
-        """
-        Replace Django's default app-based grouping with our own
-        domain-based groups. Each group is a dict that matches
-        Django's app_list structure so the default admin template
-        renders it without any template changes.
-        """
-        # Collect the default list so we can pull models from it
         default = {
             model_dict["object_name"]: model_dict
             for app in super().get_app_list(request)
@@ -121,7 +90,6 @@ class DashboardAdminSite(AdminSite):
         }
 
         def pick(object_names):
-            """Return model dicts for the given object_names, in that order."""
             return [
                 default[n] for n in object_names if n in default
             ]
@@ -146,15 +114,12 @@ class DashboardAdminSite(AdminSite):
                 "app_url": "",
                 "has_module_perms": True,
                 "models": pick([
-                    # Global curriculum
                     "PunctuationMark",
                     "PunctuationRule",
                     "PunctuationExample",
-                    # Teaching layer
                     "ChunkPunctuationFocus",
                     "ChunkPunctuationFocusRule",
                     "PunctuationQuestion",
-                    # Attempts
                     "PunctuationPracticeAttempt",
                     "PunctuationTestAttempt",
                 ]),
@@ -167,14 +132,11 @@ class DashboardAdminSite(AdminSite):
                 "app_url": "",
                 "has_module_perms": True,
                 "models": pick([
-                    # Global curriculum
                     "GrammarConcept",
                     "GrammarRule",
                     "GrammarExample",
-                    # Teaching layer
                     "ChunkGrammarFocus",
                     "GrammarQuestion",
-                    # Attempts
                     "GrammarPracticeAttempt",
                     "GrammarTestAttempt",
                 ]),
@@ -187,9 +149,7 @@ class DashboardAdminSite(AdminSite):
                 "app_url": "",
                 "has_module_perms": True,
                 "models": pick([
-                    # Teaching layer
                     "VocabularyItem",
-                    # Attempts
                     "VocabularyAttempt",
                     "StudentVocabMastery",
                 ]),
@@ -217,11 +177,12 @@ class DashboardAdminSite(AdminSite):
                 "app_url": "",
                 "has_module_perms": True,
                 "models": pick([
-                    "ChunkWritingFocus",
-                    "UnitWritingTask",
-                    "WritingPrompt",
-                    "WritingPracticeAttempt",
-                    "WritingTestAttempt",
+                    "WritingAcademicYear",
+                    "WritingStage",
+                    "WritingStageContent",
+                    "WritingAttempt",
+                    "WritingStageMastery",
+                    "WritingIntervention",
                 ]),
             },
 
@@ -262,7 +223,6 @@ class DashboardAdminSite(AdminSite):
                     "BookCategory",
                     "Book",
                     "ReadingLesson",
-                    # add other reading models here as needed
                 ]),
             },
 
@@ -303,7 +263,6 @@ class DashboardAdminSite(AdminSite):
             },
         ]
 
-        # Filter out empty groups (models the user has no perms for)
         return [g for g in groups if g["models"]]
 
 
@@ -315,7 +274,7 @@ admin_site = DashboardAdminSite(name="dashboard_admin")
 
 
 # ═══════════════════════════════════════════════════════════════
-#  VOCAB MASTER MODELS  (registered with custom admins)
+#  VOCAB MASTER MODELS
 # ═══════════════════════════════════════════════════════════════
 
 class SynonymInline(admin.TabularInline):
@@ -334,25 +293,23 @@ class ExampleSentenceInline(admin.TabularInline):
 
 
 class VocabularyAdmin(admin.ModelAdmin):
-    list_display = ("word", "part_of_speech", "reviewed", "lesson")
-    list_filter  = ("part_of_speech", "reviewed", "lesson__unit__textbook")
+    list_display  = ("word", "part_of_speech", "reviewed", "lesson")
+    list_filter   = ("part_of_speech", "reviewed", "lesson__unit__textbook")
     search_fields = ("word", "definition", "urdu_meaning")
-    inlines = [SynonymInline, AntonymInline, ExampleSentenceInline]
+    inlines       = [SynonymInline, AntonymInline, ExampleSentenceInline]
 
 
-admin_site.register(Vocabulary,     VocabularyAdmin)
+admin_site.register(Vocabulary,      VocabularyAdmin)
 admin_site.register(Synonym)
 admin_site.register(Antonym)
 admin_site.register(ExampleSentence)
-# Lesson/Unit/Textbook from vocab_master are separate models from content app
-# Register them simply so they appear in the Vocab Master group
 admin_site.register(Lesson)
 admin_site.register(Unit)
 admin_site.register(Textbook)
 
 
 # ═══════════════════════════════════════════════════════════════
-#  CONTENT APP  (import and register all domain admins)
+#  CONTENT APP
 # ═══════════════════════════════════════════════════════════════
 
 # Core
@@ -365,10 +322,10 @@ from content.models.core import (
     Lesson as ContentLesson,
     LessonChunk,
 )
-admin_site.register(ContentTextbook,  TextbookAdmin)
-admin_site.register(ContentUnit,      UnitAdmin)
-admin_site.register(ContentLesson,    LessonAdmin)
-admin_site.register(LessonChunk,      LessonChunkAdmin)
+admin_site.register(ContentTextbook, TextbookAdmin)
+admin_site.register(ContentUnit,     UnitAdmin)
+admin_site.register(ContentLesson,   LessonAdmin)
+admin_site.register(LessonChunk,     LessonChunkAdmin)
 
 # Punctuation
 from content.admin.punctuation import (
@@ -402,13 +359,13 @@ from content.models.grammar import (
     ChunkGrammarFocus, GrammarQuestion,
     GrammarPracticeAttempt, GrammarTestAttempt,
 )
-admin_site.register(GrammarConcept,         GrammarConceptAdmin)
-admin_site.register(GrammarRule,            GrammarRuleAdmin)
-admin_site.register(GrammarExample,         GrammarExampleAdmin)
-admin_site.register(ChunkGrammarFocus,      ChunkGrammarFocusAdmin)
-admin_site.register(GrammarQuestion,        GrammarQuestionAdmin)
-admin_site.register(GrammarPracticeAttempt, GrammarPracticeAttemptAdmin)
-admin_site.register(GrammarTestAttempt,     GrammarTestAttemptAdmin)
+admin_site.register(GrammarConcept,          GrammarConceptAdmin)
+admin_site.register(GrammarRule,             GrammarRuleAdmin)
+admin_site.register(GrammarExample,          GrammarExampleAdmin)
+admin_site.register(ChunkGrammarFocus,       ChunkGrammarFocusAdmin)
+admin_site.register(GrammarQuestion,         GrammarQuestionAdmin)
+admin_site.register(GrammarPracticeAttempt,  GrammarPracticeAttemptAdmin)
+admin_site.register(GrammarTestAttempt,      GrammarTestAttemptAdmin)
 
 # Vocabulary
 from content.admin.vocabulary import (
@@ -417,9 +374,9 @@ from content.admin.vocabulary import (
 from content.models.vocabulary import (
     VocabularyItem, VocabularyAttempt, StudentVocabMastery,
 )
-admin_site.register(VocabularyItem,       VocabularyItemAdmin)
-admin_site.register(VocabularyAttempt,    VocabularyAttemptAdmin)
-admin_site.register(StudentVocabMastery,  StudentVocabMasteryAdmin)
+admin_site.register(VocabularyItem,      VocabularyItemAdmin)
+admin_site.register(VocabularyAttempt,   VocabularyAttemptAdmin)
+admin_site.register(StudentVocabMastery, StudentVocabMasteryAdmin)
 
 # Comprehension
 from content.admin.comprehension import (
@@ -432,30 +389,40 @@ from content.models.comprehension import (
     ComprehensionPracticeAttempt, ComprehensionTestAttempt,
     ComprehensionQuestionAttempt,
 )
-admin_site.register(ChunkComprehensionFocus,        ChunkComprehensionFocusAdmin)
-admin_site.register(ComprehensionQuestion,          ComprehensionQuestionAdmin)
-admin_site.register(ComprehensionPracticeAttempt,   ComprehensionPracticeAttemptAdmin)
-admin_site.register(ComprehensionTestAttempt,       ComprehensionTestAttemptAdmin)
-admin_site.register(ComprehensionQuestionAttempt,   ComprehensionQuestionAttemptAdmin)
+admin_site.register(ChunkComprehensionFocus,       ChunkComprehensionFocusAdmin)
+admin_site.register(ComprehensionQuestion,         ComprehensionQuestionAdmin)
+admin_site.register(ComprehensionPracticeAttempt,  ComprehensionPracticeAttemptAdmin)
+admin_site.register(ComprehensionTestAttempt,      ComprehensionTestAttemptAdmin)
+admin_site.register(ComprehensionQuestionAttempt,  ComprehensionQuestionAttemptAdmin)
 
-# Writing
+# Writing — new three-tier architecture
 from content.admin.writing import (
-    ChunkWritingFocusAdmin, UnitWritingTaskAdmin, WritingPromptAdmin,
-    WritingPracticeAttemptAdmin, WritingTestAttemptAdmin,
+    WritingAcademicYearAdmin,
+    WritingStageAdmin,
+    WritingStageContentAdmin,
+    WritingAttemptAdmin,
+    WritingStageMasteryAdmin,
+    WritingInterventionAdmin,
 )
 from content.models.writing import (
-    ChunkWritingFocus, UnitWritingTask, WritingPrompt,
-    WritingPracticeAttempt, WritingTestAttempt,
+    WritingAcademicYear,
+    WritingStage,
+    WritingStageContent,
+    WritingAttempt,
+    WritingStageMastery,
+    WritingIntervention,
 )
-admin_site.register(ChunkWritingFocus,      ChunkWritingFocusAdmin)
-admin_site.register(UnitWritingTask,        UnitWritingTaskAdmin)
-admin_site.register(WritingPrompt,          WritingPromptAdmin)
-admin_site.register(WritingPracticeAttempt, WritingPracticeAttemptAdmin)
-admin_site.register(WritingTestAttempt,     WritingTestAttemptAdmin)
+admin_site.register(WritingAcademicYear,  WritingAcademicYearAdmin)
+admin_site.register(WritingStage,         WritingStageAdmin)
+admin_site.register(WritingStageContent,  WritingStageContentAdmin)
+admin_site.register(WritingAttempt,       WritingAttemptAdmin)
+admin_site.register(WritingStageMastery,  WritingStageMasteryAdmin)
+admin_site.register(WritingIntervention,  WritingInterventionAdmin)
 
 # Pronunciation
 from content.admin.pronunciation import (
-    PronunciationFocusAdmin, PronunciationAttemptAdmin, PronunciationMasteryAdmin,
+    PronunciationFocusAdmin, PronunciationAttemptAdmin,
+    PronunciationMasteryAdmin,
 )
 from content.models.pronunciation import (
     PronunciationFocus, PronunciationAttempt, PronunciationMastery,
@@ -473,45 +440,49 @@ from content.models.testing import (
     UnitTestSession, UnitTestQuestion,
     UnitTestAnswer, VocabularyUnitTestAttempt,
 )
-admin_site.register(UnitTestSession,             UnitTestSessionAdmin)
-admin_site.register(UnitTestQuestion,            UnitTestQuestionAdmin)
-admin_site.register(UnitTestAnswer,              UnitTestAnswerAdmin)
-admin_site.register(VocabularyUnitTestAttempt,   VocabularyUnitTestAttemptAdmin)
+admin_site.register(UnitTestSession,           UnitTestSessionAdmin)
+admin_site.register(UnitTestQuestion,          UnitTestQuestionAdmin)
+admin_site.register(UnitTestAnswer,            UnitTestAnswerAdmin)
+admin_site.register(VocabularyUnitTestAttempt, VocabularyUnitTestAttemptAdmin)
 
 
 # ═══════════════════════════════════════════════════════════════
 #  OTHER APPS  (reading, translation — simple registration)
-#  If these apps have their own ModelAdmin classes, import and
-#  use them here the same way as the content app above.
 # ═══════════════════════════════════════════════════════════════
 
 from django.apps import apps as django_apps
 from django.contrib.admin import ModelAdmin
 
 _ALREADY_REGISTERED = {
-    # content
+    # content — core
     ContentTextbook, ContentUnit, ContentLesson, LessonChunk,
+    # content — punctuation
     PunctuationMark, PunctuationRule, PunctuationExample,
     ChunkPunctuationFocus, ChunkPunctuationFocusRule,
     PunctuationQuestion, PunctuationPracticeAttempt, PunctuationTestAttempt,
+    # content — grammar
     GrammarConcept, GrammarRule, GrammarExample,
     ChunkGrammarFocus, GrammarQuestion,
     GrammarPracticeAttempt, GrammarTestAttempt,
+    # content — vocabulary
     VocabularyItem, VocabularyAttempt, StudentVocabMastery,
+    # content — comprehension
     ChunkComprehensionFocus, ComprehensionQuestion,
     ComprehensionPracticeAttempt, ComprehensionTestAttempt,
     ComprehensionQuestionAttempt,
-    ChunkWritingFocus, UnitWritingTask, WritingPrompt,
-    WritingPracticeAttempt, WritingTestAttempt,
+    # content — writing
+    WritingAcademicYear, WritingStage, WritingStageContent,
+    WritingAttempt, WritingStageMastery, WritingIntervention,
+    # content — pronunciation
     PronunciationFocus, PronunciationAttempt, PronunciationMastery,
-    UnitTestSession, UnitTestQuestion, UnitTestAnswer, VocabularyUnitTestAttempt,
+    # content — testing
+    UnitTestSession, UnitTestQuestion,
+    UnitTestAnswer, VocabularyUnitTestAttempt,
     # vocab_master
     Vocabulary, Synonym, Antonym, ExampleSentence,
     Lesson, Unit, Textbook,
 }
 
-# Register remaining models from reading, translation, vocab_master simply.
-# They will appear in their respective sidebar groups via get_app_list.
 for _app_label in ("reading", "translation", "vocab_master"):
     for _model in django_apps.get_app_config(_app_label).get_models():
         if _model not in _ALREADY_REGISTERED:

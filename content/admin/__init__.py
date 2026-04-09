@@ -10,7 +10,6 @@ from .grammar import (
     GrammarConceptAdmin, GrammarRuleAdmin, GrammarExampleAdmin,
     ChunkGrammarFocusAdmin, GrammarQuestionAdmin,
     GrammarPracticeAttemptAdmin, GrammarTestAttemptAdmin,
-    #GrammarQuestionAttemptAdmin
 )
 
 # Punctuation admin
@@ -33,56 +32,65 @@ from .comprehension import (
     ComprehensionQuestionAttemptAdmin
 )
 
-# Writing admin
+# Writing admin — new three-tier architecture
 from .writing import (
-    ChunkWritingFocusAdmin, UnitWritingTaskAdmin, WritingPromptAdmin,
-    WritingPracticeAttemptAdmin, WritingTestAttemptAdmin
+    WritingAcademicYearAdmin,
+    WritingStageAdmin,
+    WritingStageContentAdmin,
+    WritingAttemptAdmin,
+    WritingStageMasteryAdmin,
+    WritingInterventionAdmin,
 )
 
 # Pronunciation admin
 from .pronunciation import (
-    PronunciationFocusAdmin, PronunciationAttemptAdmin, PronunciationMasteryAdmin
+    PronunciationFocusAdmin, PronunciationAttemptAdmin,
+    PronunciationMasteryAdmin
 )
 
-# Testing admin (Unit Tests) - Commented out until vocabulary testing models are implemented
+# Testing admin
 from .testing import (
     UnitTestSessionAdmin, UnitTestQuestionAdmin, UnitTestAnswerAdmin,
-     VocabularyUnitTestAttemptAdmin
- )
+    VocabularyUnitTestAttemptAdmin
+)
 
 
 __all__ = [
     # Core
     'TextbookAdmin', 'UnitAdmin', 'LessonAdmin', 'LessonChunkAdmin',
-    
+
     # Grammar
     'GrammarConceptAdmin', 'GrammarRuleAdmin', 'GrammarExampleAdmin',
     'ChunkGrammarFocusAdmin', 'GrammarQuestionAdmin',
     'GrammarPracticeAttemptAdmin', 'GrammarTestAttemptAdmin',
-    'GrammarQuestionAttemptAdmin',
-    
+
     # Punctuation
     'PunctuationMarkAdmin', 'PunctuationRuleAdmin', 'PunctuationExampleAdmin',
     'ChunkPunctuationFocusAdmin', 'ChunkPunctuationFocusRuleAdmin',
     'PunctuationQuestionAdmin', 'PunctuationPracticeAttemptAdmin',
     'PunctuationTestAttemptAdmin',
-    
+
     # Vocabulary
     'VocabularyItemAdmin', 'VocabularyAttemptAdmin', 'StudentVocabMasteryAdmin',
-    
+
     # Comprehension
     'ChunkComprehensionFocusAdmin', 'ComprehensionQuestionAdmin',
     'ComprehensionPracticeAttemptAdmin', 'ComprehensionTestAttemptAdmin',
     'ComprehensionQuestionAttemptAdmin',
-    
+
     # Writing
-    'ChunkWritingFocusAdmin', 'UnitWritingTaskAdmin', 'WritingPromptAdmin',
-    'WritingPracticeAttemptAdmin', 'WritingTestAttemptAdmin',
-    
+    'WritingAcademicYearAdmin',
+    'WritingStageAdmin',
+    'WritingStageContentAdmin',
+    'WritingAttemptAdmin',
+    'WritingStageMasteryAdmin',
+    'WritingInterventionAdmin',
+
     # Pronunciation
-    'PronunciationFocusAdmin', 'PronunciationAttemptAdmin', 'PronunciationMasteryAdmin',
-    
-    # Testing - Commented out until models exist
-     'UnitTestSessionAdmin', 'UnitTestQuestionAdmin', 'UnitTestAnswerAdmin',
-     'VocabularyUnitTestAttemptAdmin',
+    'PronunciationFocusAdmin', 'PronunciationAttemptAdmin',
+    'PronunciationMasteryAdmin',
+
+    # Testing
+    'UnitTestSessionAdmin', 'UnitTestQuestionAdmin', 'UnitTestAnswerAdmin',
+    'VocabularyUnitTestAttemptAdmin',
 ]

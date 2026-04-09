@@ -1,4 +1,4 @@
-# serializers/mobile.py
+# content/serializers/mobile.py
 
 from rest_framework import serializers
 from django.db import models
@@ -30,10 +30,20 @@ from content.models.comprehension import (
     ComprehensionPracticeAttempt, ComprehensionTestAttempt
 )
 
-# Domain models - Writing
+# Domain models - Writing (new three-tier architecture)
 from content.models.writing import (
-    ChunkWritingFocus, UnitWritingTask, WritingPrompt,
-    WritingPracticeAttempt, WritingTestAttempt
+    WritingStageContent,
+    WritingAttempt,
+    WritingStageMastery,
+    WritingIntervention,
+)
+
+# Writing mobile serializers — imported from writing serializers
+# These are defined in content/serializers/writing.py
+from content.serializers.writing import (
+    WritingStageContentMobileSerializer,
+    WritingAttemptMobileSerializer,
+    WritingStageMasteryMobileSerializer,
 )
 
 # Domain models - Pronunciation
@@ -53,9 +63,9 @@ from content.models.testing import (
 
 class LessonChunkMobileSerializer(serializers.ModelSerializer):
     """Minimal chunk data for mobile - only essential fields"""
-    
+
     class Meta:
-        model = LessonChunk
+        model  = LessonChunk
         fields = [
             "id",
             "order",
@@ -70,10 +80,12 @@ class LessonChunkMobileSerializer(serializers.ModelSerializer):
 
 class LessonMobileSerializer(serializers.ModelSerializer):
     """Lightweight lesson serializer for mobile - no nested chunks"""
-    chunk_count = serializers.IntegerField(source='chunks.count', read_only=True)
-    
+    chunk_count = serializers.IntegerField(
+        source='chunks.count', read_only=True
+    )
+
     class Meta:
-        model = Lesson
+        model  = Lesson
         fields = [
             "id",
             "title",
@@ -86,10 +98,12 @@ class LessonMobileSerializer(serializers.ModelSerializer):
 
 class UnitMobileSerializer(serializers.ModelSerializer):
     """Lightweight unit serializer for mobile - no nested lessons"""
-    lesson_count = serializers.IntegerField(source='lessons.count', read_only=True)
-    
+    lesson_count = serializers.IntegerField(
+        source='lessons.count', read_only=True
+    )
+
     class Meta:
-        model = Unit
+        model  = Unit
         fields = [
             "id",
             "title",
@@ -102,10 +116,12 @@ class UnitMobileSerializer(serializers.ModelSerializer):
 
 class TextbookMobileSerializer(serializers.ModelSerializer):
     """Lightweight textbook serializer for mobile"""
-    unit_count = serializers.IntegerField(source='units.count', read_only=True)
-    
+    unit_count = serializers.IntegerField(
+        source='units.count', read_only=True
+    )
+
     class Meta:
-        model = Textbook
+        model  = Textbook
         fields = [
             "id",
             "title",
@@ -123,24 +139,18 @@ class TextbookMobileSerializer(serializers.ModelSerializer):
 class UnitWithLessonsMobileSerializer(serializers.ModelSerializer):
     """Unit with basic lesson info for browsing"""
     lessons = LessonMobileSerializer(many=True, read_only=True)
-    
+
     class Meta:
-        model = Unit
-        fields = [
-            "id",
-            "title",
-            "number",
-            "description",
-            "lessons",
-        ]
+        model  = Unit
+        fields = ["id", "title", "number", "description", "lessons"]
 
 
 class LessonWithChunksMobileSerializer(serializers.ModelSerializer):
     """Lesson with chunks for offline storage"""
     chunks = LessonChunkMobileSerializer(many=True, read_only=True)
-    
+
     class Meta:
-        model = Lesson
+        model  = Lesson
         fields = [
             "id",
             "title",
@@ -159,12 +169,11 @@ class LessonWithChunksMobileSerializer(serializers.ModelSerializer):
 class GrammarQuestionMobileSerializer(serializers.ModelSerializer):
     """Lightweight grammar question for mobile"""
     options_list = serializers.ListField(
-        source='get_options_list',
-        read_only=True
+        source='get_options_list', read_only=True
     )
-    
+
     class Meta:
-        model = GrammarQuestion
+        model  = GrammarQuestion
         fields = [
             "id",
             "question_text",
@@ -178,9 +187,9 @@ class GrammarQuestionMobileSerializer(serializers.ModelSerializer):
 class ChunkGrammarFocusMobileSerializer(serializers.ModelSerializer):
     """Grammar focus with questions for practice"""
     questions = GrammarQuestionMobileSerializer(many=True, read_only=True)
-    
+
     class Meta:
-        model = ChunkGrammarFocus
+        model  = ChunkGrammarFocus
         fields = [
             "id",
             "focus_title",
@@ -192,10 +201,8 @@ class ChunkGrammarFocusMobileSerializer(serializers.ModelSerializer):
 
 
 class GrammarPracticeAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized practice attempt record"""
-    
     class Meta:
-        model = GrammarPracticeAttempt
+        model  = GrammarPracticeAttempt
         fields = [
             "id",
             "focus_id",
@@ -208,10 +215,8 @@ class GrammarPracticeAttemptMobileSerializer(serializers.ModelSerializer):
 
 
 class GrammarTestAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized test attempt record"""
-    
     class Meta:
-        model = GrammarTestAttempt
+        model  = GrammarTestAttempt
         fields = [
             "id",
             "focus_id",
@@ -228,14 +233,12 @@ class GrammarTestAttemptMobileSerializer(serializers.ModelSerializer):
 # ============================================================
 
 class PunctuationQuestionMobileSerializer(serializers.ModelSerializer):
-    """Lightweight punctuation question for mobile"""
     options_list = serializers.ListField(
-        source='options_list',
-        read_only=True
+        source='options_list', read_only=True
     )
-    
+
     class Meta:
-        model = PunctuationQuestion
+        model  = PunctuationQuestion
         fields = [
             "id",
             "question_text",
@@ -247,12 +250,11 @@ class PunctuationQuestionMobileSerializer(serializers.ModelSerializer):
 
 
 class ChunkPunctuationFocusMobileSerializer(serializers.ModelSerializer):
-    """Punctuation focus with questions"""
-    questions = PunctuationQuestionMobileSerializer(many=True, read_only=True)
+    questions   = PunctuationQuestionMobileSerializer(many=True, read_only=True)
     mark_symbol = serializers.CharField(source='mark.symbol', read_only=True)
-    
+
     class Meta:
-        model = ChunkPunctuationFocus
+        model  = ChunkPunctuationFocus
         fields = [
             "id",
             "focus_title",
@@ -265,10 +267,8 @@ class ChunkPunctuationFocusMobileSerializer(serializers.ModelSerializer):
 
 
 class PunctuationPracticeAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized practice attempt record"""
-    
     class Meta:
-        model = PunctuationPracticeAttempt
+        model  = PunctuationPracticeAttempt
         fields = [
             "id",
             "focus_id",
@@ -281,10 +281,8 @@ class PunctuationPracticeAttemptMobileSerializer(serializers.ModelSerializer):
 
 
 class PunctuationTestAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized test attempt record"""
-    
     class Meta:
-        model = PunctuationTestAttempt
+        model  = PunctuationTestAttempt
         fields = [
             "id",
             "focus_id",
@@ -301,14 +299,12 @@ class PunctuationTestAttemptMobileSerializer(serializers.ModelSerializer):
 # ============================================================
 
 class VocabularyItemMobileSerializer(serializers.ModelSerializer):
-    """Ultra-light vocabulary item for mobile flashcard mode"""
     part_of_speech_display = serializers.CharField(
-        source='get_part_of_speech_display',
-        read_only=True
+        source='get_part_of_speech_display', read_only=True
     )
-    
+
     class Meta:
-        model = VocabularyItem
+        model  = VocabularyItem
         fields = [
             "id",
             "word",
@@ -321,10 +317,8 @@ class VocabularyItemMobileSerializer(serializers.ModelSerializer):
 
 
 class VocabularyAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized vocabulary attempt"""
-    
     class Meta:
-        model = VocabularyAttempt
+        model  = VocabularyAttempt
         fields = [
             "id",
             "vocab_item_id",
@@ -335,15 +329,13 @@ class VocabularyAttemptMobileSerializer(serializers.ModelSerializer):
 
 
 class StudentVocabMasteryMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized mastery status"""
     word = serializers.CharField(source='vocab_item.word', read_only=True)
     mastery_level_display = serializers.CharField(
-        source='get_mastery_level_display',
-        read_only=True
+        source='get_mastery_level_display', read_only=True
     )
-    
+
     class Meta:
-        model = StudentVocabMastery
+        model  = StudentVocabMastery
         fields = [
             "vocab_item_id",
             "word",
@@ -358,14 +350,12 @@ class StudentVocabMasteryMobileSerializer(serializers.ModelSerializer):
 # ============================================================
 
 class ComprehensionQuestionMobileSerializer(serializers.ModelSerializer):
-    """Lightweight comprehension question for mobile"""
     options_list = serializers.ListField(
-        source='get_options_list',
-        read_only=True
+        source='get_options_list', read_only=True
     )
-    
+
     class Meta:
-        model = ComprehensionQuestion
+        model  = ComprehensionQuestion
         fields = [
             "id",
             "question_text",
@@ -377,12 +367,13 @@ class ComprehensionQuestionMobileSerializer(serializers.ModelSerializer):
 
 
 class ChunkComprehensionFocusMobileSerializer(serializers.ModelSerializer):
-    """Comprehension focus with questions"""
-    questions = ComprehensionQuestionMobileSerializer(many=True, read_only=True)
-    level_display = serializers.CharField(source='get_level_display', read_only=True)
-    
+    questions     = ComprehensionQuestionMobileSerializer(many=True, read_only=True)
+    level_display = serializers.CharField(
+        source='get_level_display', read_only=True
+    )
+
     class Meta:
-        model = ChunkComprehensionFocus
+        model  = ChunkComprehensionFocus
         fields = [
             "id",
             "focus_title",
@@ -396,10 +387,8 @@ class ChunkComprehensionFocusMobileSerializer(serializers.ModelSerializer):
 
 
 class ComprehensionPracticeAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized practice attempt record"""
-    
     class Meta:
-        model = ComprehensionPracticeAttempt
+        model  = ComprehensionPracticeAttempt
         fields = [
             "id",
             "focus_id",
@@ -412,10 +401,8 @@ class ComprehensionPracticeAttemptMobileSerializer(serializers.ModelSerializer):
 
 
 class ComprehensionTestAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized test attempt record"""
-    
     class Meta:
-        model = ComprehensionTestAttempt
+        model  = ComprehensionTestAttempt
         fields = [
             "id",
             "focus_id",
@@ -429,100 +416,16 @@ class ComprehensionTestAttemptMobileSerializer(serializers.ModelSerializer):
 
 # ============================================================
 # WRITING MOBILE SERIALIZERS
+# New three-tier architecture.
+# Serializer classes are defined in content/serializers/writing.py
+# and imported at the top of this file.
+# They are re-exported here so mobile.py consumers
+# can import from a single place.
 # ============================================================
 
-class WritingPromptMobileSerializer(serializers.ModelSerializer):
-    """Lightweight writing prompt for mobile"""
-    prompt_type_display = serializers.CharField(
-        source='get_prompt_type_display',
-        read_only=True
-    )
-    
-    class Meta:
-        model = WritingPrompt
-        fields = [
-            "id",
-            "prompt_type",
-            "prompt_type_display",
-            "prompt_text",
-        ]
-
-
-class ChunkWritingFocusMobileSerializer(serializers.ModelSerializer):
-    """Chunk-level writing focus with prompts"""
-    prompts = WritingPromptMobileSerializer(many=True, read_only=True)
-    
-    class Meta:
-        model = ChunkWritingFocus
-        fields = [
-            "id",
-            "focus_title",
-            "focus_description",
-            "depth_level",
-            "sequence_order",
-            "prompts",
-        ]
-
-
-class UnitWritingTaskMobileSerializer(serializers.ModelSerializer):
-    """Unit-level writing task with prompts"""
-    prompts = WritingPromptMobileSerializer(many=True, read_only=True)
-    stage_display = serializers.CharField(source='get_stage_display', read_only=True)
-    
-    class Meta:
-        model = UnitWritingTask
-        fields = [
-            "id",
-            "task_title",
-            "task_description",
-            "stage",
-            "stage_display",
-            "difficulty_level",
-            "order",
-            "prompts",
-        ]
-
-
-class WritingPracticeAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized practice attempt record"""
-    
-    class Meta:
-        model = WritingPracticeAttempt
-        fields = [
-            "id",
-            "prompt_id",
-            "attempt_number",
-            "cycle_number",
-            "keyword_match_score",
-            "is_passed",
-            "time_spent_seconds",
-            "created_at",
-        ]
-
-
-class WritingTestAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized test attempt record"""
-    context_type = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = WritingTestAttempt
-        fields = [
-            "id",
-            "prompt_id",
-            "attempt_number",
-            "cycle_number",
-            "overall_score",
-            "is_mastered",
-            "context_type",
-            "created_at",
-        ]
-    
-    def get_context_type(self, obj):
-        if obj.focus:
-            return "chunk"
-        elif obj.task:
-            return "unit"
-        return None
+# WritingStageContentMobileSerializer  — imported above
+# WritingAttemptMobileSerializer       — imported above
+# WritingStageMasteryMobileSerializer  — imported above
 
 
 # ============================================================
@@ -530,10 +433,8 @@ class WritingTestAttemptMobileSerializer(serializers.ModelSerializer):
 # ============================================================
 
 class PronunciationFocusMobileSerializer(serializers.ModelSerializer):
-    """Lightweight pronunciation focus for mobile"""
-    
     class Meta:
-        model = PronunciationFocus
+        model  = PronunciationFocus
         fields = [
             "id",
             "focus_title",
@@ -543,11 +444,10 @@ class PronunciationFocusMobileSerializer(serializers.ModelSerializer):
 
 
 class PronunciationAttemptMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized pronunciation attempt"""
     is_passed = serializers.BooleanField(read_only=True)
-    
+
     class Meta:
-        model = PronunciationAttempt
+        model  = PronunciationAttempt
         fields = [
             "id",
             "focus_id",
@@ -561,10 +461,8 @@ class PronunciationAttemptMobileSerializer(serializers.ModelSerializer):
 
 
 class PronunciationMasteryMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized pronunciation mastery"""
-    
     class Meta:
-        model = PronunciationMastery
+        model  = PronunciationMastery
         fields = [
             "focus_id",
             "is_mastered",
@@ -579,11 +477,12 @@ class PronunciationMasteryMobileSerializer(serializers.ModelSerializer):
 # ============================================================
 
 class UnitTestQuestionMobileSerializer(serializers.ModelSerializer):
-    """Lightweight test question for mobile"""
-    domain_display = serializers.CharField(source='get_domain_display', read_only=True)
-    
+    domain_display = serializers.CharField(
+        source='get_domain_display', read_only=True
+    )
+
     class Meta:
-        model = UnitTestQuestion
+        model  = UnitTestQuestion
         fields = [
             "id",
             "domain",
@@ -598,13 +497,14 @@ class UnitTestQuestionMobileSerializer(serializers.ModelSerializer):
 
 
 class UnitTestSessionMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized test session info"""
-    unit_title = serializers.CharField(source='unit.title', read_only=True)
+    unit_title          = serializers.CharField(
+        source='unit.title', read_only=True
+    )
     progress_percentage = serializers.SerializerMethodField()
-    time_remaining = serializers.SerializerMethodField()
-    
+    time_remaining      = serializers.SerializerMethodField()
+
     class Meta:
-        model = UnitTestSession
+        model  = UnitTestSession
         fields = [
             "id",
             "unit_id",
@@ -618,28 +518,28 @@ class UnitTestSessionMobileSerializer(serializers.ModelSerializer):
             "passed",
             "progress_percentage",
         ]
-    
+
     def get_progress_percentage(self, obj):
         if obj.total_questions == 0:
             return 0
-        answered = UnitTestAnswer.objects.filter(question__session=obj).count()
+        answered = UnitTestAnswer.objects.filter(
+            question__session=obj
+        ).count()
         return int((answered / obj.total_questions) * 100)
-    
+
     def get_time_remaining(self, obj):
         if obj.completed_at:
             return 0
-        # Default 60 minute time limit
         time_limit = 60 * 60
-        elapsed = (timezone.now() - obj.started_at).total_seconds()
+        elapsed    = (timezone.now() - obj.started_at).total_seconds()
         return max(0, int(time_limit - elapsed))
 
 
 class UnitTestSessionActiveMobileSerializer(serializers.ModelSerializer):
-    """Active test session with questions for mobile"""
     questions = UnitTestQuestionMobileSerializer(many=True, read_only=True)
-    
+
     class Meta:
-        model = UnitTestSession
+        model  = UnitTestSession
         fields = [
             "id",
             "attempt_number",
@@ -650,10 +550,8 @@ class UnitTestSessionActiveMobileSerializer(serializers.ModelSerializer):
 
 
 class UnitTestAnswerMobileSerializer(serializers.ModelSerializer):
-    """Mobile-optimized answer record"""
-    
     class Meta:
-        model = UnitTestAnswer
+        model  = UnitTestAnswer
         fields = [
             "question_id",
             "student_answer",
@@ -663,14 +561,11 @@ class UnitTestAnswerMobileSerializer(serializers.ModelSerializer):
 
 
 class UnitTestHistoryMobileSerializer(serializers.Serializer):
-    """Test history summary for mobile dashboard"""
-    unit_id = serializers.IntegerField()
+    unit_id    = serializers.IntegerField()
     unit_title = serializers.CharField()
-    attempts = serializers.ListField(
-        child=serializers.DictField()
-    )
+    attempts   = serializers.ListField(child=serializers.DictField())
     best_score = serializers.FloatField()
-    passed = serializers.BooleanField()
+    passed     = serializers.BooleanField()
 
 
 # ============================================================
@@ -678,41 +573,25 @@ class UnitTestHistoryMobileSerializer(serializers.Serializer):
 # ============================================================
 
 class DomainProgressMobileSerializer(serializers.Serializer):
-    """Minimal domain progress for mobile dashboard"""
     mastery_percentage = serializers.FloatField()
     needs_review_count = serializers.IntegerField()
-    last_activity = serializers.DateTimeField(allow_null=True)
+    last_activity      = serializers.DateTimeField(allow_null=True)
 
 
 class DashboardMobileSerializer(serializers.Serializer):
-    """Main mobile dashboard - ultra lightweight"""
-    
-    # Quick stats
-    streak_days = serializers.IntegerField()
+    streak_days     = serializers.IntegerField()
     overall_mastery = serializers.FloatField()
-    
-    # Domain summaries (minimal)
-    grammar = DomainProgressMobileSerializer()
-    punctuation = DomainProgressMobileSerializer()
-    vocabulary = DomainProgressMobileSerializer()
+
+    grammar       = DomainProgressMobileSerializer()
+    punctuation   = DomainProgressMobileSerializer()
+    vocabulary    = DomainProgressMobileSerializer()
     comprehension = DomainProgressMobileSerializer()
-    writing = DomainProgressMobileSerializer()
+    writing       = DomainProgressMobileSerializer()
     pronunciation = DomainProgressMobileSerializer()
-    
-    # Recent activity (last 5 items)
-    recent_activity = serializers.ListField(
-        child=serializers.DictField()
-    )
-    
-    # Next steps (top 3)
-    next_steps = serializers.ListField(
-        child=serializers.DictField()
-    )
-    
-    # In-progress items
-    in_progress = serializers.ListField(
-        child=serializers.DictField()
-    )
+
+    recent_activity = serializers.ListField(child=serializers.DictField())
+    next_steps      = serializers.ListField(child=serializers.DictField())
+    in_progress     = serializers.ListField(child=serializers.DictField())
 
 
 # ============================================================
@@ -720,19 +599,17 @@ class DashboardMobileSerializer(serializers.Serializer):
 # ============================================================
 
 class MobilePracticeSubmitSerializer(serializers.Serializer):
-    """Unified practice submission for mobile (any domain)"""
-    domain = serializers.ChoiceField(choices=[
-        'grammar', 'punctuation', 'vocabulary', 
+    domain     = serializers.ChoiceField(choices=[
+        'grammar', 'punctuation', 'vocabulary',
         'comprehension', 'writing', 'pronunciation'
     ])
-    focus_id = serializers.IntegerField(required=False, allow_null=True)
-    item_id = serializers.IntegerField(required=False, allow_null=True)  # For vocabulary
-    answers = serializers.ListField(child=serializers.DictField())
+    focus_id   = serializers.IntegerField(required=False, allow_null=True)
+    item_id    = serializers.IntegerField(required=False, allow_null=True)
+    answers    = serializers.ListField(child=serializers.DictField())
     time_spent_seconds = serializers.IntegerField(min_value=0, required=False)
-    
+
     def validate(self, data):
         domain = data.get('domain')
-        
         if domain == 'vocabulary':
             if not data.get('item_id'):
                 raise serializers.ValidationError(
@@ -743,41 +620,37 @@ class MobilePracticeSubmitSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     f"{domain} practice requires focus_id"
                 )
-        
         return data
 
 
 class MobileTestSubmitSerializer(serializers.Serializer):
-    """Unified test submission for mobile"""
-    domain = serializers.ChoiceField(choices=[
-        'grammar', 'punctuation', 'comprehension', 
+    domain     = serializers.ChoiceField(choices=[
+        'grammar', 'punctuation', 'comprehension',
         'writing', 'pronunciation', 'unit_test'
     ])
-    focus_id = serializers.IntegerField(required=False, allow_null=True)
-    task_id = serializers.IntegerField(required=False, allow_null=True)
+    focus_id   = serializers.IntegerField(required=False, allow_null=True)
+    content_id = serializers.IntegerField(required=False, allow_null=True)
     session_id = serializers.IntegerField(required=False, allow_null=True)
-    answers = serializers.ListField(child=serializers.DictField())
+    answers    = serializers.ListField(child=serializers.DictField())
     time_spent_seconds = serializers.IntegerField(min_value=0)
-    
+
     def validate(self, data):
         domain = data.get('domain')
-        
         if domain == 'unit_test':
             if not data.get('session_id'):
                 raise serializers.ValidationError(
                     "unit_test submission requires session_id"
                 )
         elif domain == 'writing':
-            if not data.get('focus_id') and not data.get('task_id'):
+            if not data.get('content_id'):
                 raise serializers.ValidationError(
-                    "writing test requires focus_id or task_id"
+                    "writing test requires content_id"
                 )
         else:
             if not data.get('focus_id'):
                 raise serializers.ValidationError(
                     f"{domain} test requires focus_id"
                 )
-        
         return data
 
 
@@ -786,13 +659,12 @@ class MobileTestSubmitSerializer(serializers.Serializer):
 # ============================================================
 
 class SyncPayloadSerializer(serializers.Serializer):
-    """Payload for offline sync - contains all pending data"""
-    pending_practices = serializers.ListField(
+    pending_practices   = serializers.ListField(
         child=MobilePracticeSubmitSerializer(),
         required=False,
         default=list
     )
-    pending_tests = serializers.ListField(
+    pending_tests       = serializers.ListField(
         child=MobileTestSubmitSerializer(),
         required=False,
         default=list
@@ -801,16 +673,9 @@ class SyncPayloadSerializer(serializers.Serializer):
 
 
 class SyncResponseSerializer(serializers.Serializer):
-    """Response after sync - includes updated content and results"""
-    synced_practices = serializers.ListField(
-        child=serializers.DictField()
-    )
-    synced_tests = serializers.ListField(
-        child=serializers.DictField()
-    )
-    updated_content = serializers.DictField(
-        child=serializers.ListField()
-    )
+    synced_practices = serializers.ListField(child=serializers.DictField())
+    synced_tests     = serializers.ListField(child=serializers.DictField())
+    updated_content  = serializers.DictField(child=serializers.ListField())
     server_timestamp = serializers.DateTimeField()
 
 
@@ -819,34 +684,25 @@ class SyncResponseSerializer(serializers.Serializer):
 # ============================================================
 
 class MobileBatchContentSerializer(serializers.Serializer):
-    """Request multiple content items in one batch"""
     textbook_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=False,
-        default=list
+        child=serializers.IntegerField(), required=False, default=list
     )
-    unit_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=False,
-        default=list
+    unit_ids     = serializers.ListField(
+        child=serializers.IntegerField(), required=False, default=list
     )
-    lesson_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=False,
-        default=list
+    lesson_ids   = serializers.ListField(
+        child=serializers.IntegerField(), required=False, default=list
     )
-    chunk_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=False,
-        default=list
+    chunk_ids    = serializers.ListField(
+        child=serializers.IntegerField(), required=False, default=list
     )
-    
+
     def validate(self, data):
         if not any([
             data.get('textbook_ids'),
             data.get('unit_ids'),
             data.get('lesson_ids'),
-            data.get('chunk_ids')
+            data.get('chunk_ids'),
         ]):
             raise serializers.ValidationError(
                 "At least one ID list must be provided"
@@ -855,20 +711,22 @@ class MobileBatchContentSerializer(serializers.Serializer):
 
 
 class MobileBatchContentResponseSerializer(serializers.Serializer):
-    """Batch content response"""
-    textbooks = TextbookMobileSerializer(many=True)
-    units = UnitMobileSerializer(many=True)
-    lessons = LessonMobileSerializer(many=True)
-    chunks = LessonChunkMobileSerializer(many=True)
-    
-    # Domain-specific focuses
-    grammar_focuses = ChunkGrammarFocusMobileSerializer(many=True)
-    punctuation_focuses = ChunkPunctuationFocusMobileSerializer(many=True)
-    vocabulary_items = VocabularyItemMobileSerializer(many=True)
+    textbooks  = TextbookMobileSerializer(many=True)
+    units      = UnitMobileSerializer(many=True)
+    lessons    = LessonMobileSerializer(many=True)
+    chunks     = LessonChunkMobileSerializer(many=True)
+
+    # Domain focuses
+    grammar_focuses       = ChunkGrammarFocusMobileSerializer(many=True)
+    punctuation_focuses   = ChunkPunctuationFocusMobileSerializer(many=True)
+    vocabulary_items      = VocabularyItemMobileSerializer(many=True)
     comprehension_focuses = ChunkComprehensionFocusMobileSerializer(many=True)
-    writing_focuses = ChunkWritingFocusMobileSerializer(many=True)
-    writing_tasks = UnitWritingTaskMobileSerializer(many=True)
     pronunciation_focuses = PronunciationFocusMobileSerializer(many=True)
+
+    # Writing — new three-tier architecture
+    writing_stage_contents = WritingStageContentMobileSerializer(many=True)
+    writing_attempts       = WritingAttemptMobileSerializer(many=True)
+    writing_masteries      = WritingStageMasteryMobileSerializer(many=True)
 
 
 # ============================================================
@@ -876,17 +734,16 @@ class MobileBatchContentResponseSerializer(serializers.Serializer):
 # ============================================================
 
 class MobileNotificationSerializer(serializers.Serializer):
-    """Push notification payload"""
     notification_type = serializers.ChoiceField(choices=[
         'practice_reminder',
         'test_available',
         'mastery_achieved',
         'streak_milestone',
-        'content_updated'
+        'content_updated',
     ])
-    title = serializers.CharField()
-    body = serializers.CharField()
-    data = serializers.DictField(required=False, default=dict)
+    title    = serializers.CharField()
+    body     = serializers.CharField()
+    data     = serializers.DictField(required=False, default=dict)
     priority = serializers.ChoiceField(
         choices=['high', 'normal', 'low'],
         default='normal'

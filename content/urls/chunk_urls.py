@@ -6,9 +6,15 @@ from content.views.chunk_core import chunk_hub
 from content.views.grammar.hub import chunk_grammar_view
 from content.views.punctuation.hub import chunk_punctuation_view
 from content.views.comprehension.hub import chunk_comprehension_view
-from content.views.writing.hub import chunk_writing_view
 from content.views.progress.hub import chunk_progress_view
 from content.views.pronunciation.hub import chunk_pronunciation_view
+
+# Writing has moved to unit-level.
+# There is no chunk-level writing view.
+# Writing is accessed via the unit writing hub:
+#   /content/units/<unit_id>/writing/
+# The chunk_writing_view and chunk writing module
+# are removed from chunk URLs.
 
 urlpatterns = [
     # --------------------------------------------------
@@ -18,14 +24,11 @@ urlpatterns = [
 
     # --------------------------------------------------
     # VOCABULARY
-    # No namespace needed — vocabulary already has unique names
-    # (chunk_vocabulary_hub, practice, fill, synonyms, antonyms,
-    #  test, history, attempt-detail)
     # --------------------------------------------------
     path("<int:chunk_id>/vocabulary/", include("content.urls.vocabulary")),
 
     # --------------------------------------------------
-    # GRAMMAR  →  content:grammar:teach / practice / test
+    # GRAMMAR
     # --------------------------------------------------
     path("<int:chunk_id>/grammar/", chunk_grammar_view, name="chunk_grammar"),
     path(
@@ -34,7 +37,7 @@ urlpatterns = [
     ),
 
     # --------------------------------------------------
-    # PUNCTUATION  →  content:punctuation:teach / practice / test etc.
+    # PUNCTUATION
     # --------------------------------------------------
     path("<int:chunk_id>/punctuation/", chunk_punctuation_view, name="chunk_punctuation"),
     path(
@@ -43,7 +46,7 @@ urlpatterns = [
     ),
 
     # --------------------------------------------------
-    # COMPREHENSION  →  content:comprehension:teach / practice / test etc.
+    # COMPREHENSION
     # --------------------------------------------------
     path("<int:chunk_id>/comprehension/", chunk_comprehension_view, name="chunk_comprehension"),
     path(
@@ -52,16 +55,14 @@ urlpatterns = [
     ),
 
     # --------------------------------------------------
-    # WRITING  →  content:writing:teach / practice / test etc.
+    # WRITING — removed from chunk level.
+    # Writing is now unit-level.
+    # Access writing via:
+    #   /content/units/<unit_id>/writing/
     # --------------------------------------------------
-    path("<int:chunk_id>/writing/", chunk_writing_view, name="chunk_writing"),
-    path(
-        "<int:chunk_id>/writing/module/",
-        include(("content.urls.writing", "writing")),
-    ),
 
     # --------------------------------------------------
-    # PRONUNCIATION  →  content:pronunciation:teach / practice / result etc.
+    # PRONUNCIATION
     # --------------------------------------------------
     path("<int:chunk_id>/pronunciation/", chunk_pronunciation_view, name="chunk_pronunciation"),
     path(

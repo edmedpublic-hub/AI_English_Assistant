@@ -160,18 +160,13 @@ class LessonChunk(models.Model):
         ]
 
     # -----------------------------------------------------------------
-    # MASTERY METHODS (Integrated across all six domains)
+    # MASTERY METHODS
     # -----------------------------------------------------------------
 
     def is_mastered_by(self, user):
         """
         Comprehensive mastery check across ALL domains:
-        - Grammar: 100% on all GrammarTestAttempts
-        - Punctuation: 100% on all PunctuationTestAttempts
-        - Comprehension: 100% on all ComprehensionTestAttempts
-        - Vocabulary: All items at "mastered" level
-        - Writing: 100% on all WritingTestAttempts (chunk + unit level)
-        - Pronunciation: Average AI score >= 90
+        - Grammar, Punctuation, Comprehension, Vocabulary, Writing, Pronunciation
         """
         if not user.is_authenticated:
             return False
@@ -188,10 +183,7 @@ class LessonChunk(models.Model):
         return all(results.values())
 
     def get_mastery_status(self, user):
-        """
-        Returns detailed mastery status for all domains.
-        Used by dashboards and progress tracking.
-        """
+        """Detailed mastery status for dashboards."""
         if not user.is_authenticated:
             return None
 
@@ -233,119 +225,87 @@ class LessonChunk(models.Model):
     # -----------------------------------------------------------------
 
     def _grammar_mastered(self, user):
-        """Check if all grammar focuses are mastered."""
         from .grammar import GrammarTestAttempt
-
         focuses = self.grammar_focuses.all()
         if not focuses.exists():
             return True
 
         for focus in focuses:
             mastered = GrammarTestAttempt.objects.filter(
-                user=user,
-                focus=focus,
-                is_mastered=True
+                user=user, focus=focus, is_mastered=True
             ).exists()
             if not mastered:
                 return False
-
         return True
 
     def _grammar_details(self, user):
-        """Get detailed grammar progress."""
         from .grammar import GrammarTestAttempt
-
         focuses = self.grammar_focuses.all()
         details = []
-
         for focus in focuses:
             latest = GrammarTestAttempt.objects.filter(
-                user=user,
-                focus=focus
+                user=user, focus=focus
             ).order_by('-created_at').first()
-
             details.append({
                 'focus': focus.focus_title,
                 'mastered': latest.is_mastered if latest else False,
                 'latest_score': latest.score_percent if latest else 0,
                 'attempts_used': latest.attempt_number if latest else 0,
             })
-
         return details
 
     def _punctuation_mastered(self, user):
-        """Check if all punctuation focuses are mastered."""
         from .punctuation import PunctuationTestAttempt
-
         focuses = self.punctuation_focuses.all()
         if not focuses.exists():
             return True
 
         for focus in focuses:
             mastered = PunctuationTestAttempt.objects.filter(
-                user=user,
-                focus=focus,
-                is_mastered=True
+                user=user, focus=focus, is_mastered=True
             ).exists()
             if not mastered:
                 return False
-
         return True
 
     def _punctuation_details(self, user):
-        """Get detailed punctuation progress."""
         from .punctuation import PunctuationTestAttempt
-
         focuses = self.punctuation_focuses.all()
         details = []
-
         for focus in focuses:
             latest = PunctuationTestAttempt.objects.filter(
-                user=user,
-                focus=focus
+                user=user, focus=focus
             ).order_by('-created_at').first()
-
             details.append({
                 'focus': focus.focus_title,
                 'mastered': latest.is_mastered if latest else False,
                 'latest_score': latest.score_percent if latest else 0,
                 'attempts_used': latest.attempt_number if latest else 0,
             })
-
         return details
 
     def _comprehension_mastered(self, user):
-        """Check if all comprehension focuses are mastered."""
         from .comprehension import ComprehensionTestAttempt
-
         focuses = self.comprehension_focuses.all()
         if not focuses.exists():
             return True
 
         for focus in focuses:
             mastered = ComprehensionTestAttempt.objects.filter(
-                user=user,
-                focus=focus,
-                is_mastered=True
+                user=user, focus=focus, is_mastered=True
             ).exists()
             if not mastered:
                 return False
-
         return True
 
     def _comprehension_details(self, user):
-        """Get detailed comprehension progress."""
         from .comprehension import ComprehensionTestAttempt
-
         focuses = self.comprehension_focuses.all()
         details = []
-
         for focus in focuses:
             latest = ComprehensionTestAttempt.objects.filter(
-                user=user,
-                focus=focus
+                user=user, focus=focus
             ).order_by('-created_at').first()
-
             details.append({
                 'focus': focus.focus_title,
                 'level': focus.level,
@@ -353,43 +313,30 @@ class LessonChunk(models.Model):
                 'latest_score': latest.score_percent if latest else 0,
                 'attempts_used': latest.attempt_number if latest else 0,
             })
-
         return details
 
     def _vocabulary_mastered(self, user):
-        """Check if all vocabulary items are at 'mastered' level."""
         from .vocabulary import StudentVocabMastery
-
         vocab_items = self.vocab_items.all()
         if not vocab_items.exists():
             return True
 
         for item in vocab_items:
             try:
-                mastery = StudentVocabMastery.objects.get(
-                    user=user,
-                    vocab_item=item
-                )
+                mastery = StudentVocabMastery.objects.get(user=user, vocab_item=item)
                 if mastery.mastery_level != 'mastered':
                     return False
             except StudentVocabMastery.DoesNotExist:
                 return False
-
         return True
 
     def _vocabulary_details(self, user):
-        """Get detailed vocabulary progress."""
-        from .vocabulary import StudentVocabMastery, VocabularyAttempt
-
+        from .vocabulary import StudentVocabMastery
         vocab_items = self.vocab_items.all()
         details = []
-
         for item in vocab_items:
             try:
-                mastery = StudentVocabMastery.objects.get(
-                    user=user,
-                    vocab_item=item
-                )
+                mastery = StudentVocabMastery.objects.get(user=user, vocab_item=item)
                 details.append({
                     'word': item.word,
                     'mastery_level': mastery.mastery_level,
@@ -405,95 +352,72 @@ class LessonChunk(models.Model):
                     'total_attempts': 0,
                     'last_practiced': None,
                 })
-
         return details
 
     def _writing_mastered(self, user):
-        """Check if all writing focuses (chunk and unit level) are mastered."""
-        from .writing import WritingTestAttempt
-
-        # Check chunk-level writing focuses
-        focuses = self.writing_focuses.all()
-        if focuses.exists():
-            for focus in focuses:
-                mastered = WritingTestAttempt.objects.filter(
-                    user=user,
-                    focus=focus,
-                    is_mastered=True
-                ).exists()
-                if not mastered:
-                    return False
-
-        # Check unit-level writing tasks
-        tasks = self.lesson.unit.writing_tasks.all()
-        if tasks.exists():
-            for task in tasks:
-                mastered = WritingTestAttempt.objects.filter(
-                    user=user,
-                    task=task,
-                    is_mastered=True
-                ).exists()
-                if not mastered:
-                    return False
-
+        from .writing import WritingStageMastery, WritingAcademicYear, WritingStageContent
+        year = WritingAcademicYear.get_current()
+        if not year:
+            return False
+        
+        contents = WritingStageContent.objects.filter(unit=self.lesson.unit, is_complete=True)
+        if not contents.exists():
+            return True
+            
+        for content in contents:
+            mastered = WritingStageMastery.objects.filter(
+                user=user, content=content, academic_year=year
+            ).exists()
+            if not mastered:
+                return False
         return True
 
     def _writing_details(self, user):
-        """Get detailed writing progress."""
-        from .writing import WritingTestAttempt
-
-        focuses = self.writing_focuses.all()
+        from .writing import WritingStageMastery, WritingAcademicYear, WritingStageContent, WritingAttempt
+        year = WritingAcademicYear.get_current()
+        contents = WritingStageContent.objects.filter(
+            unit=self.lesson.unit, is_complete=True
+        ).select_related('stage')
+        
         details = []
-
-        for focus in focuses:
-            latest = WritingTestAttempt.objects.filter(
-                user=user,
-                focus=focus
-            ).order_by('-created_at').first()
-
+        for content in contents:
+            latest = WritingAttempt.objects.filter(user=user, content=content).order_by('-created_at').first()
+            mastered = WritingStageMastery.objects.filter(
+                user=user, content=content, academic_year=year
+            ).exists() if year else False
+            
             details.append({
-                'focus': focus.focus_title,
-                'mastered': latest.is_mastered if latest else False,
-                'latest_score': latest.overall_score if latest else 0,
-                'attempts_used': latest.attempt_number if latest else 0,
+                'stage': content.stage.name,
+                'stage_number': content.stage.number,
+                'mastered': mastered,
+                'latest_score': latest.effective_score() if latest else 0,
+                'latest_phase': latest.phase if latest else None,
+                'latest_status': latest.status if latest else None,
             })
-
         return details
 
     def _pronunciation_mastered(self, user):
-        """Check if pronunciation is mastered (score >= 90)."""
         from .pronunciation import PronunciationMastery
-
         focuses = self.pronunciation_focuses.all()
         if not focuses.exists():
             return True
 
         for focus in focuses:
             try:
-                mastery = PronunciationMastery.objects.get(
-                    user=user,
-                    focus=focus
-                )
+                mastery = PronunciationMastery.objects.get(user=user, focus=focus)
                 if not mastery.is_mastered:
                     return False
             except PronunciationMastery.DoesNotExist:
                 return False
-
         return True
 
     def _pronunciation_details(self, user):
-        """Get detailed pronunciation progress."""
-        from .pronunciation import PronunciationMastery, PronunciationAttempt
-
+        from .pronunciation import PronunciationMastery
         focuses = self.pronunciation_focuses.all()
         details = []
-
         for focus in focuses:
             try:
-                mastery = PronunciationMastery.objects.get(
-                    user=user,
-                    focus=focus
-                )
+                mastery = PronunciationMastery.objects.get(user=user, focus=focus)
                 details.append({
                     'focus': focus.focus_title,
                     'mastered': mastery.is_mastered,
@@ -509,14 +433,10 @@ class LessonChunk(models.Model):
                     'last_score': None,
                     'total_attempts': 0,
                 })
-
         return details
 
     def _next_priority_domain(self, by_domain):
-        """
-        Determine which domain the user should work on next.
-        Returns the domain with the lowest mastery score.
-        """
+        """Determine which domain needs the most work."""
         lowest_domain = None
         lowest_score = 101
 
@@ -535,15 +455,9 @@ class LessonChunk(models.Model):
                 if avg_score < lowest_score:
                     lowest_score = avg_score
                     lowest_domain = domain
-
         return lowest_domain
 
-    # -----------------------------------------------------------------
-    # Utility Methods
-    # -----------------------------------------------------------------
-
     def get_all_focuses(self):
-        """Get all focuses across all domains for this chunk."""
         return {
             'grammar': self.grammar_focuses.all(),
             'punctuation': self.punctuation_focuses.all(),

@@ -1,181 +1,268 @@
-{% extends "base.html" %}
+{# content/templates/content/writing/test_result.html #}
+{% extends "content/base.html" %}
+{% load static %}
 
-{% block content %}
+{% block title %}Result — {{ stage.name }}{% endblock %}
+
+{% block extra_css %}
 <style>
-  .result-container {
-    max-width: 750px;
-    margin: 40px auto;
-    padding: 20px;
+  .result-hero {
     text-align: center;
+    padding: 2rem 1rem 1.5rem;
   }
 
-  .result-card {
-    background: #ffffff;
-    border-radius: 15px;
-    padding: 40px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    border-top: 8px solid;
+  .result-icon {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
   }
 
-  .mastery-pass { border-color: #27ae60; }
-  .mastery-pass h2 { color: #27ae60; }
-
-  .mastery-fail { border-color: #e74c3c; }
-  .mastery-fail h2 { color: #e74c3c; }
-
-  .score-circle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    margin: 20px auto;
+  .check-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 2.2rem;
-    font-weight: bold;
-    color: #ffffff;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    font-size: 0.9rem;
   }
 
-  .bg-pass { background: #27ae60; }
-  .bg-fail { background: #e74c3c; }
-
-  .stats-table {
-    width: 100%;
-    margin: 25px 0;
-    border-collapse: collapse;
-    text-align: left;
+  .check-row:last-child {
+    border-bottom: none;
   }
 
-  .stats-table td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    font-size: 1.05rem;
+  .check-icon-pass { color: #28a745; font-weight: 700; }
+  .check-icon-fail { color: #dc3545; font-weight: 700; }
+
+  .cooldown-task-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #6c757d;
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    line-height: 1.7;
   }
 
-  .action-btns {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 30px;
-    flex-wrap: wrap;
+  [data-bs-theme="dark"] .cooldown-task-box {
+    background-color: #1a1a1a;
   }
 
-  .btn-action {
-    padding: 14px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
+  .feedback-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #6f42c1;
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
   }
 
-  .btn-green { background: #27ae60; color: #fff; }
-  .btn-blue { background: #3498db; color: #fff; }
-
-  .review-section {
-    margin-top: 40px;
-    text-align: left;
+  [data-bs-theme="dark"] .feedback-box {
+    background-color: #1a1624;
   }
 
-  .error-item {
-    background: #fff;
-    border-left: 5px solid #e74c3c;
-    padding: 15px;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 15px;
-  }
-
-  .back-link {
-    display: inline-block;
-    margin-top: 40px;
-    text-decoration: none;
-    color: #555;
-    font-weight: 500;
+  .countdown-display {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #6c757d;
+    font-variant-numeric: tabular-nums;
   }
 </style>
+{% endblock %}
 
-<div class="result-container">
+{% block content %}
 
-{% if score == 100 %}
-  <!-- ================= PASS ================= -->
-  <div class="result-card mastery-pass">
-    <h2>Mastered</h2>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
 
-    <div class="score-circle bg-pass">
-      {{ score }}%
-    </div>
+    <!-- ── Result hero ─────────────────────────── -->
+    <div class="card mb-4">
+      <div class="card-body result-hero">
 
-    <p>
-      You have fully mastered
-      <strong>{{ focus.focus_title }}</strong>.
-    </p>
+        {% if is_passed %}
+        <div class="result-icon">🎉</div>
+        <h2 class="h4 text-success">Stage Mastered!</h2>
+        <p class="text-muted">{{ result_message }}</p>
 
-    <table class="stats-table">
-      <tr>
-        <td>Correct Responses</td>
-        <td><strong>{{ correct }}</strong></td>
-      </tr>
-      <tr>
-        <td>Total Prompts</td>
-        <td><strong>{{ total }}</strong></td>
-      </tr>
-    </table>
-
-    <div class="action-btns">
-      <a href="{% url 'content:chunk_writing' chunk.id %}" class="btn-action btn-green">
-        Return to Writing List
-      </a>
-    </div>
-  </div>
-
-{% else %}
-  <!-- ================= FAIL ================= -->
-  <div class="result-card mastery-fail">
-    <h2>Not Yet Mastered</h2>
-
-    <div class="score-circle bg-fail">
-      {{ score }}%
-    </div>
-
-    <table class="stats-table">
-      <tr>
-        <td>Correct</td>
-        <td><strong>{{ correct }} / {{ total }}</strong></td>
-      </tr>
-      <tr>
-        <td>Mistakes</td>
-        <td><strong>{{ mistakes }}</strong></td>
-      </tr>
-    </table>
-
-    <div class="action-btns">
-      <a href="{% url 'writing:practice' chunk.id focus.id %}"
-         class="btn-action btn-blue">
-        Review Practice
-      </a>
-    </div>
-  </div>
-
-  {% if results %}
-    <div class="review-section">
-      <h3>Review Your Mistakes</h3>
-
-      {% for res in results %}
-        {% if not res.is_correct %}
-          <div class="error-item">
-            <p><strong>Prompt:</strong> {{ res.prompt.prompt_text }}</p>
-            <p><strong>Your Response:</strong> {{ res.user_response|default:"—" }}</p>
-            {% if res.prompt.expected_keywords %}
-              <p><strong>Expected Keywords:</strong> {{ res.prompt.expected_keywords }}</p>
-            {% endif %}
-          </div>
+        {% elif is_cooldown %}
+        <div class="result-icon">⏳</div>
+        <h2 class="h4 text-secondary">Not Quite Yet</h2>
+        <p class="text-muted">{{ result_message }}</p>
+        {% if cooldown_remaining %}
+        <div class="countdown-display mt-2" id="countdown">
+          {{ cooldown_remaining.hours }}h {{ cooldown_remaining.minutes }}m remaining
+        </div>
         {% endif %}
-      {% endfor %}
+
+        {% elif is_pending and is_teacher_eval %}
+        <div class="result-icon">📬</div>
+        <h2 class="h4">Submitted</h2>
+        <p class="text-muted">{{ result_message }}</p>
+
+        {% elif is_pending and is_ai_teacher %}
+        <div class="result-icon">🤖</div>
+        <h2 class="h4">AI Feedback Ready</h2>
+        <p class="text-muted">{{ result_message }}</p>
+
+        {% else %}
+        <div class="result-icon">📝</div>
+        <h2 class="h4">Response Recorded</h2>
+        <p class="text-muted">{{ result_message }}</p>
+        {% endif %}
+
+      </div>
     </div>
-  {% endif %}
-{% endif %}
 
-<a href="{% url 'content:chunk_hub' chunk.id %}" class="back-link">
-  ← Back to Lesson Hub
-</a>
+    <!-- ── AI feedback ─────────────────────────── -->
+    {% if ai_feedback and is_ai_teacher %}
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">AI Feedback</div>
+      <div class="card-body">
+        <div class="feedback-box">{{ ai_feedback }}</div>
+        <p class="small text-muted mt-2 mb-0">
+          Your teacher will also review this work.
+        </p>
+      </div>
+    </div>
+    {% endif %}
 
+    <!-- ── Teacher feedback ────────────────────── -->
+    {% if teacher_feedback %}
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">Teacher Feedback</div>
+      <div class="card-body">
+        <div class="feedback-box">{{ teacher_feedback }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Automatic checks ────────────────────── -->
+    {% if auto_checks_display and is_auto %}
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">Checks</div>
+      <div class="card-body">
+        {% for check in auto_checks_display %}
+        <div class="check-row">
+          <span class="{% if check.passed %}check-icon-pass{% else %}check-icon-fail{% endif %}">
+            {{ check.icon }}
+          </span>
+          <span>{{ check.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Sentence interventions ──────────────── -->
+    {% if interventions %}
+    <div class="card mb-4">
+      <div class="card-header fw-semibold text-danger">Sentence Issues Found</div>
+      <div class="card-body">
+        {% for iv in interventions %}
+        <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <p class="small mb-1">
+            <strong>Sentence:</strong> <em>"{{ iv.sentence_text }}"</em>
+          </p>
+          <p class="small text-danger mb-1">
+            <strong>Problem:</strong> {{ iv.issue_label }}
+          </p>
+          <p class="small text-muted mb-0">
+            <strong>Exercise:</strong> {{ iv.fix_exercise }}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Cooldown task ───────────────────────── -->
+    {% if cooldown_task and is_cooldown %}
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">Before Your Next Attempt</div>
+      <div class="card-body">
+        <div class="cooldown-task-box">{{ cooldown_task }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Your writing ────────────────────────── -->
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">Your Writing</div>
+      <div class="card-body">
+        <div style="white-space:pre-wrap;font-size:0.95rem;line-height:1.7;">{{ attempt.response_text }}</div>
+      </div>
+    </div>
+
+    <!-- ── Next steps ──────────────────────────── -->
+    <div class="d-flex gap-2 flex-wrap">
+
+      {% if is_passed and next_content %}
+      <a href="{% url 'content:writing:writing_teach' unit_id=unit.id stage_id=next_content.stage.id %}"
+         class="btn btn-success">
+        Next Stage: {{ next_content.stage.name }} →
+      </a>
+      {% elif is_passed %}
+      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}"
+         class="btn btn-success">
+        Back to Journey →
+      </a>
+      {% endif %}
+
+      {% if is_cooldown %}
+      <a href="{% url 'content:writing:writing_teach' unit_id=unit.id stage_id=stage.id %}"
+         class="btn btn-outline-secondary">
+        Review Dissect
+      </a>
+      <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+         class="btn btn-outline-secondary">
+        Review Imitate
+      </a>
+      {% endif %}
+
+      {% if is_pending %}
+      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}"
+         class="btn btn-outline-primary">
+        Back to Journey
+      </a>
+      {% endif %}
+
+      {% if is_failed and not is_cooldown %}
+      <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+         class="btn btn-primary">
+        Try Again
+      </a>
+      {% endif %}
+
+    </div>
+
+  </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if cooldown_remaining %}
+<script>
+// Live countdown timer
+(function() {
+  let totalSeconds = {{ cooldown_remaining.total_seconds }};
+  const display    = document.getElementById('countdown');
+  if (!display || totalSeconds <= 0) return;
+
+  function update() {
+    if (totalSeconds <= 0) {
+      display.textContent = 'Cooldown complete. You may try again.';
+      return;
+    }
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    display.textContent = h + 'h ' + m + 'm ' + s + 's remaining';
+    totalSeconds--;
+    setTimeout(update, 1000);
+  }
+
+  update();
+})();
+</script>
+{% endif %}
 {% endblock %}

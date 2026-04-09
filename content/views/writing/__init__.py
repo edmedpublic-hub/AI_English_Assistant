@@ -1,18 +1,55 @@
 # content/views/writing/__init__.py
+#
+# Exports all writing views for use in URL configuration.
+#
+# Import pattern in urls.py:
+#
+#   from content.views.writing import (
+#       WritingHubView,
+#       WritingTeachView,
+#       WritingTeachSubmitView,
+#       WritingPracticeView,
+#       WritingPracticeSubmitView,
+#       WritingInterventionFixView,
+#       WritingTestView,
+#       WritingTestSubmitView,
+#       WritingTestResultView,
+#   )
 
-from .core import _chunk_context, get_writing_objects
-from .hub import chunk_writing_view
-from .teach import writing_teach
-from .practice import writing_practice
-from .test import writing_test, writing_test_result_detail, writing_test_history
+from .hub import WritingHubView
+
+from .teach import (
+    WritingTeachView,
+    WritingTeachSubmitView,
+)
+
+from .practice import (
+    WritingPracticeView,
+    WritingPracticeSubmitView,
+    WritingInterventionFixView,
+)
+
+from .test import (
+    WritingTestView,
+    WritingTestSubmitView,
+    WritingTestResultView,
+)
 
 __all__ = [
-    "_chunk_context",
-    "get_writing_objects",
-    "chunk_writing_view",
-    "writing_teach",
-    "writing_practice",
-    "writing_test",
-    "writing_test_result_detail",
-    "writing_test_history",
+    # Hub
+    "WritingHubView",
+
+    # Teach — Dissect phase
+    "WritingTeachView",
+    "WritingTeachSubmitView",
+
+    # Practice — Imitate phase
+    "WritingPracticeView",
+    "WritingPracticeSubmitView",
+    "WritingInterventionFixView",
+
+    # Test — Produce phase
+    "WritingTestView",
+    "WritingTestSubmitView",
+    "WritingTestResultView",
 ]

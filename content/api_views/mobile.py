@@ -34,10 +34,14 @@ from content.models.comprehension import (
     ChunkComprehensionFocus, ComprehensionQuestion,
     ComprehensionPracticeAttempt, ComprehensionTestAttempt
 )
-from content.models.writing import (
-    ChunkWritingFocus, UnitWritingTask, WritingPrompt,
-    WritingPracticeAttempt, WritingTestAttempt
-)
+
+# Writing models — temporarily silenced
+# API layer being rebuilt to match new three-tier writing architecture.
+# from content.models.writing import (
+#     ChunkWritingFocus, UnitWritingTask, WritingPrompt,
+#     WritingPracticeAttempt, WritingTestAttempt
+# )
+
 from content.models.pronunciation import (
     PronunciationFocus, PronunciationAttempt, PronunciationMastery
 )
@@ -50,55 +54,54 @@ from content.serializers.mobile import (
     LessonChunkMobileSerializer, LessonMobileSerializer,
     UnitMobileSerializer, TextbookMobileSerializer,
     UnitWithLessonsMobileSerializer, LessonWithChunksMobileSerializer,
-    
+
     # Grammar mobile
     GrammarQuestionMobileSerializer, ChunkGrammarFocusMobileSerializer,
     GrammarPracticeAttemptMobileSerializer, GrammarTestAttemptMobileSerializer,
-    
+
     # Punctuation mobile
     PunctuationQuestionMobileSerializer, ChunkPunctuationFocusMobileSerializer,
     PunctuationPracticeAttemptMobileSerializer, PunctuationTestAttemptMobileSerializer,
-    
+
     # Vocabulary mobile
     VocabularyItemMobileSerializer, VocabularyAttemptMobileSerializer,
     StudentVocabMasteryMobileSerializer,
-    
+
     # Comprehension mobile
     ComprehensionQuestionMobileSerializer, ChunkComprehensionFocusMobileSerializer,
     ComprehensionPracticeAttemptMobileSerializer, ComprehensionTestAttemptMobileSerializer,
-    
-    # Writing mobile
-    WritingPromptMobileSerializer, ChunkWritingFocusMobileSerializer,
-    UnitWritingTaskMobileSerializer, WritingPracticeAttemptMobileSerializer,
-    WritingTestAttemptMobileSerializer,
-    
+
+    # Writing mobile — temporarily silenced
+    # WritingPromptMobileSerializer, ChunkWritingFocusMobileSerializer,
+    # UnitWritingTaskMobileSerializer, WritingPracticeAttemptMobileSerializer,
+    # WritingTestAttemptMobileSerializer,
+
     # Pronunciation mobile
     PronunciationFocusMobileSerializer, PronunciationAttemptMobileSerializer,
     PronunciationMasteryMobileSerializer,
-    
+
     # Testing mobile
     UnitTestQuestionMobileSerializer, UnitTestSessionMobileSerializer,
     UnitTestSessionActiveMobileSerializer, UnitTestAnswerMobileSerializer,
     UnitTestHistoryMobileSerializer,
-    
+
     # Mobile dashboard
     DomainProgressMobileSerializer, DashboardMobileSerializer,
-    
+
     # Mobile submissions
     MobilePracticeSubmitSerializer, MobileTestSubmitSerializer,
-    
+
     # Offline sync
     SyncPayloadSerializer, SyncResponseSerializer,
-    
+
     # Batch operations
     MobileBatchContentSerializer, MobileBatchContentResponseSerializer,
-    
+
     # Push notifications
-    MobileNotificationSerializer
+    MobileNotificationSerializer,
 )
 from .base import BaseViewSet, log_user_activity
 from .progress import DashboardViewSet
-
 
 # ============================================================
 # MOBILE CONTENT VIEWS
@@ -503,95 +506,46 @@ class MobileWritingViewSet(viewsets.GenericViewSet):
     """
     
     permission_classes = [IsAuthenticated]
-    
+
     @action(detail=False, methods=['get'])
     def chunk_focuses(self, request):
-        """
-        Get chunk-level writing focuses.
-        """
-        chunk_id = request.query_params.get('chunk_id')
-        if not chunk_id:
-            return Response(
-                {'error': 'chunk_id parameter is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        focuses = ChunkWritingFocus.objects.filter(chunk_id=chunk_id).order_by('sequence_order')
-        serializer = ChunkWritingFocusMobileSerializer(focuses, many=True)
-        return Response(serializer.data)
-    
+        # Temporarily silenced — writing API being rebuilt
+        return Response(
+            {'detail': 'Writing API is being updated.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+
     @action(detail=False, methods=['get'])
     def unit_tasks(self, request):
-        """
-        Get unit-level writing tasks.
-        """
-        unit_id = request.query_params.get('unit_id')
-        if not unit_id:
-            return Response(
-                {'error': 'unit_id parameter is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        tasks = UnitWritingTask.objects.filter(unit_id=unit_id).order_by('order')
-        serializer = UnitWritingTaskMobileSerializer(tasks, many=True)
-        return Response(serializer.data)
-    
+        # Temporarily silenced — writing API being rebuilt
+        return Response(
+            {'detail': 'Writing API is being updated.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+
     @action(detail=False, methods=['get'])
     def prompts(self, request):
-        """
-        Get writing prompts for a focus or task.
-        """
-        focus_id = request.query_params.get('focus_id')
-        task_id = request.query_params.get('task_id')
-        
-        prompts = WritingPrompt.objects.all()
-        if focus_id:
-            prompts = prompts.filter(focus_id=focus_id)
-        elif task_id:
-            prompts = prompts.filter(task_id=task_id)
-        else:
-            return Response(
-                {'error': 'Either focus_id or task_id parameter is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        serializer = WritingPromptMobileSerializer(prompts, many=True)
-        return Response(serializer.data)
-    
+        # Temporarily silenced — writing API being rebuilt
+        return Response(
+            {'detail': 'Writing API is being updated.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+
     @action(detail=False, methods=['get'])
     def practice_history(self, request):
-        """
-        Get user's writing practice history.
-        """
-        user = request.user
-        focus_id = request.query_params.get('focus_id')
-        
-        attempts = WritingPracticeAttempt.objects.filter(user=user)
-        if focus_id:
-            attempts = attempts.filter(focus_id=focus_id)
-        
-        attempts = attempts.order_by('-created_at')[:20]
-        serializer = WritingPracticeAttemptMobileSerializer(attempts, many=True)
-        return Response(serializer.data)
-    
+        # Temporarily silenced — writing API being rebuilt
+        return Response(
+            {'detail': 'Writing API is being updated.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+
     @action(detail=False, methods=['get'])
     def test_history(self, request):
-        """
-        Get user's writing test history.
-        """
-        user = request.user
-        focus_id = request.query_params.get('focus_id')
-        task_id = request.query_params.get('task_id')
-        
-        attempts = WritingTestAttempt.objects.filter(user=user)
-        if focus_id:
-            attempts = attempts.filter(focus_id=focus_id)
-        elif task_id:
-            attempts = attempts.filter(task_id=task_id)
-        
-        attempts = attempts.order_by('-created_at')[:20]
-        serializer = WritingTestAttemptMobileSerializer(attempts, many=True)
-        return Response(serializer.data)
+        # Temporarily silenced — writing API being rebuilt
+        return Response(
+            {'detail': 'Writing API is being updated.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
 
 
 class MobilePronunciationViewSet(viewsets.GenericViewSet):

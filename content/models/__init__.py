@@ -29,10 +29,14 @@ from .comprehension import (
     ComprehensionQuestionAttempt
 )
 
-# Writing domain
+# Writing domain — new three-tier architecture
 from .writing import (
-    ChunkWritingFocus, UnitWritingTask, WritingPrompt,
-    WritingPracticeAttempt, WritingTestAttempt
+    WritingAcademicYear,
+    WritingStage,
+    WritingStageContent,
+    WritingAttempt,
+    WritingStageMastery,
+    WritingIntervention,
 )
 
 # Pronunciation domain
@@ -47,36 +51,40 @@ from .testing import (
 )
 
 
-# Explicitly define what is available for import
 __all__ = [
     # Core
     'Textbook', 'Unit', 'Lesson', 'LessonChunk',
-    
+
     # Grammar
     'GrammarConcept', 'GrammarRule', 'GrammarExample',
     'ChunkGrammarFocus', 'GrammarQuestion',
     'GrammarPracticeAttempt', 'GrammarTestAttempt', 'GrammarQuestionAttempt',
-    
+
     # Punctuation
     'PunctuationMark', 'PunctuationRule', 'PunctuationExample',
     'ChunkPunctuationFocus', 'ChunkPunctuationFocusRule',
-    'PunctuationQuestion', 'PunctuationPracticeAttempt', 'PunctuationTestAttempt',
-    
+    'PunctuationQuestion', 'PunctuationPracticeAttempt',
+    'PunctuationTestAttempt',
+
     # Vocabulary
     'VocabularyItem', 'VocabularyAttempt', 'StudentVocabMastery',
-    
+
     # Comprehension
     'ChunkComprehensionFocus', 'ComprehensionQuestion',
     'ComprehensionPracticeAttempt', 'ComprehensionTestAttempt',
     'ComprehensionQuestionAttempt',
-    
+
     # Writing
-    'ChunkWritingFocus', 'UnitWritingTask', 'WritingPrompt',
-    'WritingPracticeAttempt', 'WritingTestAttempt',
-    
+    'WritingAcademicYear',
+    'WritingStage',
+    'WritingStageContent',
+    'WritingAttempt',
+    'WritingStageMastery',
+    'WritingIntervention',
+
     # Pronunciation
     'PronunciationFocus', 'PronunciationAttempt', 'PronunciationMastery',
-    
+
     # Unit Testing
     'UnitTestSession', 'UnitTestQuestion', 'UnitTestAnswer',
     'VocabularyUnitTestAttempt',

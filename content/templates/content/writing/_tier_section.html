@@ -1,0 +1,100 @@
+{# content/templates/content/writing/_tier_section.html #}
+{% if stages %}
+<div class="tier-section {{ tier_css }}">
+
+  <div class="tier-header d-flex align-items-center justify-content-between">
+    <div>
+      <span class="badge {{ tier_badge_css }} text-white me-2"
+            style="font-size:0.75rem;">
+        {{ tier_label }}
+      </span>
+      <span class="text-muted small">{{ tier_desc }}</span>
+    </div>
+    <div class="text-muted small">
+      {{ progress.mastered }}/{{ progress.total }} mastered
+    </div>
+  </div>
+
+  <!-- Tier progress bar -->
+  <div class="progress tier-progress-bar">
+    <div
+      class="progress-bar"
+      style="width:{{ progress.percent }}%;
+             background-color: var(--tier-color);"
+      role="progressbar"
+      aria-valuenow="{{ progress.percent }}"
+      aria-valuemin="0"
+      aria-valuemax="100">
+    </div>
+  </div>
+
+  <!-- Stage cards -->
+  {% for s in stages %}
+  <div class="stage-card status-{{ s.status }}">
+
+    <div class="d-flex align-items-start justify-content-between">
+
+      <div class="flex-grow-1">
+        <div class="stage-number">Stage {{ s.stage.number }}</div>
+        <div class="stage-name">{{ s.stage.name }}</div>
+
+        <!-- Phase progress dots -->
+        <div class="phase-dots">
+          {% with p=s.current_phase %}
+          <div class="phase-dot {% if s.status == 'mastered' %}done{% elif p == 'imitate' or p == 'produce' %}done{% endif %}"
+               title="Dissect"></div>
+          <div class="phase-dot {% if s.status == 'mastered' %}done{% elif p == 'produce' %}done{% endif %}"
+               title="Imitate"></div>
+          <div class="phase-dot {% if s.status == 'mastered' %}done{% endif %}"
+               title="Produce"></div>
+          {% endwith %}
+        </div>
+
+        {% if s.is_in_cooldown %}
+        <div class="cooldown-banner text-muted mt-2">
+          ⏳ Cooldown active — check back later
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="d-flex flex-column align-items-end gap-1 ms-3">
+
+        <!-- Status badge -->
+        {% if s.status == 'mastered' %}
+        <span class="status-badge bg-success text-white">✓ Mastered</span>
+        {% elif s.status == 'in_progress' %}
+        <span class="status-badge bg-primary text-white">In Progress</span>
+        {% elif s.status == 'available' %}
+        <span class="status-badge bg-warning text-dark">Start</span>
+        {% else %}
+        <span class="status-badge bg-secondary text-white">🔒 Locked</span>
+        {% endif %}
+
+        <!-- Eval method badge -->
+        {% if s.stage.eval_method == 'automatic' %}
+        <span class="eval-badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Auto</span>
+        {% elif s.stage.eval_method == 'keyword' %}
+        <span class="eval-badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">Keyword</span>
+        {% elif s.stage.eval_method == 'teacher' %}
+        <span class="eval-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">Teacher</span>
+        {% elif s.stage.eval_method == 'ai_teacher' %}
+        <span class="eval-badge bg-purple bg-opacity-10 text-purple border" style="color:#6f42c1;border-color:#6f42c1;">AI+Teacher</span>
+        {% endif %}
+
+        <!-- Action button -->
+        {% if s.status == 'available' or s.status == 'in_progress' %}
+          {% if not s.is_in_cooldown %}
+          <a href="{% url 'content:writing:writing_hub' unit_id=s.content.unit.id %}"
+             class="btn btn-sm btn-outline-primary mt-1">
+            {% if s.status == 'in_progress' %}Continue{% else %}Begin{% endif %}
+          </a>
+          {% endif %}
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+{% endif %}

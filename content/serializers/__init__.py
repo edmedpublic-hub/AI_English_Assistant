@@ -1,4 +1,4 @@
-# serializers/__init__.py
+# content/serializers/__init__.py
 
 """
 LMS API Serializers
@@ -11,18 +11,13 @@ All serializers are importable directly from the serializers package.
 # CORE SERIALIZERS
 # ============================================================
 from .core import (
-    # Main serializers
     LessonChunkSerializer,
     LessonSerializer,
     UnitSerializer,
     TextbookSerializer,
-    
-    # List serializers
     LessonListMobileSerializer,
     UnitListMobileSerializer,
     TextbookListMobileSerializer,
-    
-    # Mastery serializers
     ChunkMasteryDetailsSerializer,
     LessonChunkMasterySerializer,
 )
@@ -31,34 +26,21 @@ from .core import (
 # GRAMMAR SERIALIZERS
 # ============================================================
 from .grammar import (
-    # Knowledge layer
     GrammarConceptSerializer,
     GrammarConceptListSerializer,
     GrammarRuleSerializer,
     GrammarExampleSerializer,
-    
-    # Teaching layer
     ChunkGrammarFocusSerializer,
     ChunkGrammarFocusListSerializer,
     GrammarQuestionSerializer,
-    
-    # Practice layer
     GrammarPracticeAttemptSerializer,
     GrammarPracticeAttemptSubmitSerializer,
-    
-    # Test layer
     GrammarTestAttemptSerializer,
     GrammarTestAttemptSubmitSerializer,
-    
-    # Question attempts
     GrammarQuestionAttemptSerializer,
     GrammarQuestionAttemptDetailSerializer,
-    
-    # Progress tracking
     GrammarConceptProgressSerializer,
     GrammarFocusProgressSerializer,
-    
-    # Bulk operations
     GrammarBulkQuestionCreateSerializer,
 )
 
@@ -66,32 +48,21 @@ from .grammar import (
 # PUNCTUATION SERIALIZERS
 # ============================================================
 from .punctuation import (
-    # Knowledge layer
     PunctuationMarkSerializer,
     PunctuationMarkDetailSerializer,
     PunctuationRuleSerializer,
     PunctuationRuleDetailSerializer,
     PunctuationExampleSerializer,
-    
-    # Teaching layer
     ChunkPunctuationFocusSerializer,
     ChunkPunctuationFocusListSerializer,
     ChunkPunctuationFocusRuleSerializer,
     PunctuationQuestionSerializer,
-    
-    # Practice layer
     PunctuationPracticeAttemptSerializer,
     PunctuationPracticeAttemptSubmitSerializer,
-    
-    # Test layer
     PunctuationTestAttemptSerializer,
     PunctuationTestAttemptSubmitSerializer,
-    
-    # Progress tracking
     PunctuationMarkProgressSerializer,
     PunctuationFocusProgressSerializer,
-    
-    # Bulk operations
     PunctuationBulkQuestionCreateSerializer,
     PunctuationBulkFocusRuleCreateSerializer,
 )
@@ -100,28 +71,19 @@ from .punctuation import (
 # VOCABULARY SERIALIZERS
 # ============================================================
 from .vocabulary import (
-    # Vocabulary items
     VocabularyItemSerializer,
     VocabularyItemListSerializer,
     VocabularyItemDetailSerializer,
     VocabularyItemMobileSerializer,
-    
-    # Attempts
     VocabularyAttemptSerializer,
     VocabularyAttemptSubmitSerializer,
     VocabularyBatchAttemptSubmitSerializer,
-    
-    # Mastery
     StudentVocabMasterySerializer,
     StudentVocabMasteryUpdateSerializer,
     StudentVocabMasteryMobileSerializer,
-    
-    # Progress tracking
     VocabularyProgressSummarySerializer,
     VocabularyItemProgressSerializer,
     VocabularySessionSummarySerializer,
-    
-    # Bulk operations
     VocabularyBulkCreateSerializer,
     VocabularyBulkMasteryUpdateSerializer,
 )
@@ -130,93 +92,79 @@ from .vocabulary import (
 # COMPREHENSION SERIALIZERS
 # ============================================================
 from .comprehension import (
-    # Teaching layer
     ChunkComprehensionFocusSerializer,
     ChunkComprehensionFocusListSerializer,
     ComprehensionQuestionSerializer,
-    
-    # Practice layer
     ComprehensionPracticeAttemptSerializer,
     ComprehensionPracticeAttemptSubmitSerializer,
-    
-    # Test layer
     ComprehensionTestAttemptSerializer,
     ComprehensionTestAttemptSubmitSerializer,
-    
-    # Question attempts
     ComprehensionQuestionAttemptSerializer,
     ComprehensionQuestionAttemptDetailSerializer,
-    
-    # Progress tracking
     ComprehensionBloomLevelProgressSerializer,
     ComprehensionFocusProgressSerializer,
-    
-    # Bulk operations
     ComprehensionBulkQuestionCreateSerializer,
 )
 
 # ============================================================
 # WRITING SERIALIZERS
+# New three-tier architecture.
 # ============================================================
 from .writing import (
-    # Chunk-level
-    ChunkWritingFocusSerializer,
-    ChunkWritingFocusListSerializer,
-    
-    # Unit-level
-    UnitWritingTaskSerializer,
-    UnitWritingTaskListSerializer,
-    
-    # Prompts
-    WritingPromptSerializer,
-    WritingPromptListSerializer,
-    WritingPromptMobileSerializer,
-    
-    # Practice layer
-    WritingPracticeAttemptSerializer,
-    WritingPracticeAttemptSubmitSerializer,
-    WritingPracticeAttemptMobileSerializer,
-    
-    # Test layer
-    WritingTestAttemptSerializer,
-    WritingTestAttemptSubmitSerializer,
-    WritingTestAttemptMobileSerializer,
-    
-    # Progress tracking
+    # Academic year
+    WritingAcademicYearSerializer,
+    WritingAcademicYearListSerializer,
+
+    # Stages
+    WritingStageSerializer,
+    WritingStageListSerializer,
+
+    # Stage content
+    WritingStageContentSerializer,
+    WritingStageContentListSerializer,
+    WritingStageContentStudentSerializer,
+
+    # Attempts
+    WritingAttemptSerializer,
+    WritingAttemptStudentSerializer,
+    WritingAttemptSubmitSerializer,
+    WritingAttemptListSerializer,
+
+    # Mastery
+    WritingStageMasterySerializer,
+    WritingStageMasteryListSerializer,
+
+    # Interventions
+    WritingInterventionSerializer,
+    WritingInterventionFixSerializer,
+
+    # Progress
+    WritingStageProgressSerializer,
+    WritingTierProgressSerializer,
+    WritingJourneySerializer,
     WritingProgressSummarySerializer,
-    WritingFocusProgressSerializer,
-    WritingTaskProgressSerializer,
-    
-    # Bulk operations
-    WritingBulkPromptCreateSerializer,
+
+    # Mobile
+    WritingStageContentMobileSerializer,
+    WritingAttemptMobileSerializer,
+    WritingStageMasteryMobileSerializer,
 )
 
 # ============================================================
 # PRONUNCIATION SERIALIZERS
 # ============================================================
 from .pronunciation import (
-    # Teaching layer
     PronunciationFocusSerializer,
     PronunciationFocusListSerializer,
-    
-    # Attempts
     PronunciationAttemptSerializer,
     PronunciationAttemptSubmitSerializer,
     PronunciationAttemptMobileSerializer,
-    
-    # Mastery
     PronunciationMasterySerializer,
     PronunciationMasteryUpdateSerializer,
     PronunciationMasteryMobileSerializer,
-    
-    # Progress tracking
     PronunciationProgressSummarySerializer,
     PronunciationFocusProgressSerializer,
-    
-    # Bulk operations
     PronunciationBulkFocusCreateSerializer,
-    
-    # Audio processing
     PronunciationAudioAnalysisSerializer,
     PronunciationFeedbackSerializer,
 )
@@ -225,40 +173,25 @@ from .pronunciation import (
 # TESTING SERIALIZERS
 # ============================================================
 from .testing import (
-    # Test questions
     UnitTestQuestionSerializer,
     UnitTestQuestionListSerializer,
     UnitTestQuestionMobileSerializer,
-    
-    # Test answers
     UnitTestAnswerSerializer,
     UnitTestAnswerSubmitSerializer,
     UnitTestAnswerMobileSerializer,
-    
-    # Test sessions
     UnitTestSessionSerializer,
     UnitTestSessionListSerializer,
     UnitTestSessionCreateSerializer,
     UnitTestSessionSubmitSerializer,
     UnitTestSessionMobileSerializer,
     UnitTestSessionActiveMobileSerializer,
-    
-    # Domain-specific test attempts
     VocabularyUnitTestAttemptSerializer,
-    
-    # Progress tracking
     UnitTestDomainBreakdownSerializer,
     UnitTestHistorySerializer,
     UnitTestHistoryMobileSerializer,
     UnitTestPerformanceSerializer,
-    
-    # Bulk operations
     UnitTestBulkQuestionCreateSerializer,
-    
-    # Test generation
     TestGenerationConfigSerializer,
-    
-    # Legacy migration
     LegacyVocabularyTestSessionSerializer,
     LegacyVocabularyTestQuestionSerializer,
     LegacyVocabularyTestAnswerSerializer,
@@ -270,7 +203,6 @@ from .testing import (
 # PROGRESS SERIALIZERS (Dashboard)
 # ============================================================
 from .progress import (
-    # Domain-specific progress
     GrammarProgressSerializer,
     PunctuationProgressSerializer,
     VocabularyProgressSerializer,
@@ -278,13 +210,9 @@ from .progress import (
     WritingProgressSerializer,
     PronunciationProgressSerializer,
     UnitTestProgressSerializer,
-    
-    # Overall dashboard
     OverallProgressSerializer,
     DomainProgressMobileSerializer,
     DashboardMobileSerializer,
-    
-    # Unit/Lesson progress
     UnitProgressDetailSerializer,
     LessonProgressSerializer,
 )
@@ -300,66 +228,54 @@ from .mobile import (
     TextbookMobileSerializer,
     UnitWithLessonsMobileSerializer,
     LessonWithChunksMobileSerializer,
-    
+
     # Grammar mobile
     GrammarQuestionMobileSerializer,
     ChunkGrammarFocusMobileSerializer,
     GrammarPracticeAttemptMobileSerializer,
     GrammarTestAttemptMobileSerializer,
-    
+
     # Punctuation mobile
     PunctuationQuestionMobileSerializer,
     ChunkPunctuationFocusMobileSerializer,
     PunctuationPracticeAttemptMobileSerializer,
     PunctuationTestAttemptMobileSerializer,
-    
+
     # Vocabulary mobile
     VocabularyItemMobileSerializer,
     VocabularyAttemptMobileSerializer,
     StudentVocabMasteryMobileSerializer,
-    
+
     # Comprehension mobile
     ComprehensionQuestionMobileSerializer,
     ChunkComprehensionFocusMobileSerializer,
     ComprehensionPracticeAttemptMobileSerializer,
     ComprehensionTestAttemptMobileSerializer,
-    
-    # Writing mobile
-    WritingPromptMobileSerializer,
-    ChunkWritingFocusMobileSerializer,
-    UnitWritingTaskMobileSerializer,
-    WritingPracticeAttemptMobileSerializer,
-    WritingTestAttemptMobileSerializer,
-    
+
+    # Writing mobile — imported from writing.py via mobile.py
+    WritingStageContentMobileSerializer,
+    WritingAttemptMobileSerializer,
+    WritingStageMasteryMobileSerializer,
+
     # Pronunciation mobile
     PronunciationFocusMobileSerializer,
     PronunciationAttemptMobileSerializer,
     PronunciationMasteryMobileSerializer,
-    
+
     # Testing mobile
     UnitTestQuestionMobileSerializer,
     UnitTestSessionMobileSerializer,
     UnitTestSessionActiveMobileSerializer,
     UnitTestAnswerMobileSerializer,
     UnitTestHistoryMobileSerializer,
-    
+
     # Mobile dashboard
-    DomainProgressMobileSerializer,
-    DashboardMobileSerializer,
-    
-    # Mobile submissions
     MobilePracticeSubmitSerializer,
     MobileTestSubmitSerializer,
-    
-    # Offline sync
     SyncPayloadSerializer,
     SyncResponseSerializer,
-    
-    # Batch operations
     MobileBatchContentSerializer,
     MobileBatchContentResponseSerializer,
-    
-    # Push notifications
     MobileNotificationSerializer,
 )
 
@@ -369,8 +285,10 @@ from .mobile import (
 # ============================================================
 
 __version__ = "1.0.0"
-__author__ = "LMS Team"
-__description__ = "Complete set of serializers for LMS API with mobile optimization"
+__author__  = "LMS Team"
+__description__ = (
+    "Complete set of serializers for LMS API with mobile optimization"
+)
 
 
 # ============================================================
@@ -388,7 +306,7 @@ __all__ = [
     "TextbookListMobileSerializer",
     "ChunkMasteryDetailsSerializer",
     "LessonChunkMasterySerializer",
-    
+
     # Grammar
     "GrammarConceptSerializer",
     "GrammarConceptListSerializer",
@@ -406,7 +324,7 @@ __all__ = [
     "GrammarConceptProgressSerializer",
     "GrammarFocusProgressSerializer",
     "GrammarBulkQuestionCreateSerializer",
-    
+
     # Punctuation
     "PunctuationMarkSerializer",
     "PunctuationMarkDetailSerializer",
@@ -425,7 +343,7 @@ __all__ = [
     "PunctuationFocusProgressSerializer",
     "PunctuationBulkQuestionCreateSerializer",
     "PunctuationBulkFocusRuleCreateSerializer",
-    
+
     # Vocabulary
     "VocabularyItemSerializer",
     "VocabularyItemListSerializer",
@@ -442,7 +360,7 @@ __all__ = [
     "VocabularySessionSummarySerializer",
     "VocabularyBulkCreateSerializer",
     "VocabularyBulkMasteryUpdateSerializer",
-    
+
     # Comprehension
     "ChunkComprehensionFocusSerializer",
     "ChunkComprehensionFocusListSerializer",
@@ -456,26 +374,31 @@ __all__ = [
     "ComprehensionBloomLevelProgressSerializer",
     "ComprehensionFocusProgressSerializer",
     "ComprehensionBulkQuestionCreateSerializer",
-    
-    # Writing
-    "ChunkWritingFocusSerializer",
-    "ChunkWritingFocusListSerializer",
-    "UnitWritingTaskSerializer",
-    "UnitWritingTaskListSerializer",
-    "WritingPromptSerializer",
-    "WritingPromptListSerializer",
-    "WritingPromptMobileSerializer",
-    "WritingPracticeAttemptSerializer",
-    "WritingPracticeAttemptSubmitSerializer",
-    "WritingPracticeAttemptMobileSerializer",
-    "WritingTestAttemptSerializer",
-    "WritingTestAttemptSubmitSerializer",
-    "WritingTestAttemptMobileSerializer",
+
+    # Writing — new three-tier architecture
+    "WritingAcademicYearSerializer",
+    "WritingAcademicYearListSerializer",
+    "WritingStageSerializer",
+    "WritingStageListSerializer",
+    "WritingStageContentSerializer",
+    "WritingStageContentListSerializer",
+    "WritingStageContentStudentSerializer",
+    "WritingAttemptSerializer",
+    "WritingAttemptStudentSerializer",
+    "WritingAttemptSubmitSerializer",
+    "WritingAttemptListSerializer",
+    "WritingStageMasterySerializer",
+    "WritingStageMasteryListSerializer",
+    "WritingInterventionSerializer",
+    "WritingInterventionFixSerializer",
+    "WritingStageProgressSerializer",
+    "WritingTierProgressSerializer",
+    "WritingJourneySerializer",
     "WritingProgressSummarySerializer",
-    "WritingFocusProgressSerializer",
-    "WritingTaskProgressSerializer",
-    "WritingBulkPromptCreateSerializer",
-    
+    "WritingStageContentMobileSerializer",
+    "WritingAttemptMobileSerializer",
+    "WritingStageMasteryMobileSerializer",
+
     # Pronunciation
     "PronunciationFocusSerializer",
     "PronunciationFocusListSerializer",
@@ -490,7 +413,7 @@ __all__ = [
     "PronunciationBulkFocusCreateSerializer",
     "PronunciationAudioAnalysisSerializer",
     "PronunciationFeedbackSerializer",
-    
+
     # Testing
     "UnitTestQuestionSerializer",
     "UnitTestQuestionListSerializer",
@@ -516,7 +439,7 @@ __all__ = [
     "LegacyVocabularyTestAnswerSerializer",
     "LegacyVocabularyTestAttemptSerializer",
     "LegacyToUnitTestMigrationSerializer",
-    
+
     # Progress
     "GrammarProgressSerializer",
     "PunctuationProgressSerializer",
@@ -530,7 +453,7 @@ __all__ = [
     "DashboardMobileSerializer",
     "UnitProgressDetailSerializer",
     "LessonProgressSerializer",
-    
+
     # Mobile
     "LessonChunkMobileSerializer",
     "LessonMobileSerializer",
@@ -546,20 +469,24 @@ __all__ = [
     "ChunkPunctuationFocusMobileSerializer",
     "PunctuationPracticeAttemptMobileSerializer",
     "PunctuationTestAttemptMobileSerializer",
+    "VocabularyItemMobileSerializer",
     "VocabularyAttemptMobileSerializer",
+    "StudentVocabMasteryMobileSerializer",
     "ComprehensionQuestionMobileSerializer",
     "ChunkComprehensionFocusMobileSerializer",
     "ComprehensionPracticeAttemptMobileSerializer",
     "ComprehensionTestAttemptMobileSerializer",
-    "WritingPromptMobileSerializer",
-    "ChunkWritingFocusMobileSerializer",
-    "UnitWritingTaskMobileSerializer",
-    "WritingPracticeAttemptMobileSerializer",
-    "WritingTestAttemptMobileSerializer",
+    "WritingStageContentMobileSerializer",
+    "WritingAttemptMobileSerializer",
+    "WritingStageMasteryMobileSerializer",
     "PronunciationFocusMobileSerializer",
     "PronunciationAttemptMobileSerializer",
     "PronunciationMasteryMobileSerializer",
+    "UnitTestQuestionMobileSerializer",
+    "UnitTestSessionMobileSerializer",
     "UnitTestSessionActiveMobileSerializer",
+    "UnitTestAnswerMobileSerializer",
+    "UnitTestHistoryMobileSerializer",
     "MobilePracticeSubmitSerializer",
     "MobileTestSubmitSerializer",
     "SyncPayloadSerializer",

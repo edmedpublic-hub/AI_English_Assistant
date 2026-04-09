@@ -1,91 +1,314 @@
-{% extends "base.html" %}
+{# content/templates/content/writing/teach.html #}
+{% extends "content/base.html" %}
+{% load static %}
+
+{% block title %}Dissect — {{ stage.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .sentence-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 1rem 1.25rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  [data-bs-theme="dark"] .sentence-box {
+    background-color: #1e2a3a;
+  }
+
+  .converted-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #28a745;
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 1rem 1.25rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  [data-bs-theme="dark"] .converted-box {
+    background-color: #1a2e1e;
+  }
+
+  .conversion-note {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-style: italic;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+    background-color: rgba(108,117,125,0.07);
+  }
+
+  .phase-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .phase-nav .phase-btn {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+  }
+
+  .answer-reveal {
+    display: none;
+    margin-top: 0.75rem;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="writing-teach-wrapper" style="max-width: 850px; margin: 0 auto; padding: 20px;">
 
-  <nav class="breadcrumb-nav" style="margin-bottom: 25px;">
-    <a href="{% url 'content:chunk_writing' chunk.id %}"
-       style="text-decoration: none; color: #3498db; font-weight: 500; font-size: 0.9rem;">
-      &larr; Back to Writing List
-    </a>
-  </nav>
+<!-- ── Breadcrumb ──────────────────────────────────── -->
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}">
+        Writing Journey
+      </a>
+    </li>
+    <li class="breadcrumb-item active">Stage {{ stage.number }}: {{ stage.name }}</li>
+  </ol>
+</nav>
 
-  <header class="teach-header" style="margin-bottom: 30px; border-left: 5px solid #3498db; padding-left: 20px;">
-    <h1 class="page-title" style="margin: 0; color: #2c3e50;">
-      {{ focus.focus_title }}
-    </h1>
-    <p class="meta-info" style="color: #7f8c8d; margin-top: 5px;">
-      <strong>Lesson:</strong> {{ lesson.title|default:"N/A" }} |
-      <strong>Chunk:</strong> {{ chunk.title|default:"N/A" }} |
-      <strong>Depth Level:</strong> {{ focus.depth_level }}
-    </p>
-  </header>
+<!-- ── Phase navigation ───────────────────────────── -->
+<div class="phase-nav">
+  <span class="phase-btn btn btn-primary">
+    1. Dissect
+  </span>
+  <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+     class="phase-btn btn {% if phase_dissect_done %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}">
+    2. Imitate
+  </a>
+  <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+     class="phase-btn btn {% if phase_imitate_done %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}">
+    3. Produce
+  </a>
+</div>
 
-  <section class="writing-focus-description card"
-           style="background: #fff; padding: 25px; border: 1px solid #e1e8ed; border-radius: 12px;
-                  box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;">
-    <h3 style="margin-top: 0; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-      Writing Focus
-    </h3>
-    <div style="line-height: 1.6; color: #444; font-size: 1.1rem;">
-      {{ focus.focus_description|linebreaks }}
-    </div>
-  </section>
+<!-- ── Page header ────────────────────────────────── -->
+<div class="mb-4">
+  <h2 class="h4 mb-1">Stage {{ stage.number }}: {{ stage.name }}</h2>
+  <p class="text-muted mb-0">
+    <strong>Dissect</strong> — Study the model sentence and identify its structure.
+  </p>
+</div>
 
-  <section class="writing-prompts-flow">
-    <h3 style="color: #2c3e50; margin-bottom: 20px;">Guided Prompts</h3>
+{% if dissect_passed %}
+<!-- Already passed -->
+<div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+  <span>✓</span>
+  <span>
+    You have completed the Dissect phase.
+    <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+       class="alert-link">Go to Imitate →</a>
+  </span>
+</div>
+{% endif %}
 
-    {% for prompt in prompts %}
-      <div class="prompt-block"
-           style="background: #fff; border: 1px solid #d1d8e0; border-radius: 12px;
-                  overflow: hidden; margin-bottom: 25px;">
+<div class="row g-4">
+  <div class="col-lg-8">
 
-        <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #d1d8e0;">
-          <span style="color: #3498db; font-weight: bold; text-transform: uppercase;
-                       font-size: 0.8rem; display: block; margin-bottom: 5px;">
-            Prompt #{{ forloop.counter }}
-          </span>
-          <p style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #2c3e50;">
-            {{ prompt.prompt_text }}
-          </p>
-        </div>
-
-        <div style="padding: 20px;">
-          {% if prompt.expected_keywords %}
-            <p style="color: #7f8c8d; font-style: italic;">
-              Expected keywords: {{ prompt.expected_keywords }}
-            </p>
-          {% else %}
-            <p style="color: #7f8c8d; font-style: italic;">Open-ended response expected.</p>
-          {% endif %}
+    <!-- ── Model sentence ───────────────────────── -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">
+        Original Sentence
+      </div>
+      <div class="card-body">
+        <div class="sentence-box">
+          {{ content.model_sentence_original }}
         </div>
       </div>
-    {% empty %}
-      <p style="text-align: center; color: #95a5a6; padding: 20px;">
-        No writing prompts available for this focus yet.
-      </p>
-    {% endfor %}
-  </section>
+    </div>
 
-  <div class="action-footer"
-       style="margin-top: 40px; padding: 25px; background: #fdfdfd;
-              border-top: 1px solid #eee; border-radius: 12px;
-              display: flex; justify-content: space-between; align-items: center;">
+    <!-- ── Converted sentence ───────────────────── -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">
+        Simplified Version
+      </div>
+      <div class="card-body">
+        <div class="converted-box">
+          {{ content.model_sentence_converted }}
+        </div>
+        <div class="conversion-note mt-3">
+          {{ content.conversion_note }}
+        </div>
+      </div>
+    </div>
 
-    <a href="{% url 'content:chunk_writing' chunk.id %}"
-       style="color: #7f8c8d; text-decoration: none; font-weight: 500;">
-      &larr; Review other focuses
-    </a>
+    <!-- ── Dissect question ─────────────────────── -->
+    <div class="card">
+      <div class="card-header fw-semibold">
+        Your Turn — Answer the Question
+      </div>
+      <div class="card-body">
+        <p class="mb-3">{{ content.dissect_question }}</p>
 
-    <a href="{% url 'writing:practice' chunk.id focus.id %}"
-       class="btn-primary"
-       style="display: inline-block; padding: 15px 35px; background: #27ae60;
-              color: white; text-decoration: none; border-radius: 8px;
-              font-weight: bold; box-shadow: 0 4px 10px rgba(39,174,96,0.3);
-              transition: transform 0.2s;">
-      Start Practice &rarr;
-    </a>
+        {% if dissect_passed and latest_dissect %}
+        <!-- Show previous correct answer -->
+        <div class="alert alert-success">
+          <strong>Your answer:</strong> {{ latest_dissect.response_text }}
+        </div>
+        {% else %}
+        <!-- Answer form -->
+        <form id="dissect-form">
+          {% csrf_token %}
+          <div class="mb-3">
+            <textarea
+              id="response_text"
+              name="response_text"
+              class="form-control"
+              rows="3"
+              placeholder="Write your answer here..."
+              {% if dissect_passed %}disabled{% endif %}
+            >{% if latest_dissect %}{{ latest_dissect.response_text }}{% endif %}</textarea>
+          </div>
+
+          {% if latest_dissect and not dissect_passed %}
+          <div class="alert alert-warning small mb-3">
+            {{ latest_dissect.auto_checks }}
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-2 align-items-center">
+            {% if not dissect_passed %}
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+              Check Answer
+            </button>
+            {% endif %}
+
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm"
+              onclick="document.getElementById('answer-reveal').style.display='block'">
+              Show Answer
+            </button>
+          </div>
+
+          <!-- Answer reveal -->
+          <div id="answer-reveal" class="answer-reveal">
+            <div class="alert alert-info mt-3 mb-0">
+              <strong>Correct answer:</strong> {{ content.dissect_answer }}
+            </div>
+          </div>
+        </form>
+
+        <!-- Result area -->
+        <div id="result-area" class="mt-3" style="display:none;"></div>
+        {% endif %}
+
+      </div>
+    </div>
+
   </div>
 
+  <!-- ── Sidebar ──────────────────────────────── -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header fw-semibold">Your Progress</div>
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge {% if phase_dissect_done %}bg-success{% else %}bg-secondary{% endif %}">
+            Dissect
+          </span>
+          <span>{% if phase_dissect_done %}✓ Complete{% else %}In Progress{% endif %}</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge {% if phase_imitate_done %}bg-success{% else %}bg-secondary{% endif %}">
+            Imitate
+          </span>
+          <span>{% if phase_imitate_done %}✓ Complete{% else %}Not started{% endif %}</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge {% if phase_produce_done %}bg-success{% else %}bg-secondary{% endif %}">
+            Produce
+          </span>
+          <span>{% if phase_produce_done %}✓ Mastered{% else %}Not started{% endif %}</span>
+        </div>
+
+        {% if attempt_count > 0 %}
+        <hr>
+        <p class="small text-muted mb-0">
+          Attempts: {{ attempt_count }}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if show_proceed_to_produce %}
+    <div class="card mt-3 border-success">
+      <div class="card-body text-center">
+        <p class="small text-muted mb-2">Ready to write on your own?</p>
+        <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+           class="btn btn-success w-100">
+          Go to Produce →
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('dissect-form') && document.getElementById('dissect-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const btn       = document.getElementById('submit-btn');
+  const resultArea = document.getElementById('result-area');
+  const text      = document.getElementById('response_text').value.trim();
+
+  if (!text) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Checking...';
+
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  fetch("{% url 'content:writing:writing_teach_submit' unit_id=unit.id stage_id=stage.id %}", {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': csrfToken,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      response_text: text,
+      csrfmiddlewaretoken: csrfToken,
+    }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    resultArea.style.display = 'block';
+
+    if (data.passed) {
+      resultArea.innerHTML = `
+        <div class="alert alert-success">
+          <strong>✓ Correct.</strong> ${data.feedback}
+          <div class="mt-2">
+            <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+               class="btn btn-success btn-sm">Continue to Imitate →</a>
+          </div>
+        </div>`;
+      btn.disabled = true;
+    } else {
+      resultArea.innerHTML = `
+        <div class="alert alert-warning">
+          <strong>Not quite.</strong> ${data.feedback}
+        </div>`;
+      btn.disabled    = false;
+      btn.textContent = 'Try Again';
+    }
+  })
+  .catch(() => {
+    btn.disabled    = false;
+    btn.textContent = 'Check Answer';
+  });
+});
+</script>
 {% endblock %}

@@ -7,7 +7,6 @@ from .core import LessonChunkInline
 from .grammar import (
     ChunkGrammarFocusInline,
     GrammarQuestionInline,
-    
 )
 
 # Punctuation inlines
@@ -32,12 +31,12 @@ from .comprehension import (
     ComprehensionQuestionStackedInline,
 )
 
-# Writing inlines
+# Writing inlines — new three-tier architecture
 from .writing import (
-    WritingPromptInline,
-    WritingPracticeAttemptInline,
-    WritingTestAttemptInline,
-    WritingTestAttemptDetailInline,
+    WritingStageContentInline,
+    WritingAttemptInline,
+    WritingInterventionInline,
+    WritingStageMasteryInline,
 )
 
 # Pronunciation inlines
@@ -47,7 +46,7 @@ from .pronunciation import (
     PronunciationMasteryInline,
 )
 
-#Testing inlines
+# Testing inlines
 from .testing import (
     UnitTestQuestionInline,
     UnitTestQuestionStackedInline,
@@ -60,12 +59,11 @@ from .testing import (
 __all__ = [
     # Core
     'LessonChunkInline',
-    
+
     # Grammar
     'ChunkGrammarFocusInline',
     'GrammarQuestionInline',
-    
-    
+
     # Punctuation
     'PunctuationRuleInline',
     'PunctuationExampleInline',
@@ -73,26 +71,26 @@ __all__ = [
     'FocusRuleInline',
     'PunctuationPracticeAttemptInline',
     'PunctuationTestAttemptInline',
-    
+
     # Vocabulary
     'VocabularyItemInline',
     'VocabularyItemQuickInline',
-    
+
     # Comprehension
     'ComprehensionQuestionInline',
     'ComprehensionQuestionStackedInline',
-    
+
     # Writing
-    'WritingPromptInline',
-    'WritingPracticeAttemptInline',
-    'WritingTestAttemptInline',
-    'WritingTestAttemptDetailInline',
-    
+    'WritingStageContentInline',
+    'WritingAttemptInline',
+    'WritingInterventionInline',
+    'WritingStageMasteryInline',
+
     # Pronunciation
     'PronunciationFocusInline',
     'PronunciationAttemptInline',
     'PronunciationMasteryInline',
-    
+
     # Testing
     'UnitTestQuestionInline',
     'UnitTestQuestionStackedInline',

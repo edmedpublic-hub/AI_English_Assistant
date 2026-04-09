@@ -1,0 +1,217 @@
+{# content/templates/content/writing/hub.html #}
+{% extends "content/base.html" %}
+{% load static %}
+
+{% block title %}Writing Journey — {{ unit.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Staircase journey ───────────────────────── */
+  .writing-staircase {
+    position: relative;
+  }
+
+  .tier-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .tier-header {
+    border-left: 4px solid var(--tier-color);
+    padding-left: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .stage-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    position: relative;
+  }
+
+  .stage-card.status-mastered {
+    border-left: 4px solid #28a745;
+    background-color: rgba(40, 167, 69, 0.04);
+  }
+
+  .stage-card.status-in_progress {
+    border-left: 4px solid #007bff;
+    background-color: rgba(0, 123, 255, 0.04);
+  }
+
+  .stage-card.status-available {
+    border-left: 4px solid #fd7e14;
+    cursor: pointer;
+  }
+
+  .stage-card.status-available:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateX(3px);
+  }
+
+  .stage-card.status-locked {
+    border-left: 4px solid #adb5bd;
+    opacity: 0.6;
+  }
+
+  .stage-number {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6c757d;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .stage-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .phase-dots {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+  }
+
+  .phase-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+  }
+
+  .phase-dot.done {
+    background-color: #28a745;
+  }
+
+  .phase-dot.active {
+    background-color: #007bff;
+  }
+
+  /* ── Progress bar ────────────────────────────── */
+  .tier-progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Tier colours ────────────────────────────── */
+  .tier-sentence  { --tier-color: #007bff; }
+  .tier-paragraph { --tier-color: #fd7e14; }
+  .tier-genre     { --tier-color: #6f42c1; }
+
+  .tier-badge-sentence  { background-color: #007bff; }
+  .tier-badge-paragraph { background-color: #fd7e14; }
+  .tier-badge-genre     { background-color: #6f42c1; }
+
+  /* ── Status badges ───────────────────────────── */
+  .status-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .eval-badge {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 9999px;
+  }
+
+  /* ── Cooldown notice ─────────────────────────── */
+  .cooldown-banner {
+    font-size: 0.85rem;
+    background-color: rgba(108, 117, 125, 0.08);
+    border-radius: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  /* ── Overall progress ring ───────────────────── */
+  .progress-ring-wrap {
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .progress-ring-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if no_academic_year %}
+<div class="alert alert-warning">
+  <strong>Writing is not available yet.</strong>
+  The academic year has not been set. Please ask your teacher.
+</div>
+{% endif %}
+
+<!-- ── Page header ──────────────────────────────────── -->
+<div class="row align-items-center mb-4">
+  <div class="col">
+    <p class="text-muted mb-1 small">{{ unit.textbook.title }} · {{ class_level }}</p>
+    <h1 class="h3 mb-0">{{ unit.title }}</h1>
+    <p class="text-muted mt-1 mb-0">Writing Journey</p>
+  </div>
+  <div class="col-auto">
+    <div class="progress-ring-wrap">
+      <div class="progress-ring-number text-success">{{ overall_percent }}%</div>
+      <div class="small text-muted">{{ mastered_stages }}/{{ total_stages }} stages</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Overall progress bar ─────────────────────────── -->
+<div class="progress mb-4" style="height:8px;">
+  <div
+    class="progress-bar bg-success"
+    role="progressbar"
+    style="width: {{ overall_percent }}%"
+    aria-valuenow="{{ overall_percent }}"
+    aria-valuemin="0"
+    aria-valuemax="100">
+  </div>
+</div>
+
+<!-- ── Tier sections ────────────────────────────────── -->
+{% for tier_key, tier_label in tier_labels.items %}
+{% with tier_stages=tiers|default_if_none:None %}
+
+{% if tier_key == tier_sentence %}
+  {% with stages=tiers.sentence tier_desc=tier_descriptions.sentence %}
+  {% include "content/writing/_tier_section.html" with tier_key=tier_key tier_label=tier_label tier_desc=tier_desc stages=stages progress=tier_progress.sentence tier_css="tier-sentence" tier_badge_css="tier-badge-sentence" %}
+  {% endwith %}
+{% elif tier_key == tier_paragraph %}
+  {% with stages=tiers.paragraph tier_desc=tier_descriptions.paragraph %}
+  {% include "content/writing/_tier_section.html" with tier_key=tier_key tier_label=tier_label tier_desc=tier_desc stages=stages progress=tier_progress.paragraph tier_css="tier-paragraph" tier_badge_css="tier-badge-paragraph" %}
+  {% endwith %}
+{% elif tier_key == tier_genre %}
+  {% with stages=tiers.genre tier_desc=tier_descriptions.genre %}
+  {% include "content/writing/_tier_section.html" with tier_key=tier_key tier_label=tier_label tier_desc=tier_desc stages=stages progress=tier_progress.genre tier_css="tier-genre" tier_badge_css="tier-badge-genre" %}
+  {% endwith %}
+{% endif %}
+
+{% endwith %}
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Highlight the active stage on load
+  document.querySelectorAll('.stage-card.status-available, .stage-card.status-in_progress').forEach(function(card) {
+    const first = document.querySelector('.stage-card.status-available, .stage-card.status-in_progress');
+    if (card === first) {
+      card.style.boxShadow = '0 0 0 2px #007bff44';
+    }
+  });
+</script>
+{% endblock %}
