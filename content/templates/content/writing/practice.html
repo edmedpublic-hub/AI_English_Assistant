@@ -61,7 +61,8 @@
 <nav aria-label="breadcrumb" class="mb-3">
   <ol class="breadcrumb">
     <li class="breadcrumb-item">
-      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}">Writing Journey</a>
+      {# FIX 1: removed extra 'writing:' namespace #}
+      <a href="{% url 'content:writing_hub' unit_id=unit.id %}">Writing Journey</a>
     </li>
     <li class="breadcrumb-item active">Stage {{ stage.number }}: {{ stage.name }}</li>
   </ol>
@@ -69,14 +70,17 @@
 
 <!-- ── Phase navigation ───────────────────────────── -->
 <div class="d-flex gap-2 mb-4">
-  <a href="{% url 'content:writing:writing_teach' unit_id=unit.id stage_id=stage.id %}"
-     class="btn btn-sm btn-outline-primary" style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
+  {# FIX 1: removed extra 'writing:' namespace throughout #}
+  <a href="{% url 'content:writing_teach' unit_id=unit.id stage_id=stage.id %}"
+     class="btn btn-sm btn-outline-primary"
+     style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
     1. Dissect {% if phase_dissect_done %}✓{% endif %}
   </a>
-  <span class="btn btn-sm btn-primary" style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
+  <span class="btn btn-sm btn-primary"
+        style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
     2. Imitate
   </span>
-  <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+  <a href="{% url 'content:writing_test' unit_id=unit.id stage_id=stage.id %}"
      class="btn btn-sm {% if show_proceed_to_produce %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}"
      style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
     3. Produce
@@ -96,7 +100,7 @@
   <span>✓</span>
   <span>
     You have completed the Imitate phase.
-    <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+    <a href="{% url 'content:writing_test' unit_id=unit.id stage_id=stage.id %}"
        class="alert-link">Go to Produce →</a>
   </span>
 </div>
@@ -164,7 +168,10 @@
     <div class="card">
       <div class="card-header fw-semibold">Your Response</div>
       <div class="card-body">
-        <form id="practice-form">
+        {# FIX 2: form action points to submit URL, not GET URL #}
+        <form id="practice-form"
+              action="{% url 'content:writing_practice_submit' unit_id=unit.id stage_id=stage.id %}"
+              method="post">
           {% csrf_token %}
           <div class="mb-3">
             <textarea
@@ -176,6 +183,7 @@
               {% if imitate_passed %}disabled{% endif %}
             >{% if latest_imitate and not imitate_passed %}{{ latest_imitate.response_text }}{% endif %}</textarea>
             <div class="form-text">
+              {# FIX 3: get_min_words is a method — call it with () #}
               Minimum {{ content.get_min_words }} words.
             </div>
           </div>
@@ -221,7 +229,8 @@
     <div class="card border-success">
       <div class="card-body text-center">
         <p class="small text-muted mb-2">Ready to write on your own?</p>
-        <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+        {# FIX 1: removed extra 'writing:' namespace #}
+        <a href="{% url 'content:writing_test' unit_id=unit.id stage_id=stage.id %}"
            class="btn btn-success w-100">Go to Produce →</a>
       </div>
     </div>
@@ -233,7 +242,7 @@
 
 {% block extra_js %}
 <script>
-// ── Intervention fix ──────────────────────────────
+// ── Intervention fix (page-load bound buttons) ────
 document.querySelectorAll('.fix-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     const ivId    = btn.dataset.ivId;
@@ -243,7 +252,8 @@ document.querySelectorAll('.fix-btn').forEach(function(btn) {
 
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    fetch('/content/writing/intervention/' + ivId + '/fix/', {
+    {// FIX 4: use Django URL tag instead of hardcoded path }
+    fetch("{% url 'content:writing_intervention_fix' intervention_id=0 %}".replace('/0/', '/' + ivId + '/'), {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -279,7 +289,8 @@ if (practiceForm) {
 
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    fetch("{% url 'content:writing:writing_practice_submit' unit_id=unit.id stage_id=stage.id %}", {
+    {// FIX 1: removed extra 'writing:' namespace }
+    fetch("{% url 'content:writing_practice_submit' unit_id=unit.id stage_id=stage.id %}", {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -297,11 +308,12 @@ if (practiceForm) {
           <div class="alert alert-success">
             <strong>✓ Well done.</strong> You have completed the Imitate phase.
             <div class="mt-2">
-              <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+              <a href="{% url 'content:writing_test' unit_id=unit.id stage_id=stage.id %}"
                  class="btn btn-success btn-sm">Continue to Produce →</a>
             </div>
           </div>`;
         btn.disabled = true;
+
       } else if (data.interventions && data.interventions.length > 0) {
         let ivHtml = data.interventions.map(iv => `
           <div class="intervention-card" id="iv-${iv.id}">
@@ -309,8 +321,10 @@ if (practiceForm) {
             <p class="small text-danger mb-2"><strong>Problem:</strong> ${iv.issue}</p>
             <p class="small mb-2"><strong>Exercise:</strong> ${iv.fix_exercise}</p>
             <div class="d-flex gap-2">
-              <input type="text" class="form-control form-control-sm fix-input" placeholder="Write your fix..." data-iv-id="${iv.id}">
-              <button class="btn btn-sm btn-danger fix-btn" data-iv-id="${iv.id}" type="button">Fix</button>
+              <input type="text" class="form-control form-control-sm fix-input"
+                     placeholder="Write your fix..." data-iv-id="${iv.id}">
+              <button class="btn btn-sm btn-danger fix-btn"
+                      data-iv-id="${iv.id}" type="button">Fix</button>
             </div>
           </div>`).join('');
 
@@ -320,18 +334,23 @@ if (practiceForm) {
           </div>
           ${ivHtml}`;
 
-        // Rebind fix buttons
+        // Rebind fix buttons on dynamically inserted cards
+        const interventionBase = "{% url 'content:writing_intervention_fix' intervention_id=0 %}".replace('/0/', '/');
         resultArea.querySelectorAll('.fix-btn').forEach(function(fixBtn) {
           fixBtn.addEventListener('click', function() {
             const ivId    = fixBtn.dataset.ivId;
             const input   = resultArea.querySelector('.fix-input[data-iv-id="' + ivId + '"]');
             const fixText = input.value.trim();
             if (!fixText) return;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            fetch('/content/writing/intervention/' + ivId + '/fix/', {
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch(interventionBase + ivId + '/', {
               method: 'POST',
-              headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({ fix_text: fixText, csrfmiddlewaretoken: csrfToken }),
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrf,
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({ fix_text: fixText, csrfmiddlewaretoken: csrf }),
             })
             .then(r => r.json())
             .then(d => {
@@ -346,6 +365,7 @@ if (practiceForm) {
 
         btn.disabled    = false;
         btn.textContent = 'Resubmit';
+
       } else {
         resultArea.innerHTML = `
           <div class="alert alert-warning">

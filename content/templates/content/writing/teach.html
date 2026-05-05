@@ -66,7 +66,7 @@
 <nav aria-label="breadcrumb" class="mb-3">
   <ol class="breadcrumb">
     <li class="breadcrumb-item">
-      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}">
+      <a href="{% url 'content:writing_hub' unit_id=unit.id %}">
         Writing Journey
       </a>
     </li>
@@ -79,11 +79,11 @@
   <span class="phase-btn btn btn-primary">
     1. Dissect
   </span>
-  <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+  <a href="{% url 'content:writing_practice' unit_id=unit.id stage_id=stage.id %}"
      class="phase-btn btn {% if phase_dissect_done %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}">
     2. Imitate
   </a>
-  <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+  <a href="{% url 'content:writing_test' unit_id=unit.id stage_id=stage.id %}"
      class="phase-btn btn {% if phase_imitate_done %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}">
     3. Produce
   </a>
@@ -98,12 +98,11 @@
 </div>
 
 {% if dissect_passed %}
-<!-- Already passed -->
 <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
   <span>✓</span>
   <span>
     You have completed the Dissect phase.
-    <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+    <a href="{% url 'content:writing_practice' unit_id=unit.id stage_id=stage.id %}"
        class="alert-link">Go to Imitate →</a>
   </span>
 </div>
@@ -114,48 +113,37 @@
 
     <!-- ── Model sentence ───────────────────────── -->
     <div class="card mb-3">
-      <div class="card-header fw-semibold">
-        Original Sentence
-      </div>
+      <div class="card-header fw-semibold">Original Sentence</div>
       <div class="card-body">
-        <div class="sentence-box">
-          {{ content.model_sentence_original }}
-        </div>
+        <div class="sentence-box">{{ content.model_sentence_original }}</div>
       </div>
     </div>
 
     <!-- ── Converted sentence ───────────────────── -->
     <div class="card mb-3">
-      <div class="card-header fw-semibold">
-        Simplified Version
-      </div>
+      <div class="card-header fw-semibold">Simplified Version</div>
       <div class="card-body">
-        <div class="converted-box">
-          {{ content.model_sentence_converted }}
-        </div>
-        <div class="conversion-note mt-3">
-          {{ content.conversion_note }}
-        </div>
+        <div class="converted-box">{{ content.model_sentence_converted }}</div>
+        <div class="conversion-note mt-3">{{ content.conversion_note }}</div>
       </div>
     </div>
 
     <!-- ── Dissect question ─────────────────────── -->
     <div class="card">
-      <div class="card-header fw-semibold">
-        Your Turn — Answer the Question
-      </div>
+      <div class="card-header fw-semibold">Your Turn — Answer the Question</div>
       <div class="card-body">
         <p class="mb-3">{{ content.dissect_question }}</p>
 
         {% if dissect_passed and latest_dissect %}
-        <!-- Show previous correct answer -->
         <div class="alert alert-success">
           <strong>Your answer:</strong> {{ latest_dissect.response_text }}
         </div>
         {% else %}
-        <!-- Answer form -->
-        <form id="dissect-form">
+        <form id="dissect-form"
+              action="{% url 'content:writing_teach_submit' unit_id=unit.id stage_id=stage.id %}"
+              method="post">
           {% csrf_token %}
+
           <div class="mb-3">
             <textarea
               id="response_text"
@@ -164,31 +152,29 @@
               rows="3"
               placeholder="Write your answer here..."
               {% if dissect_passed %}disabled{% endif %}
-            >{% if latest_dissect %}{{ latest_dissect.response_text }}{% endif %}</textarea>
+            ></textarea>
           </div>
 
-          {% if latest_dissect and not dissect_passed %}
-          <div class="alert alert-warning small mb-3">
-            {{ latest_dissect.auto_checks }}
-          </div>
-          {% endif %}
-
-          <div class="d-flex gap-2 align-items-center">
+          <div class="d-flex gap-2 align-items-center flex-wrap">
             {% if not dissect_passed %}
             <button type="submit" class="btn btn-primary" id="submit-btn">
               Check Answer
             </button>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    onclick="document.getElementById('response_text').value='';
+                             document.getElementById('result-area').style.display='none';
+                             document.getElementById('response_text').focus();">
+              Reset
+            </button>
             {% endif %}
-
-            <button
-              type="button"
-              class="btn btn-outline-secondary btn-sm"
-              onclick="document.getElementById('answer-reveal').style.display='block'">
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    onclick="document.getElementById('answer-reveal').style.display='block'">
               Show Answer
             </button>
           </div>
 
-          <!-- Answer reveal -->
           <div id="answer-reveal" class="answer-reveal">
             <div class="alert alert-info mt-3 mb-0">
               <strong>Correct answer:</strong> {{ content.dissect_answer }}
@@ -196,7 +182,6 @@
           </div>
         </form>
 
-        <!-- Result area -->
         <div id="result-area" class="mt-3" style="display:none;"></div>
         {% endif %}
 
@@ -228,12 +213,9 @@
           </span>
           <span>{% if phase_produce_done %}✓ Mastered{% else %}Not started{% endif %}</span>
         </div>
-
         {% if attempt_count > 0 %}
         <hr>
-        <p class="small text-muted mb-0">
-          Attempts: {{ attempt_count }}
-        </p>
+        <p class="small text-muted mb-0">Attempts: {{ attempt_count }}</p>
         {% endif %}
       </div>
     </div>
@@ -242,7 +224,7 @@
     <div class="card mt-3 border-success">
       <div class="card-body text-center">
         <p class="small text-muted mb-2">Ready to write on your own?</p>
-        <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+        <a href="{% url 'content:writing_test' unit_id=unit.id stage_id=stage.id %}"
            class="btn btn-success w-100">
           Go to Produce →
         </a>
@@ -259,9 +241,9 @@
 document.getElementById('dissect-form') && document.getElementById('dissect-form').addEventListener('submit', function(e) {
   e.preventDefault();
 
-  const btn       = document.getElementById('submit-btn');
+  const btn        = document.getElementById('submit-btn');
   const resultArea = document.getElementById('result-area');
-  const text      = document.getElementById('response_text').value.trim();
+  const text       = document.getElementById('response_text').value.trim();
 
   if (!text) return;
 
@@ -270,7 +252,7 @@ document.getElementById('dissect-form') && document.getElementById('dissect-form
 
   const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-  fetch("{% url 'content:writing:writing_teach_submit' unit_id=unit.id stage_id=stage.id %}", {
+  fetch("{% url 'content:writing_teach_submit' unit_id=unit.id stage_id=stage.id %}", {
     method: 'POST',
     headers: {
       'X-Requested-With': 'XMLHttpRequest',
@@ -291,7 +273,7 @@ document.getElementById('dissect-form') && document.getElementById('dissect-form
         <div class="alert alert-success">
           <strong>✓ Correct.</strong> ${data.feedback}
           <div class="mt-2">
-            <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+            <a href="{% url 'content:writing_practice' unit_id=unit.id stage_id=stage.id %}"
                class="btn btn-success btn-sm">Continue to Imitate →</a>
           </div>
         </div>`;

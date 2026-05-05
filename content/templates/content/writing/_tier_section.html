@@ -19,8 +19,7 @@
   <div class="progress tier-progress-bar">
     <div
       class="progress-bar"
-      style="width:{{ progress.percent }}%;
-             background-color: var(--tier-color);"
+      style="width:{{ progress.percent }}%; background-color:var(--tier-color);"
       role="progressbar"
       aria-valuenow="{{ progress.percent }}"
       aria-valuemin="0"
@@ -50,9 +49,10 @@
           {% endwith %}
         </div>
 
+        <!-- FIX 2: Show cooldown end time instead of generic message -->
         {% if s.is_in_cooldown %}
         <div class="cooldown-banner text-muted mt-2">
-          ⏳ Cooldown active — check back later
+          ⏳ Cooldown active — try again after {{ s.cooldown_ends_at|date:"D, d M · H:i" }}
         </div>
         {% endif %}
       </div>
@@ -78,16 +78,25 @@
         {% elif s.stage.eval_method == 'teacher' %}
         <span class="eval-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">Teacher</span>
         {% elif s.stage.eval_method == 'ai_teacher' %}
-        <span class="eval-badge bg-purple bg-opacity-10 text-purple border" style="color:#6f42c1;border-color:#6f42c1;">AI+Teacher</span>
+        <span class="eval-badge border" style="color:#6f42c1;border-color:#6f42c1;">AI+Teacher</span>
         {% endif %}
 
-        <!-- Action button -->
+        <!-- FIX 3: Route Continue button to correct phase -->
         {% if s.status == 'available' or s.status == 'in_progress' %}
           {% if not s.is_in_cooldown %}
-          <a href="{% url 'content:writing:writing_hub' unit_id=s.content.unit.id %}"
-             class="btn btn-sm btn-outline-primary mt-1">
-            {% if s.status == 'in_progress' %}Continue{% else %}Begin{% endif %}
-          </a>
+            {% if s.current_phase == 'imitate' %}
+            <a href="{% url 'content:writing_practice' unit_id=s.content.unit.id stage_id=s.stage.id %}"
+               class="btn btn-sm btn-outline-primary mt-1">Continue</a>
+            {% elif s.current_phase == 'produce' or s.current_phase == 'cooldown' %}
+            <a href="{% url 'content:writing_test' unit_id=s.content.unit.id stage_id=s.stage.id %}"
+               class="btn btn-sm btn-outline-primary mt-1">Continue</a>
+            {% else %}
+            {# FIX 1: was 'content:writing:writing_teach' — removed extra namespace #}
+            <a href="{% url 'content:writing_teach' unit_id=s.content.unit.id stage_id=s.stage.id %}"
+               class="btn btn-sm btn-outline-primary mt-1">
+              {% if s.status == 'in_progress' %}Continue{% else %}Begin{% endif %}
+            </a>
+            {% endif %}
           {% endif %}
         {% endif %}
 

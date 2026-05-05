@@ -1,42 +1,17 @@
 # content/views/writing/teach.py
-#
-# Handles the Dissect phase — the Teach phase of each stage.
-# The student studies a model sentence, sees the converted
-# version alongside it, reads the conversion note, then
-# answers the dissect question to demonstrate understanding.
-#
-# URL patterns expected:
-#   writing/unit/<unit_id>/stage/<stage_id>/teach/     → WritingTeachView (GET)
-#   writing/unit/<unit_id>/stage/<stage_id>/teach/     → WritingTeachSubmitView (POST)
-#
-# What GET does:
-#   1. Loads the stage content
-#   2. Checks stage is not locked
-#   3. Builds context including previous dissect attempt if any
-#   4. Renders the dissect phase template
-#
-# What POST does:
-#   1. Validates the student's answer
-#   2. Creates a WritingAttempt for the dissect phase
-#   3. Evaluates automatically — simple text comparison
-#   4. Returns result — pass routes to imitate or produce
-#      fail shows what was wrong and allows retry immediately
-#      (no cooldown on dissect phase)
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
-from django.utils import timezone
 from django.http import JsonResponse
-import json
+import re
 
 from content.models.core import Unit
 from content.models.writing import (
     WritingStage,
     WritingStageContent,
     WritingAttempt,
-    WritingAcademicYear,
     PHASE_DISSECT,
     STATUS_PASSED,
     STATUS_FAILED,
@@ -50,11 +25,6 @@ from .core import (
 
 
 class WritingTeachView(LoginRequiredMixin, TemplateView):
-    """
-    GET — renders the Dissect phase for a stage.
-    Shows model sentence, converted version, conversion note,
-    and the dissect question for the student to answer.
-    """
     template_name = "content/writing/teach.html"
 
     def get(self, request, unit_id, stage_id, *args, **kwargs):
@@ -76,11 +46,8 @@ class WritingTeachView(LoginRequiredMixin, TemplateView):
             )
             return redirect("content:writing_hub", unit_id=unit_id)
 
-        # Check stage is not locked
         status = get_stage_status(
-            request.user,
-            self.content,
-            self.academic_year,
+            request.user, self.content, self.academic_year
         )
         if status == "locked":
             messages.warning(
@@ -92,18 +59,14 @@ class WritingTeachView(LoginRequiredMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user    = self.request.user
+        context   = super().get_context_data(**kwargs)
+        user      = self.request.user
 
-        # Base stage context from core.py
         stage_ctx = build_stage_context(
-            user,
-            self.content,
-            self.academic_year,
+            user, self.content, self.academic_year
         )
         context.update(stage_ctx)
 
-        # Previous dissect attempts for this stage
         previous_attempts = (
             WritingAttempt.objects
             .filter(
@@ -115,24 +78,17 @@ class WritingTeachView(LoginRequiredMixin, TemplateView):
             .order_by("-created_at")
         )
 
-        # Latest dissect attempt — shown as previous answer
         latest_dissect = previous_attempts.first()
-
-        # Has the student already passed dissect?
         dissect_passed = previous_attempts.filter(
-            status=STATUS_PASSED,
+            status=STATUS_PASSED
         ).exists()
 
         context.update({
-            "previous_attempts": previous_attempts,
-            "latest_dissect":    latest_dissect,
-            "dissect_passed":    dissect_passed,
-            "attempt_count":     previous_attempts.count(),
-
-            # Show the student which phase they are on
-            "active_phase":      PHASE_DISSECT,
-
-            # Phase navigation — which phases are done
+            "previous_attempts":       previous_attempts,
+            "latest_dissect":          latest_dissect,
+            "dissect_passed":          dissect_passed,
+            "attempt_count":           previous_attempts.count(),
+            "active_phase":            PHASE_DISSECT,
             "show_proceed_to_imitate": dissect_passed,
             "show_proceed_to_produce": (
                 dissect_passed
@@ -144,21 +100,6 @@ class WritingTeachView(LoginRequiredMixin, TemplateView):
 
 
 class WritingTeachSubmitView(LoginRequiredMixin, TemplateView):
-    """
-    POST — receives the student's dissect answer,
-    evaluates it, creates a WritingAttempt record,
-    and returns the result.
-
-    Dissect evaluation:
-    - Simple text comparison against dissect_answer
-    - Case-insensitive, whitespace-normalised
-    - Partial credit: if student answer contains
-      the key parts of the correct answer
-    - No cooldown — student can retry dissect immediately
-
-    Returns JSON for AJAX submission or redirects for
-    standard form submission.
-    """
     template_name = "content/writing/teach.html"
 
     def post(self, request, unit_id, stage_id, *args, **kwargs):
@@ -174,78 +115,57 @@ class WritingTeachSubmitView(LoginRequiredMixin, TemplateView):
 
         if not academic_year:
             return self._error_response(
-                request,
-                "Writing is not available right now.",
-                unit_id,
+                request, "Writing is not available right now.", unit_id
             )
 
-        # Check stage is not locked
         status = get_stage_status(request.user, content, academic_year)
         if status == "locked":
             return self._error_response(
-                request,
-                "This stage is not yet available.",
-                unit_id,
+                request, "This stage is not yet available.", unit_id
             )
 
-        # Get student's answer
         response_text = request.POST.get("response_text", "").strip()
         if not response_text:
             return self._error_response(
-                request,
-                "Please write your answer before submitting.",
-                unit_id,
+                request, "Please write your answer before submitting.", unit_id
             )
 
-        # Evaluate the dissect answer
-        evaluation = _evaluate_dissect(response_text, content)
-
-        # Record the attempt
+        evaluation     = _evaluate_dissect(response_text, content)
         attempt_number = get_next_attempt_number(
-            request.user,
-            content,
-            academic_year,
-            PHASE_DISSECT,
+            request.user, content, academic_year, PHASE_DISSECT
         )
 
         attempt = WritingAttempt.objects.create(
-            user          = request.user,
-            content       = content,
-            academic_year = academic_year,
-            phase         = PHASE_DISSECT,
-            attempt_number = attempt_number,
-            response_text = response_text,
-            status        = STATUS_PASSED if evaluation["passed"] else STATUS_FAILED,
-            auto_score    = evaluation["score"],
-            auto_checks   = evaluation["checks"],
+            user               = request.user,
+            content            = content,
+            academic_year      = academic_year,
+            phase              = PHASE_DISSECT,
+            attempt_number     = attempt_number,
+            response_text      = response_text,
+            status             = STATUS_PASSED if evaluation["passed"] else STATUS_FAILED,
+            auto_score         = evaluation["score"],
+            auto_checks        = evaluation["checks"],
             time_spent_seconds = _parse_time_spent(request),
         )
 
-        # Build response context
         result = {
-            "passed":           evaluation["passed"],
-            "score":            evaluation["score"],
-            "feedback":         evaluation["feedback"],
-            "correct_answer":   content.dissect_answer,
-            "attempt_number":   attempt_number,
-            "attempt_id":       attempt.id,
+            "passed":         evaluation["passed"],
+            "score":          evaluation["score"],
+            "feedback":       evaluation["feedback"],
+            "correct_answer": content.dissect_answer,
+            "attempt_number": attempt_number,
+            "attempt_id":     attempt.id,
         }
 
-        # AJAX request — return JSON
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse(result)
 
-        # Standard form submission — redirect with message
         if evaluation["passed"]:
             messages.success(
-                request,
-                "Good work. You have completed the Dissect phase."
+                request, "Good work. You have completed the Dissect phase."
             )
         else:
-            messages.warning(
-                request,
-                evaluation["feedback"]
-            )
+            messages.warning(request, evaluation["feedback"])
 
         return redirect(
             "content:writing_teach",
@@ -261,7 +181,7 @@ class WritingTeachSubmitView(LoginRequiredMixin, TemplateView):
 
 
 # ============================================================
-# DISSECT EVALUATION LOGIC
+# DISSECT EVALUATION
 # ============================================================
 
 def _evaluate_dissect(response_text, content):
@@ -269,30 +189,15 @@ def _evaluate_dissect(response_text, content):
     Evaluate the student's dissect answer.
 
     Strategy:
-    1. Exact match (case-insensitive, normalised) → 100%
-    2. Key terms match — student answer contains the
-       essential parts of the correct answer → 80%
-    3. Partial match — student answer shares significant
-       overlap with correct answer → 60% (pass threshold)
-    4. Poor match → fail with specific feedback
-
-    Pass threshold: score >= 60
-
-    Returns:
-    {
-        'passed': bool,
-        'score': int,
-        'checks': dict,
-        'feedback': str,
-    }
+    1. Exact match → 100, pass
+    2. Role-pair match — checks subject/verb assigned correctly
+       This prevents "subject: yearned, verb: humanity" passing
+    3. Key terms fallback — for free-form answers
     """
-    student  = _normalise(response_text)
-    correct  = _normalise(content.dissect_answer)
+    student = _normalise(response_text)
+    correct = _normalise(content.dissect_answer)
 
-    checks   = {}
-    feedback = ""
-
-    # ── Check 1: Exact match ──────────────────────────────
+    # ── 1. Exact match ────────────────────────────────
     if student == correct:
         return {
             "passed":   True,
@@ -301,20 +206,66 @@ def _evaluate_dissect(response_text, content):
             "feedback": "Correct. Well done.",
         }
 
-    # ── Check 2: Key terms present ────────────────────────
-    # Extract key terms from correct answer
-    # (words longer than 3 characters — ignore articles/prepositions)
-    key_terms = [
-        w for w in correct.split()
-        if len(w) > 3
-    ]
-    terms_found = [t for t in key_terms if t in student]
+    # ── 2. Role-pair matching ─────────────────────────
+    correct_pairs = _extract_role_pairs(correct)
+    student_pairs = _extract_role_pairs(student)
+    checks        = {}
+
+    if correct_pairs:
+        correct_roles = 0
+        wrong_roles   = []
+
+        for role, word in correct_pairs.items():
+            student_word = student_pairs.get(role, "")
+            if word and word in student_word:
+                correct_roles += 1
+            else:
+                wrong_roles.append(role)
+
+        ratio = correct_roles / len(correct_pairs)
+        checks["role_pair_ratio"] = ratio
+        checks["wrong_roles"]     = wrong_roles
+
+        if ratio == 1.0:
+            return {
+                "passed":   True,
+                "score":    100,
+                "checks":   checks,
+                "feedback": "Correct. Well done.",
+            }
+
+        if ratio >= 0.5:
+            return {
+                "passed":   False,
+                "score":    int(ratio * 100),
+                "checks":   checks,
+                "feedback": (
+                    f"Not quite. Check these: "
+                    f"{', '.join(wrong_roles)}. "
+                    f"Look at the sentence again carefully."
+                ),
+            }
+
+        return {
+            "passed":   False,
+            "score":    int(ratio * 100),
+            "checks":   checks,
+            "feedback": (
+                f"{_build_dissect_hint(content)} "
+                f"Look at the model sentence again and try once more."
+            ),
+        }
+
+    # ── 3. Key terms fallback ─────────────────────────
+    # Used when dissect_answer is free-form, not role:word format
+    key_terms   = [w.lower() for w in correct.split() if len(w) > 3]
+    terms_found = [t for t in key_terms if t in student.lower()]
     term_ratio  = len(terms_found) / len(key_terms) if key_terms else 0
 
     checks["key_terms_ratio"] = term_ratio
     checks["terms_found"]     = terms_found
     checks["terms_missing"]   = [
-        t for t in key_terms if t not in student
+        t for t in key_terms if t not in student.lower()
     ]
 
     if term_ratio >= 0.8:
@@ -322,9 +273,7 @@ def _evaluate_dissect(response_text, content):
             "passed":   True,
             "score":    80,
             "checks":   checks,
-            "feedback": (
-                "Good answer. You identified the key parts correctly."
-            ),
+            "feedback": "Good answer. You identified the key parts correctly.",
         }
 
     if term_ratio >= 0.6:
@@ -335,33 +284,58 @@ def _evaluate_dissect(response_text, content):
             "checks":   checks,
             "feedback": (
                 "Your answer is mostly correct. "
-                "You could also mention: "
-                f"{', '.join(missing[:3])}."
+                f"You could also mention: {', '.join(missing[:3])}."
             ),
         }
-
-    # ── Check 3: Poor match — fail ────────────────────────
-    # Give the student a specific hint without
-    # revealing the full answer
-    hint = _build_dissect_hint(content)
 
     return {
         "passed":   False,
         "score":    int(term_ratio * 100),
         "checks":   checks,
         "feedback": (
-            f"Not quite. {hint} "
+            f"Not quite. {_build_dissect_hint(content)} "
             f"Look at the model sentence again and try once more."
         ),
     }
 
 
+def _extract_role_pairs(text):
+    """
+    Extract role→word mappings from a dissect answer.
+
+    Handles:
+        "subject: humanity, verb: yearned"
+        "subject is humanity and verb is yearned"
+        "humanity is the subject, yearned is the verb"
+
+    Returns:
+        {"subject": "humanity", "verb": "yearned"}
+    """
+    pairs = {}
+    roles = [
+        "subject", "verb", "object", "adjective",
+        "adverb", "conjunction", "clause"
+    ]
+
+    for role in roles:
+        # Pattern 1: "subject: humanity" or "subject is humanity"
+        pattern1 = rf'{role}\s*[:=is]+\s*(["\']?[\w\s]+?["\']?)(?:,|and|$|\n)'
+        match = re.search(pattern1, text, re.IGNORECASE)
+        if match:
+            pairs[role] = match.group(1).strip().lower()
+            continue
+
+        # Pattern 2: "humanity is the subject"
+        pattern2 = rf'([\w]+)\s+is\s+(?:the\s+)?{role}'
+        match = re.search(pattern2, text, re.IGNORECASE)
+        if match:
+            pairs[role] = match.group(1).strip().lower()
+
+    return pairs
+
+
 def _normalise(text):
-    """
-    Normalise text for comparison:
-    lowercase, strip whitespace, collapse multiple spaces.
-    """
-    import re
+    """Lowercase, strip, collapse spaces."""
     text = text.lower().strip()
     text = re.sub(r'\s+', ' ', text)
     return text
@@ -369,9 +343,8 @@ def _normalise(text):
 
 def _build_dissect_hint(content):
     """
-    Build a hint based on the dissect question.
-    Does not reveal the answer — points the student
-    toward what to look for.
+    Build a hint from the dissect question.
+    Points toward what to look for without revealing the answer.
     """
     question = content.dissect_question.lower()
 
@@ -407,10 +380,7 @@ def _build_dissect_hint(content):
 
 
 def _parse_time_spent(request):
-    """
-    Parse time_spent_seconds from POST data.
-    Returns None if not present or invalid.
-    """
+    """Parse time_spent_seconds from POST. Returns None if missing."""
     try:
         val = request.POST.get("time_spent_seconds")
         return int(val) if val else None

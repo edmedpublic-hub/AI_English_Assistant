@@ -56,7 +56,8 @@
 <nav aria-label="breadcrumb" class="mb-3">
   <ol class="breadcrumb">
     <li class="breadcrumb-item">
-      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}">Writing Journey</a>
+      {# FIX 1: removed extra 'writing:' namespace throughout #}
+      <a href="{% url 'content:writing_hub' unit_id=unit.id %}">Writing Journey</a>
     </li>
     <li class="breadcrumb-item active">Stage {{ stage.number }}: {{ stage.name }}</li>
   </ol>
@@ -64,15 +65,18 @@
 
 <!-- ── Phase navigation ───────────────────────────── -->
 <div class="d-flex gap-2 mb-4">
-  <a href="{% url 'content:writing:writing_teach' unit_id=unit.id stage_id=stage.id %}"
-     class="btn btn-sm btn-outline-primary" style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
+  <a href="{% url 'content:writing_teach' unit_id=unit.id stage_id=stage.id %}"
+     class="btn btn-sm btn-outline-primary"
+     style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
     1. Dissect {% if dissect_passed %}✓{% endif %}
   </a>
-  <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
-     class="btn btn-sm btn-outline-primary" style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
+  <a href="{% url 'content:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+     class="btn btn-sm btn-outline-primary"
+     style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
     2. Imitate {% if imitate_passed %}✓{% endif %}
   </a>
-  <span class="btn btn-sm btn-primary" style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
+  <span class="btn btn-sm btn-primary"
+        style="border-radius:9999px;font-size:0.8rem;padding:0.3rem 0.85rem;">
     3. Produce
   </span>
 </div>
@@ -89,7 +93,7 @@
 <!-- Already mastered -->
 <div class="alert alert-success">
   <strong>✓ You have mastered this stage.</strong>
-  <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}" class="alert-link ms-2">
+  <a href="{% url 'content:writing_hub' unit_id=unit.id %}" class="alert-link ms-2">
     Back to Journey →
   </a>
 </div>
@@ -159,7 +163,7 @@
       </div>
     </div>
 
-    <!-- ── Previous failed attempt ──────────── -->
+    <!-- ── Previous failed attempt feedback ─── -->
     {% if latest_produce and not produce_passed and not is_in_cooldown %}
     <div class="alert alert-warning small mb-3">
       <strong>Previous attempt feedback:</strong>
@@ -177,8 +181,9 @@
     <div class="card">
       <div class="card-header fw-semibold">Your Writing</div>
       <div class="card-body">
+        {# FIX 1: removed extra 'writing:' namespace from form action #}
         <form method="post"
-              action="{% url 'content:writing:writing_test_submit' unit_id=unit.id stage_id=stage.id %}">
+              action="{% url 'content:writing_test_submit' unit_id=unit.id stage_id=stage.id %}">
           {% csrf_token %}
           <div class="mb-2">
             <textarea
@@ -194,7 +199,8 @@
             <span class="word-counter short" id="word-count">
               0 / {{ min_words }} words minimum
             </span>
-            <button type="submit" class="btn btn-primary" id="submit-btn">
+            {# FIX 2: disable submit button until min word count is met #}
+            <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
               Submit Writing
             </button>
           </div>
@@ -212,7 +218,8 @@
       <div class="card-header fw-semibold">Attempts</div>
       <div class="card-body">
         <p class="small text-muted mb-0">
-          You have attempted Produce {{ attempt_count }} time{{ attempt_count|pluralize }}.
+          You have attempted Produce {{ attempt_count }}
+          time{{ attempt_count|pluralize }}.
           Keep going — there is no limit.
         </p>
       </div>
@@ -237,9 +244,9 @@
     <div class="card">
       <div class="card-body text-center">
         <p class="small text-muted mb-2">Need to review first?</p>
-        <a href="{% url 'content:writing:writing_teach' unit_id=unit.id stage_id=stage.id %}"
+        <a href="{% url 'content:writing_teach' unit_id=unit.id stage_id=stage.id %}"
            class="btn btn-outline-secondary btn-sm w-100 mb-2">← Dissect</a>
-        <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+        <a href="{% url 'content:writing_practice' unit_id=unit.id stage_id=stage.id %}"
            class="btn btn-outline-secondary btn-sm w-100">← Imitate</a>
       </div>
     </div>
@@ -262,6 +269,11 @@ function updateWordCount(textarea) {
   if (counter) {
     counter.textContent = words + ' / ' + minWords + ' words minimum';
     counter.className   = 'word-counter ' + (words >= minWords ? 'enough' : 'short');
+  }
+
+  // FIX 2: enable submit only when min word count is met
+  if (btn) {
+    btn.disabled = words < minWords;
   }
 }
 </script>

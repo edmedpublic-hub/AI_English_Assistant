@@ -195,38 +195,44 @@
     <!-- ── Next steps ──────────────────────────── -->
     <div class="d-flex gap-2 flex-wrap">
 
+      {# FIX 1: removed extra 'writing:' namespace throughout #}
       {% if is_passed and next_content %}
-      <a href="{% url 'content:writing:writing_teach' unit_id=unit.id stage_id=next_content.stage.id %}"
+      <a href="{% url 'content:writing_teach' unit_id=unit.id stage_id=next_content.stage.id %}"
          class="btn btn-success">
         Next Stage: {{ next_content.stage.name }} →
       </a>
       {% elif is_passed %}
-      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}"
+      <a href="{% url 'content:writing_hub' unit_id=unit.id %}"
          class="btn btn-success">
         Back to Journey →
       </a>
       {% endif %}
 
       {% if is_cooldown %}
-      <a href="{% url 'content:writing:writing_teach' unit_id=unit.id stage_id=stage.id %}"
+      <a href="{% url 'content:writing_teach' unit_id=unit.id stage_id=stage.id %}"
          class="btn btn-outline-secondary">
         Review Dissect
       </a>
-      <a href="{% url 'content:writing:writing_practice' unit_id=unit.id stage_id=stage.id %}"
+      <a href="{% url 'content:writing_practice' unit_id=unit.id stage_id=stage.id %}"
          class="btn btn-outline-secondary">
         Review Imitate
       </a>
       {% endif %}
 
       {% if is_pending %}
-      <a href="{% url 'content:writing:writing_hub' unit_id=unit.id %}"
+      <a href="{% url 'content:writing_hub' unit_id=unit.id %}"
          class="btn btn-outline-primary">
         Back to Journey
       </a>
       {% endif %}
 
+      {# FIX 2: is_failed is never True when is_cooldown is True — #}
+      {# both come from the same failed attempt, but is_cooldown    #}
+      {# takes priority. This condition is now safe as written       #}
+      {# because is_cooldown is checked in the view before setting  #}
+      {# is_failed. Leaving the guard explicit for clarity.         #}
       {% if is_failed and not is_cooldown %}
-      <a href="{% url 'content:writing:writing_test' unit_id=unit.id stage_id=stage.id %}"
+      <a href="{% url 'content:writing_test' unit_id=unit.id stage_id=stage.id %}"
          class="btn btn-primary">
         Try Again
       </a>
@@ -242,7 +248,6 @@
 {% block extra_js %}
 {% if cooldown_remaining %}
 <script>
-// Live countdown timer
 (function() {
   let totalSeconds = {{ cooldown_remaining.total_seconds }};
   const display    = document.getElementById('countdown');

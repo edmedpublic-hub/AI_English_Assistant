@@ -221,7 +221,7 @@
         </div>
       </div>
     {% else %}
-      <a href="{% url 'content:chunk_writing' chunk.id %}"
+      <a href="{% url 'content:writing_hub' unit_id=unit.id %}"
          class="card text-center text-decoration-none h-100 shadow-sm domain-card {{ status }}">
         <div class="card-body py-3 px-2">
           <div class="fs-2 mb-1">✍️</div>
